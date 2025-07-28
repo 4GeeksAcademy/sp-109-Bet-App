@@ -2,7 +2,7 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 from flask import Flask, request, jsonify, url_for, Blueprint
-from api.models import db, User, AdminUser
+from api.models import db, User, Playground, AdminUser
 from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
 from sqlalchemy import select
@@ -10,7 +10,7 @@ from sqlalchemy import select
 api = Blueprint('api', __name__)
 
 # Allow CORS requests to this API
-CORS(api)
+
 
 
 @api.route('/hello', methods=['POST', 'GET'])
@@ -21,6 +21,7 @@ def handle_hello():
     }
 
     return jsonify(response_body), 200
+
 
 @api.route('/register', methods=['POST'])
 def register_user():
@@ -51,6 +52,7 @@ def register_user():
 
     return jsonify({"msg": "User registered successfully", "user": user.serialize()}), 201
 
+
 @api.route('/login', methods=['POST'])
 def login_user():
     body = request.get_json()
@@ -68,10 +70,12 @@ def login_user():
         "user": user.serialize()
     }), 200
 
+
 @api.route('/users', methods=['GET'])
 def get_users():
     users = User.query.all()
     return jsonify([user.serialize() for user in users]), 200
+
 
 @api.route('/user/<int:id>', methods=['GET'])
 def get_user(id):
@@ -79,6 +83,7 @@ def get_user(id):
     if not user:
         raise APIException("User not found", 404)
     return jsonify(user.serialize()), 200
+
 
 @api.route('/user/<int:id>', methods=['PUT'])
 def update_user(id):
@@ -99,6 +104,7 @@ def update_user(id):
     db.session.commit()
     return jsonify({"msg": "User updated", "user": user.serialize()}), 200
 
+
 @api.route('/user/<int:id>', methods=['DELETE'])
 def delete_user(id):
     user = User.query.get(id)
@@ -108,7 +114,6 @@ def delete_user(id):
     db.session.delete(user)
     db.session.commit()
     return jsonify({"msg": "User deleted"}), 200
-
 
 
 @api.route('/adminuser', methods=['GET'])
@@ -188,3 +193,111 @@ def edit_adminsite(id):
     db.session.commit()
     return 'Admin updated successfully!', 200
 
+
+
+@api.route('/playground', methods=['GET'])
+def show_playgrounds():
+
+    playgrounds = Playground.query.all()
+
+    response_body = {
+        "message": "success",
+        "playgrounds": [playground.serialize() for playground in playgrounds]
+    }
+
+    return jsonify(response_body), 200
+
+
+
+@api.route('/playground', methods=['POST'])
+def create_playground():
+    body = request.get_json()
+
+    name = body.get("name")
+
+    if not name:
+        raise APIException("Missing required fields", 400)
+
+
+    slug = generate_unique_slug(db.session, Playground, name)
+
+    new_playground = Playground(name=name, slug=slug)
+
+    db.session.add(new_playground)
+    db.session.commit()
+
+    return jsonify({
+        "message": "New playground created",
+        "playground": new_playground.serialize()
+    }), 201
+
+
+@api.route('/playground/<int:id>', methods=['GET'])
+def show_playground(id):
+
+    playground = Playground.query.filter_by(id=id).first()
+
+    if not playground:
+        raise APIException("Playground not found", 404)
+
+    response_body = {
+        "message": "success",
+        "playground": playground.serialize()
+    }
+
+    return jsonify(response_body), 200
+
+
+@api.route('/playground/<int:id>', methods=['DELETE'])
+def delete_playground(id):
+
+    playground = Playground.query.filter_by(id=id).first()
+
+    if not playground:
+        raise APIException("Playground not found", 404)
+
+    db.session.delete(playground)
+    db.session.commit()
+
+    response_body = {
+        "message": "Playground deleted",
+    }
+
+    return jsonify(response_body), 200
+
+
+@api.route('/playground/<int:id>', methods=['PUT'])
+def update_playground(id):
+
+    playground = Playground.query.filter_by(id=id).first()
+
+    if not playground:
+        raise APIException("Playground not found", 404)
+
+    data = request.get_json()
+    new_name = data.get('name')
+
+    if new_name:
+        if not new_name.strip():
+            raise APIException("Name cannot be empty", 400)
+        
+
+    if new_name != playground.name:
+        new_slug = generate_unique_slug(db. session, Playground, new_name)
+        existing = Playground.query.filter_by(slug=new_slug).first()
+
+        if existing and existing.id != playground.id:
+            raise APIException("Slug already in use", 400)
+        
+        playground.name = new_name
+        playground.slug = new_slug
+           
+
+    db.session.commit()
+    
+    response_body = {
+        "message": "Playground updated",
+        "playground": playground.serialize()
+    }
+
+    return jsonify(response_body), 200
