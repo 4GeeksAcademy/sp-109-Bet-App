@@ -13,6 +13,18 @@ export const Users = () => {
 		}
 	};
 
+	const handleDelete = async (id) => {
+		if (!confirm("Are you sure you want to delete this user?")) return;
+		try {
+			await fetch(import.meta.env.VITE_BACKEND_URL + `/api/user/${id}`, {
+				method: "DELETE"
+			});
+			getUsers(); // reload list
+		} catch (err) {
+			console.error("Error deleting:", err);
+		}
+	};
+
 	useEffect(() => {
 		getUsers();
 	}, []);
@@ -47,14 +59,4 @@ export const Users = () => {
 			<a href="/create" className="btn btn-success">Create New User</a>
 		</div>
 	);
-
-	const handleDelete = async (id) => {
-		if (!confirm("Are you sure you want to delete this user?")) return;
-		try {
-			await fetch(import.meta.env.VITE_BACKEND_URL + `/api/user/${id}`, { method: "DELETE" });
-			getUsers(); // reload list
-		} catch (err) {
-			console.error("Error deleting:", err);
-		}
-	};
 };
