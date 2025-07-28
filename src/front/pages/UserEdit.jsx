@@ -34,11 +34,11 @@ export const UserEdit = () => {
 		<div className="container mt-5">
 			<h2>Edit User</h2>
 			<form onSubmit={handleSubmit}>
-				<input className="form-control mb-2" value={form.username || ""} name="username" onChange={handleChange} />
-				<input className="form-control mb-2" value={form.name || ""} name="name" onChange={handleChange} />
-				<input className="form-control mb-2" value={form.last_name || ""} name="last_name" onChange={handleChange} />
-				<input className="form-control mb-2" value={form.email || ""} name="email" onChange={handleChange} />
-				<input className="form-control mb-2" type="number" value={form.money || 0} name="money" onChange={handleChange} />
+				<input className="form-control mb-2" placeholder="Update username" value={form.username || ""} name="username" onChange={handleChange} />
+				<input className="form-control mb-2" placeholder="Update first name" value={form.name || ""} name="name" onChange={handleChange} />
+				<input className="form-control mb-2" placeholder="Update last name" value={form.last_name || ""} name="last_name" onChange={handleChange} />
+				<input className="form-control mb-2" placeholder="Update email address" value={form.email || ""} name="email" onChange={handleChange} />
+				<input className="form-control mb-2" type="number" placeholder="Update money amount" value={form.money || 0} name="money" onChange={handleChange} />
 				<button className="btn btn-primary">Update</button>
 			</form>
 		</div>

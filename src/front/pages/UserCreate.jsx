@@ -35,12 +35,36 @@ export const UserCreate = () => {
 		<div className="container mt-5">
 			<h2>Create User</h2>
 			<form onSubmit={handleSubmit}>
-				<input className="form-control mb-2" placeholder="Username" name="username" onChange={handleChange} />
-				<input className="form-control mb-2" placeholder="Name" name="name" onChange={handleChange} />
-				<input className="form-control mb-2" placeholder="Last Name" name="last_name" onChange={handleChange} />
-				<input className="form-control mb-2" placeholder="Email" name="email" onChange={handleChange} />
-				<input className="form-control mb-2" placeholder="Password" name="password" onChange={handleChange} />
-				<input className="form-control mb-2" type="number" placeholder="Money" name="money" onChange={handleChange} />
+				<div className="form-floating mb-3">
+					<input type="text" className="form-control" id="username" name="username" value={form.username} onChange={handleChange} placeholder="Username" />
+					<label htmlFor="username">Username</label>
+				</div>
+
+				<div className="form-floating mb-3">
+					<input type="text" className="form-control" id="name" name="name" value={form.name} onChange={handleChange} placeholder="First Name" />
+					<label htmlFor="name">First Name</label>
+				</div>
+
+				<div className="form-floating mb-3">
+					<input type="text" className="form-control" id="last_name" name="last_name" value={form.last_name} onChange={handleChange} placeholder="Last Name" />
+					<label htmlFor="last_name">Last Name</label>
+				</div>
+
+				<div className="form-floating mb-3">
+					<input type="email" className="form-control" id="email" name="email" value={form.email} onChange={handleChange} placeholder="Email" />
+					<label htmlFor="email">Email</label>
+				</div>
+
+				<div className="form-floating mb-3">
+					<input type="password" className="form-control" id="password" name="password" value={form.password} onChange={handleChange} placeholder="Password" />
+					<label htmlFor="password">Password</label>
+				</div>
+
+				<div className="form-floating mb-3">
+					<input type="number" className="form-control" id="money" name="money" value={form.money} onChange={handleChange} placeholder="Money" />
+					<label htmlFor="money">Money</label>
+				</div>
+
 				<button className="btn btn-success">Save</button>
 			</form>
 		</div>

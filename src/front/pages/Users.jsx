@@ -48,12 +48,17 @@ export const Users = () => {
 							<td>{user.email}</td>
 							<td>{user.money}</td>
 							<td>
+								<a href={`/view/${user.id}`} className="btn btn-sm btn-info me-2">View</a>
 								<a href={`/edit/${user.id}`} className="btn btn-sm btn-primary me-2">Edit</a>
 								<button onClick={() => handleDelete(user.id)} className="btn btn-sm btn-danger">Delete</button>
 							</td>
 						</tr>
 					))}
-					{users.length === 0 && <tr><td colSpan={4}>No users found.</td></tr>}
+					{users.length === 0 && (
+						<tr>
+							<td colSpan={4}>No users found.</td>
+						</tr>
+					)}
 				</tbody>
 			</table>
 			<a href="/create" className="btn btn-success">Create New User</a>
