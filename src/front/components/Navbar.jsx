@@ -15,6 +15,9 @@ export const Navbar = () => {
 				<Link to="/users" className="btn btn-outline-secondary">
 					Users
 				</Link>
+				<Link to="/playground" className="btn btn-outline-warning mx-2">
+					Playgrounds
+				</Link>
 			</div>
 		</nav>
 	);
