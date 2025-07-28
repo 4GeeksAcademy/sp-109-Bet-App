@@ -2,9 +2,10 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 from flask import Flask, request, jsonify, url_for, Blueprint
-from api.models import db, User
+from api.models import db, User, Adminsite
 from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
+from sqlalchemy import select
 
 api = Blueprint('api', __name__)
 
@@ -107,4 +108,70 @@ def delete_user(id):
     db.session.delete(user)
     db.session.commit()
     return jsonify({"msg": "User deleted"}), 200
+
+
+
+@api.route('/adminsite', methods=['GET'])
+def get_adminsite():
+    all_adminsite = db.session.execute(select(Adminsite)).scalars().all()
+    results = list(map(lambda adminsite: adminsite.serialize(), all_adminsite))
+   
+    return jsonify(results), 200
+
+
+@api.route('/adminsite/<int:id>', methods=['GET'])
+def get_adminsite_byid(id):
+    admin_id = db.session.get(Adminsite, id) 
+
+    response_body = {
+        "id": admin_id.serialize()
+    }
+
+    return jsonify(response_body),200
+
+
+@api.route('/adminsite/<int:id>', methods=['DELETE'])
+def delete_adminsite_byid(id):
+    
+    admin_to_delete = db.session.execute(select(Adminsite).where(Adminsite.id == id)).scalars().first()
+
+    if admin_to_delete is None:
+        return {
+        "msg": "Something happened, the favorite planet does not exist"
+    } , 401
+    
+
+    db.session.delete(admin_to_delete)
+    db.session.commit()
+
+    return {
+        "msg": "Admin deleted"
+    } , 200
+
+
+@api.route('/adminsite', methods=['POST'])
+def add_adminsite():
+    body = request.get_json()
+
+    adminsite = Adminsite(
+        email=body['email'],
+        password=body['password']
+    )
+    db.session.add(adminsite)
+    db.session.commit()
+
+    return 'New Admin add!', 200
+
+
+@api.route('/adminsite/<int:id>', methods=['PUT'])
+def edit_adminsite(id):
+    admin_id = db.session.get(Adminsite, id)
+    body= request.get_json()
+
+    admin_id.email=body['email'],
+    admin_id.password=body['password']
+
+   
+    db.session.commit()
+    return 'Data updated!', 200
 
