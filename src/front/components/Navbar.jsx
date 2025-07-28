@@ -15,6 +15,12 @@ export const Navbar = () => {
 				<Link to="/users" className="btn btn-outline-secondary">
 					Users
 				</Link>
+				
+				
+				
+				<Link to="/adminsite" className="btn btn-outline-secondary">
+					Admins
+				</Link>
 			</div>
 		</nav>
 	);

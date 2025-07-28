@@ -2,7 +2,7 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 from flask import Flask, request, jsonify, url_for, Blueprint
-from api.models import db, User, Adminsite
+from api.models import db, User, AdminUser
 from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
 from sqlalchemy import select
@@ -111,34 +111,35 @@ def delete_user(id):
 
 
 
-@api.route('/adminsite', methods=['GET'])
+@api.route('/adminuser', methods=['GET'])
 def get_adminsite():
-    all_adminsite = db.session.execute(select(Adminsite)).scalars().all()
+    all_adminsite = db.session.execute(select(AdminUser)).scalars().all()
     results = list(map(lambda adminsite: adminsite.serialize(), all_adminsite))
    
     return jsonify(results), 200
 
 
-@api.route('/adminsite/<int:id>', methods=['GET'])
+@api.route('/adminuser/<int:id>', methods=['GET'])
 def get_adminsite_byid(id):
-    admin_id = db.session.get(Adminsite, id) 
+    admin= db.session.get(AdminUser, id) 
+
+    if not admin: 
+        raise APIException('Admin not found',404)
 
     response_body = {
-        "id": admin_id.serialize()
+        "id": admin.serialize()
     }
 
     return jsonify(response_body),200
 
 
-@api.route('/adminsite/<int:id>', methods=['DELETE'])
+@api.route('/adminuser/<int:id>', methods=['DELETE'])
 def delete_adminsite_byid(id):
     
-    admin_to_delete = db.session.execute(select(Adminsite).where(Adminsite.id == id)).scalars().first()
+    admin_to_delete = db.session.execute(select(AdminUser).where(AdminUser.id == id)).scalars().first()
 
-    if admin_to_delete is None:
-        return {
-        "msg": "Something happened, the favorite planet does not exist"
-    } , 401
+    if not admin_to_delete:
+        raise APIException('Admin not found',404)
     
 
     db.session.delete(admin_to_delete)
@@ -149,29 +150,41 @@ def delete_adminsite_byid(id):
     } , 200
 
 
-@api.route('/adminsite', methods=['POST'])
+@api.route('/adminuser', methods=['POST'])
 def add_adminsite():
     body = request.get_json()
 
-    adminsite = Adminsite(
+    if not body or 'email' not in body or 'password' not in body:
+        raise APIException('Fields "email" and "password" are required', 400)
+
+    adminsite = AdminUser(
         email=body['email'],
         password=body['password']
     )
+
+
     db.session.add(adminsite)
     db.session.commit()
 
-    return 'New Admin add!', 200
+    return 'New Admin add!', 201
 
 
-@api.route('/adminsite/<int:id>', methods=['PUT'])
+@api.route('/adminuser/<int:id>', methods=['PUT'])
 def edit_adminsite(id):
-    admin_id = db.session.get(Adminsite, id)
-    body= request.get_json()
+    admin = db.session.get(AdminUser, id)
+    if not admin:
+        raise APIException('Admin not found', 404)
 
-    admin_id.email=body['email'],
-    admin_id.password=body['password']
+    body= request.get_json()
+    if not body:
+        raise APIException('Request body must be JSON',400)
+
+    if 'email' in body:
+        admin.email=body['email'],
+    if 'password' in body:
+        admin.password=body['password']
 
    
     db.session.commit()
-    return 'Data updated!', 200
+    return 'Admin updated successfully!', 200
 

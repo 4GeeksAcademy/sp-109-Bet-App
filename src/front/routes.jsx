@@ -13,6 +13,7 @@ import { Register } from "./pages/Register";
 import { Users } from "./pages/Users";
 import { UserCreate } from "./pages/UserCreate";
 import { UserEdit } from "./pages/UserEdit";
+import { Adminsite } from "./pages/Adminsite";
 
 export const router = createBrowserRouter(
     createRoutesFromElements(
@@ -33,6 +34,7 @@ export const router = createBrowserRouter(
         <Route path="/users" element={<Users />} />
         <Route path="/create" element={<UserCreate />} />
         <Route path="/edit/:id" element={<UserEdit />} />
+        <Route path="/adminsite" element={<Adminsite />} />
       </Route>
     )
 );
