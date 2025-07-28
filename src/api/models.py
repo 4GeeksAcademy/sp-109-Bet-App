@@ -29,6 +29,19 @@ class User(db.Model):
             "is_active": self.is_active
         }
     
+    
+class Adminsite(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
+    password: Mapped[str] = mapped_column(nullable=False)
+
+    def serialize(self):
+        return {
+        "id": self.id,
+        "email": self.email,
+            
+    }
+    
 class Playground(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(120), nullable=True)
