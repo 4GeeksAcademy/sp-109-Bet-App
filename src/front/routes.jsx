@@ -17,6 +17,7 @@ import { Playgrounds } from "./pages/Playgrounds";
 import { PlaygroundCreate } from "./pages/PlaygroundCreate";
 import { PlaygroundEdit } from "./pages/PlaygroundEdit";
 import { PlaygroundSingle } from "./pages/PlaygroundSingle";
+import { UserView } from "./pages/UserView";
 
 export const router = createBrowserRouter(
     createRoutesFromElements(
@@ -41,6 +42,7 @@ export const router = createBrowserRouter(
         <Route path="/playground/create" element={<PlaygroundCreate />} />
         <Route path="/playground/edit/:id" element={<PlaygroundEdit />} />
         <Route path="/playground/:id" element={<PlaygroundSingle />} />
+        <Route path="/view/:id" element={<UserView />} />
       </Route>
     )
 );
