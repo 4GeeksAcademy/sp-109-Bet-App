@@ -1,4 +1,6 @@
 from flask import jsonify, url_for
+import re
+from api.models import Playground
 
 class APIException(Exception):
     status_code = 400
@@ -14,6 +16,26 @@ class APIException(Exception):
         rv = dict(self.payload or ())
         rv['message'] = self.message
         return rv
+    
+def slugify(text):
+    text=text.lower()
+    text=re.sub(r'[^a-z0-9]+', '-', text)
+    text=text.strip('-')
+    return text
+
+def generate_unique_slug(session, model, name):
+    base_slug = slugify(name)
+    slug = base_slug
+   
+
+    existing= session.query(Playground).filter_by(slug=slug).first()
+    if existing:
+        raise APIException("Slug already exists. Please choose another name.", 400)
+
+
+    return slug
+
+
 
 def has_no_empty_params(rule):
     defaults = rule.defaults if rule.defaults is not None else ()

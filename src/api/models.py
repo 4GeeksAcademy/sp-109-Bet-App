@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, Boolean, Float, DateTime
+from sqlalchemy import String, Boolean, Float, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime
 
@@ -17,8 +17,8 @@ class User(db.Model):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     is_active: Mapped[bool] = mapped_column(Boolean(), default=True)
 
-        def serialize(self):
-            return {
+    def serialize(self):
+        return {
             "id": self.id,
             "username": self.username,
             "name": self.name,
@@ -30,14 +30,30 @@ class User(db.Model):
         }
     
     
-    class Adminsite(db.Model):
-        id: Mapped[int] = mapped_column(primary_key=True)
-        email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
-        password: Mapped[str] = mapped_column(nullable=False)
+class Adminsite(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
+    password: Mapped[str] = mapped_column(nullable=False)
 
-        def serialize(self):
-            return {
-            "id": self.id,
-            "email": self.email,
+    def serialize(self):
+        return {
+        "id": self.id,
+        "email": self.email,
             
+    }
+    
+class Playground(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(120), nullable=True)
+    slug: Mapped[str] = mapped_column(String(80), unique=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+   
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "slug": self.slug,
+            "created_at": self.created_at.isoformat(),
+           
         }
