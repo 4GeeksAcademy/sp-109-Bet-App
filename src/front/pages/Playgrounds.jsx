@@ -26,7 +26,7 @@ export const Playgrounds = () => {
     }, [])
 
     const handleDelete = async (id) => {
-        if (!window.confirm("¿Estás seguro que quieres eliminar este playground?")) return;
+        if (!window.confirm("Are you sure you want to delete this playground?")) return;
 
         try {
             const resp = await fetch(import.meta.env.VITE_BACKEND_URL + `/api/playground/${id}`, {

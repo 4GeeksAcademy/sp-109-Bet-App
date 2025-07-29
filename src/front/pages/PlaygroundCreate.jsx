@@ -6,7 +6,7 @@ export const PlaygroundCreate = () => {
     const [name, setName] = useState("")
     const [error, setError] = useState(null)
     const [message, setMessage] = useState(null)
-     const [slug, setSlug] = useState("")
+    const [slug, setSlug] = useState("")
 
     const navigate = useNavigate()
 

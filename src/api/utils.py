@@ -23,7 +23,7 @@ def slugify(text):
     text=text.strip('-')
     return text
 
-def generate_unique_slug(session, model, name):
+def generate_unique_slug(session, name):
     base_slug = slugify(name)
     slug = base_slug
    
