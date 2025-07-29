@@ -85,6 +85,13 @@ export const Playgrounds = () => {
                 >
                   🗑️
                 </button>
+                <button
+                  className="btn btn-sm btn-outline-primary me-2"
+                  onClick={() => navigate(`/playground/${pg.id}/chat`)}
+                >
+                  💬 Chat
+                </button>
+                
               </div>
             </li>
           ))}
