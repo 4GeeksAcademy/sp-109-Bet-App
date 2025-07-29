@@ -2,10 +2,11 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 from flask import Flask, request, jsonify, url_for, Blueprint
-from api.models import db, User, Playground, AdminUser
+from api.models import db, User, Playground, AdminUser, Bet
 from api.utils import generate_sitemap, APIException, generate_unique_slug
 from flask_cors import CORS
 from sqlalchemy import select
+from datetime import datetime
 
 api = Blueprint('api', __name__)
 
@@ -317,3 +318,128 @@ def update_playground(id):
     }
 
     return jsonify(response_body), 200
+
+
+@api.route('/playground/<int:pg_id>/bet', methods=['GET'])
+def get_bets_by_playground(pg_id):
+
+    playground=Playground.query.get(pg_id)
+
+    if not playground:
+        raise APIException("Playground not found", 404)
+    
+    bets = Bet.query.filter_by(playground_id=pg_id)
+
+    return jsonify([bet.serialize() for bet in bets]), 200
+
+
+@api.route('/playground/<int:pg_id>/bet/<int:bet_id>', methods=['GET'])
+def get_single_bet(pg_id, bet_id):
+
+    playground = Playground.query.get(pg_id)
+    if not playground:
+        raise APIException("Playground not found", 404)
+    
+    bet = Bet.query.filter_by(playground_id=pg_id, id=bet_id).first()
+    if not bet:
+        raise APIException("Bet not found in this playground", 404)
+
+    return jsonify(bet.serialize()), 200
+
+
+@api.route('/playground/<int:pg_id>/bet', methods=['POST'])
+def create_bet(pg_id):
+
+    body = request.get_json()
+
+    user_id = body.get("user_id")
+    if not user_id:
+        raise APIException("user_id is required", 400)
+
+    user = User.query.get(user_id)
+    if not user:
+        raise APIException("User not found", 404)
+
+    name = body.get('name')
+    amount = body.get('amount', 0.0)
+    if amount is None:
+        raise APIException("amount is required", 404)
+    
+    status = body.get("status")
+    deadline_str = body.get("deadline")
+    
+    playground=Playground.query.get(pg_id)
+    if not playground:
+        raise APIException("Playground not found", 404)
+    
+    deadline = datetime.fromisoformat(deadline_str) if deadline_str else None
+
+    new_bet = Bet(
+        name=name,
+        amount=amount,
+        status=status,
+        deadline=deadline,
+        user_id=user_id,
+        playground_id=pg_id
+    )
+
+    db.session.add(new_bet)
+    db.session.commit()
+
+    return jsonify({
+        "message": "New bet created succesfully",
+        "bet": new_bet.serialize()
+    }), 201
+
+
+@api.route('/playground/<int:pg_id>/bet/<int:bet_id>', methods=['DELETE'])
+def delete_single_bet(pg_id, bet_id):
+
+    playground = Playground.query.get(pg_id)
+    if not playground:
+        raise APIException("Playground not found", 404)
+    
+    bet = Bet.query.filter_by(playground_id=pg_id, id=bet_id).first()
+    if not bet:
+        raise APIException("Bet not found in this playground", 404)
+    
+    db.session.delete(bet)
+    db.session.commit()
+
+    return jsonify({"message": "Bet deleted succesfully", 
+        "bet_id": bet_id,
+        "playground_id": pg_id
+    }), 200
+
+
+@api.route('/playground/<int:pg_id>/bet/<int:bet_id>', methods=['PUT'])
+def update_bet(pg_id, bet_id):
+
+    body = request.get_json()
+    
+    playground=Playground.query.get(pg_id)
+    if not playground:
+        raise APIException("Playground not found", 404)
+    
+    bet = Bet.query.filter_by(playground_id=pg_id, id=bet_id).first()
+
+    bet.name = body.get('name', bet.name)
+    bet.amount = body.get('amount', bet.amount)
+    bet.status = body.get('status', bet.status)
+
+    deadline_str = body.get('deadline')
+    if deadline_str:
+        try:
+            bet.deadline = datetime.fromisoformat(deadline_str)
+        except ValueError:
+            raise APIException("Invalid date format. Use ISO 8601 format", 400)
+    else:
+        bet.deadline = None
+
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "New bet updated succesfully",
+        "bet": bet.serialize()
+    }), 200

@@ -17,7 +17,8 @@ class User(db.Model):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     is_active: Mapped[bool] = mapped_column(Boolean(), default=True)
 
-    playgrounds = relationship("Playground", back_populates="user_creator", cascade="all, delete")
+    playgrounds = relationship("Playground", back_populates="user_pg_creator", cascade="all, delete")
+    bets = relationship("Bet", back_populates="user_bet_creator", cascade="all, delete")
 
 
     def serialize(self):
@@ -40,10 +41,9 @@ class AdminUser(db.Model):
 
     def serialize(self):
         return {
-        "id": self.id,
-        "email": self.email,
-            
-    }
+            "id": self.id,
+            "email": self.email,
+        }
 
 
 class Playground(db.Model):
@@ -55,9 +55,9 @@ class Playground(db.Model):
     url_image: Mapped[str] = mapped_column(String(120), nullable=True)
 
     created_by = mapped_column(ForeignKey("user.id"))
-    user_creator = relationship("User", back_populates="playgrounds")
+    user_pg_creator = relationship("User", back_populates="playgrounds")
 
-   
+    bets = relationship("Bet", back_populates="playground_link", cascade="all, delete")
 
     def serialize(self):
         return {
@@ -68,4 +68,32 @@ class Playground(db.Model):
             "description": self.description,
             "url_image": self.url_image,
             "created_by": self.created_by
+        }
+
+class Bet(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(120), nullable=True)
+    amount: Mapped[float] = mapped_column(Float, default=0.0)
+    status: Mapped[str] = mapped_column(String(250), nullable=True)
+    deadline: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    user_id = mapped_column(ForeignKey("user.id"))
+    user_bet_creator = relationship("User", back_populates="bets")
+
+    playground_id = mapped_column(ForeignKey("playground.id"))
+    playground_link = relationship("Playground", back_populates="bets")
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "amount": self.amount,
+            "status": self.status,
+            "deadline": self.deadline.isoformat() if self.deadline else None,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "user_id": self.user_id,
+            "playground_id": self.playground_id,
+            "user": self.user_bet_creator.username if self.user_bet_creator else None,
+            "playground": self.playground_link.name if self.playground_link else None
         }
