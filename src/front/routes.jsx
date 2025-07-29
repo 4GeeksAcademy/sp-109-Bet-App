@@ -19,6 +19,11 @@ import { PlaygroundCreate } from "./pages/PlaygroundCreate";
 import { PlaygroundEdit } from "./pages/PlaygroundEdit";
 import { PlaygroundSingle } from "./pages/PlaygroundSingle";
 import { UserView } from "./pages/UserView";
+import { ChatList } from "./pages/ChatList";
+import { ChatCreate } from "./pages/ChatCreate";
+import { ChatEdit } from "./pages/ChatEdit";
+import { ChatListForPlayground } from "./pages/ChatListForPlayground";
+import PlaygroundChat from "./pages/PlaygroundChat";
 
 export const router = createBrowserRouter(
     createRoutesFromElements(
@@ -45,6 +50,12 @@ export const router = createBrowserRouter(
         <Route path="/playground/edit/:id" element={<PlaygroundEdit />} />
         <Route path="/playground/:id" element={<PlaygroundSingle />} />
         <Route path="/view/:id" element={<UserView />} />
+        <Route path="/chats" element={<ChatList />} />
+        <Route path="/chat/create" element={<ChatCreate />} />
+        <Route path="/chat/edit/:id" element={<ChatEdit />} />
+        <Route path="/playground/:id/chats" element={<ChatListForPlayground />} />
+        <Route path="/playground/:id/chat" element={<PlaygroundChat />} />
+      
       </Route>
     )
 );
