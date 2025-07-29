@@ -221,7 +221,12 @@ def create_playground():
 
     slug = generate_unique_slug(db.session, Playground, name)
 
-    new_playground = Playground(name=name, slug=slug)
+    image = body.get('url_image')
+    description = body.get('description')
+
+
+    new_playground = Playground(name=name, slug=slug, url_image=image, description=description)
+
 
     db.session.add(new_playground)
     db.session.commit()
@@ -276,6 +281,9 @@ def update_playground(id):
 
     data = request.get_json()
     new_name = data.get('name')
+    new_image = data.get('url_image')
+    new_description = data.get('description')
+
 
     if new_name:
         if not new_name.strip():
@@ -291,6 +299,14 @@ def update_playground(id):
         
         playground.name = new_name
         playground.slug = new_slug
+
+    
+    if new_image is not None:
+        playground.url_image = new_image
+
+    if new_description is not None:
+        playground.description = new_description
+        
            
 
     db.session.commit()

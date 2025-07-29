@@ -34,6 +34,9 @@ export const PlaygroundSingle = () => {
         <div className="container mt-5">
             <h1>{playground.name}</h1>
             <p><strong>Slug:</strong> {playground.slug}</p>
+            <img src={playground.image} alt="Image" />
+            <pre>{playground.description}</pre>
+
 
             <button
                 className="btn btn-outline-danger mt-3"
