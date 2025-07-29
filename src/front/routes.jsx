@@ -13,6 +13,7 @@ import { Register } from "./pages/Register";
 import { Users } from "./pages/Users";
 import { UserCreate } from "./pages/UserCreate";
 import { UserEdit } from "./pages/UserEdit";
+import { Adminsite } from "./pages/Adminsite";
 import { Playgrounds } from "./pages/Playgrounds";
 import { PlaygroundCreate } from "./pages/PlaygroundCreate";
 import { PlaygroundEdit } from "./pages/PlaygroundEdit";
@@ -43,6 +44,7 @@ export const router = createBrowserRouter(
         <Route path="/users" element={<Users />} />
         <Route path="/create" element={<UserCreate />} />
         <Route path="/edit/:id" element={<UserEdit />} />
+        <Route path="/adminsite" element={<Adminsite />} />
         <Route path="/playground" element={<Playgrounds />} />
         <Route path="/playground/create" element={<PlaygroundCreate />} />
         <Route path="/playground/edit/:id" element={<PlaygroundEdit />} />

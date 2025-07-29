@@ -1,20 +1,19 @@
-"""
-This module takes care of starting the API Server, Loading the DB and Adding the endpoints
-"""
 from flask import Flask, request, jsonify, url_for, Blueprint
-from api.models import db, User, Playground, PlaygroundChat
+from api.models import db, User, Playground, AdminUser, Bet, PlaygroundChat
 from api.utils import generate_sitemap, APIException, generate_unique_slug
 from flask_cors import CORS
+from sqlalchemy import select
+from datetime import datetime
 
 api = Blueprint('api', __name__)
 
 @api.route('/hello', methods=['POST', 'GET'])
 def handle_hello():
-    response_body = {
-        "message": "Hello! I'm a message that came from the backend, check the network tab on the google inspector and you will see the GET request"
-    }
-    return jsonify(response_body), 200
+    return jsonify({
+        "message": "Hello! I'm a message from the backend"
+    }), 200
 
+# ----------- USER -----------
 
 @api.route('/register', methods=['POST'])
 def register_user():
@@ -24,230 +23,223 @@ def register_user():
         if not body.get(field):
             raise APIException(f"{field} is required", 400)
 
-    if User.query.filter_by(email=body["email"]).first() is not None:
+    if User.query.filter_by(email=body["email"]).first():
         raise APIException("Email already exists", 400)
-    if User.query.filter_by(username=body["username"]).first() is not None:
+    if User.query.filter_by(username=body["username"]).first():
         raise APIException("Username already exists", 400)
 
-    user = User(
-        username=body["username"],
-        name=body["name"],
-        last_name=body["last_name"],
-        email=body["email"],
-        password=body["password"],
-        money=body.get("money", 0.0)
-    )
-
+    user = User(**body)
     db.session.add(user)
     db.session.commit()
 
     return jsonify({"msg": "User registered successfully", "user": user.serialize()}), 201
 
-
 @api.route('/login', methods=['POST'])
 def login_user():
     body = request.get_json()
-    email = body.get("email")
-    if not email:
-        raise APIException("Email is required", 400)
-
-    user = User.query.filter_by(email=email).first()
+    user = User.query.filter_by(email=body.get("email")).first()
     if not user:
         raise APIException("User not found", 404)
-
-    return jsonify({
-        "msg": "Login successful (no password check yet)",
-        "user": user.serialize()
-    }), 200
-
+    return jsonify({"msg": "Login successful", "user": user.serialize()}), 200
 
 @api.route('/users', methods=['GET'])
 def get_users():
-    users = User.query.all()
-    return jsonify([user.serialize() for user in users]), 200
+    return jsonify([user.serialize() for user in User.query.all()]), 200
 
-
-@api.route('/user/<int:id>', methods=['GET'])
-def get_user(id):
-    user = User.query.get(id)
-    if not user:
-        raise APIException("User not found", 404)
-    return jsonify(user.serialize()), 200
-
-
-@api.route('/user/<int:id>', methods=['PUT'])
-def update_user(id):
+@api.route('/user/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+def handle_user(id):
     user = User.query.get(id)
     if not user:
         raise APIException("User not found", 404)
 
-    data = request.get_json()
-    user.username = data.get("username", user.username)
-    user.name = data.get("name", user.name)
-    user.last_name = data.get("last_name", user.last_name)
-    user.email = data.get("email", user.email)
-    user.password = data.get("password", user.password)
-    user.money = data.get("money", user.money)
-    user.is_active = data.get("is_active", user.is_active)
+    if request.method == 'GET':
+        return jsonify(user.serialize()), 200
 
-    db.session.commit()
-    return jsonify({"msg": "User updated", "user": user.serialize()}), 200
-
-
-@api.route('/user/<int:id>', methods=['DELETE'])
-def delete_user(id):
-    user = User.query.get(id)
-    if not user:
-        raise APIException("User not found", 404)
+    if request.method == 'PUT':
+        data = request.get_json()
+        for field in ["username", "name", "last_name", "email", "password", "money", "is_active"]:
+            if field in data:
+                setattr(user, field, data[field])
+        db.session.commit()
+        return jsonify({"msg": "User updated", "user": user.serialize()}), 200
 
     db.session.delete(user)
     db.session.commit()
     return jsonify({"msg": "User deleted"}), 200
 
+# ----------- ADMIN USER -----------
 
-@api.route('/playground', methods=['GET'])
-def show_playgrounds():
-    playgrounds = Playground.query.all()
-    return jsonify({
-        "message": "success",
-        "playgrounds": [p.serialize() for p in playgrounds]
-    }), 200
+@api.route('/adminuser', methods=['GET', 'POST'])
+def handle_adminuser():
+    if request.method == 'GET':
+        return jsonify([admin.serialize() for admin in AdminUser.query.all()]), 200
 
+    data = request.get_json()
+    if 'email' not in data or 'password' not in data:
+        raise APIException('Fields "email" and "password" are required', 400)
 
-@api.route('/playground', methods=['POST'])
-def create_playground():
+    admin = AdminUser(email=data['email'], password=data['password'])
+    db.session.add(admin)
+    db.session.commit()
+    return jsonify({"msg": "Admin created", "admin": admin.serialize()}), 201
+
+@api.route('/adminuser/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+def handle_single_admin(id):
+    admin = AdminUser.query.get(id)
+    if not admin:
+        raise APIException('Admin not found', 404)
+
+    if request.method == 'GET':
+        return jsonify(admin.serialize()), 200
+
+    if request.method == 'PUT':
+        data = request.get_json()
+        admin.email = data.get('email', admin.email)
+        admin.password = data.get('password', admin.password)
+        db.session.commit()
+        return jsonify({"msg": "Admin updated"}), 200
+
+    db.session.delete(admin)
+    db.session.commit()
+    return jsonify({"msg": "Admin deleted"}), 200
+
+# ----------- PLAYGROUND -----------
+
+@api.route('/playground', methods=['GET', 'POST'])
+def handle_playgrounds():
+    if request.method == 'GET':
+        return jsonify({"message": "success", "playgrounds": [p.serialize() for p in Playground.query.all()]}), 200
+
     body = request.get_json()
     name = body.get("name")
-
     if not name:
-        raise APIException("Missing required fields", 400)
+        raise APIException("Name is required", 400)
 
     slug = generate_unique_slug(db.session, Playground, name)
-    new_playground = Playground(name=name, slug=slug)
-
-    db.session.add(new_playground)
+    new_pg = Playground(
+        name=name,
+        slug=slug,
+        url_image=body.get("url_image"),
+        description=body.get("description")
+    )
+    db.session.add(new_pg)
     db.session.commit()
+    return jsonify({"message": "Playground created", "playground": new_pg.serialize()}), 201
 
-    return jsonify({
-        "message": "New playground created",
-        "playground": new_playground.serialize()
-    }), 201
-
-
-@api.route('/playground/<int:id>', methods=['GET'])
-def show_playground(id):
-    playground = Playground.query.get(id)
-    if not playground:
-        raise APIException("Playground not found", 404)
-    return jsonify({
-        "message": "success",
-        "playground": playground.serialize()
-    }), 200
-
-
-@api.route('/playground/<int:id>', methods=['DELETE'])
-def delete_playground(id):
-    playground = Playground.query.get(id)
-    if not playground:
+@api.route('/playground/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+def handle_playground(id):
+    pg = Playground.query.get(id)
+    if not pg:
         raise APIException("Playground not found", 404)
 
-    db.session.delete(playground)
+    if request.method == 'GET':
+        return jsonify({"message": "success", "playground": pg.serialize()}), 200
+
+    if request.method == 'PUT':
+        data = request.get_json()
+        name = data.get("name")
+        if name and name != pg.name:
+            slug = generate_unique_slug(db.session, Playground, name)
+            if Playground.query.filter_by(slug=slug).first():
+                raise APIException("Slug already exists", 400)
+            pg.name = name
+            pg.slug = slug
+
+        pg.url_image = data.get("url_image", pg.url_image)
+        pg.description = data.get("description", pg.description)
+
+        db.session.commit()
+        return jsonify({"message": "Playground updated", "playground": pg.serialize()}), 200
+
+    db.session.delete(pg)
     db.session.commit()
     return jsonify({"message": "Playground deleted"}), 200
 
-
-@api.route('/playground/<int:id>', methods=['PUT'])
-def update_playground(id):
-    playground = Playground.query.get(id)
-    if not playground:
-        raise APIException("Playground not found", 404)
-
-    data = request.get_json()
-    new_name = data.get("name")
-
-    if new_name:
-        if not new_name.strip():
-            raise APIException("Name cannot be empty", 400)
-
-        if new_name != playground.name:
-            new_slug = generate_unique_slug(db.session, Playground, new_name)
-            existing = Playground.query.filter_by(slug=new_slug).first()
-            if existing and existing.id != playground.id:
-                raise APIException("Slug already in use", 400)
-
-            playground.name = new_name
-            playground.slug = new_slug
-
-    db.session.commit()
-    return jsonify({
-        "message": "Playground updated",
-        "playground": playground.serialize()
-    }), 200
-
-
-@api.route('/chats', methods=['GET'])
-def get_chats():
-    chats = PlaygroundChat.query.all()
-    return jsonify([chat.serialize() for chat in chats]), 200
-
-
-@api.route('/chat/<int:id>', methods=['GET'])
-def get_chat(id):
-    chat = PlaygroundChat.query.get(id)
-    if not chat:
-        return jsonify({"error": "Not found"}), 404
-    return jsonify(chat.serialize()), 200
-
+# ----------- CHAT -----------
 
 @api.route('/chat', methods=['POST'])
 def create_chat():
     data = request.get_json()
-    if not data:
-        return jsonify({"error": "Missing JSON body"}), 400
+    required = ["user_id", "playground_id", "message"]
+    if not all(k in data for k in required):
+        raise APIException("Missing required fields", 400)
 
-    user_id = data.get("user_id")
-    playground_id = data.get("playground_id")
-    message = data.get("message")
-
-    if not all([user_id, playground_id, message]):
-        return jsonify({"error": "Missing fields"}), 400
-
-    new_chat = PlaygroundChat(user_id=user_id, playground_id=playground_id, message=message)
-    db.session.add(new_chat)
+    chat = PlaygroundChat(
+        user_id=data["user_id"],
+        playground_id=data["playground_id"],
+        message=data["message"]
+    )
+    db.session.add(chat)
     db.session.commit()
+    return jsonify(chat.serialize()), 201
 
-    return jsonify(new_chat.serialize()), 201
-
-
-@api.route('/chat/<int:id>', methods=['PUT'])
-def update_chat(id):
+@api.route('/chat/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+def handle_chat(id):
     chat = PlaygroundChat.query.get(id)
     if not chat:
-        return jsonify({"error": "Not found"}), 404
+        raise APIException("Chat not found", 404)
 
-    data = request.get_json()
-    chat.user_id = data["user_id"]
-    chat.playground_id = data["playground_id"]
-    chat.message = data["message"]
-    db.session.commit()
+    if request.method == 'GET':
+        return jsonify(chat.serialize()), 200
 
-    return jsonify({"message": "Chat updated"}), 200
-
-
-@api.route('/chat/<int:id>', methods=['DELETE'])
-def delete_chat(id):
-    chat = PlaygroundChat.query.get(id)
-    if not chat:
-        return jsonify({"error": "Not found"}), 404
+    if request.method == 'PUT':
+        data = request.get_json()
+        chat.message = data.get("message", chat.message)
+        db.session.commit()
+        return jsonify({"message": "Chat updated"}), 200
 
     db.session.delete(chat)
     db.session.commit()
     return jsonify({"message": "Chat deleted"}), 200
 
-
 @api.route('/playground/<int:playground_id>/chats', methods=['GET'])
 def get_chats_for_playground(playground_id):
     chats = PlaygroundChat.query.filter_by(playground_id=playground_id).order_by(PlaygroundChat.created_at.desc()).all()
-    return jsonify({
-        "chats": [chat.serialize() for chat in chats]
-    }), 200
+    return jsonify({"chats": [chat.serialize() for chat in chats]}), 200
+
+# ----------- BET -----------
+
+@api.route('/playground/<int:pg_id>/bet', methods=['GET', 'POST'])
+def handle_bets(pg_id):
+    if not Playground.query.get(pg_id):
+        raise APIException("Playground not found", 404)
+
+    if request.method == 'GET':
+        bets = Bet.query.filter_by(playground_id=pg_id).all()
+        return jsonify([b.serialize() for b in bets]), 200
+
+    body = request.get_json()
+    deadline = body.get("deadline")
+    bet = Bet(
+        name=body.get("name"),
+        amount=body.get("amount", 0.0),
+        status=body.get("status"),
+        deadline=datetime.fromisoformat(deadline) if deadline else None,
+        user_id=body.get("user_id"),
+        playground_id=pg_id
+    )
+    db.session.add(bet)
+    db.session.commit()
+    return jsonify({"message": "Bet created", "bet": bet.serialize()}), 201
+
+@api.route('/playground/<int:pg_id>/bet/<int:bet_id>', methods=['GET', 'PUT', 'DELETE'])
+def handle_single_bet(pg_id, bet_id):
+    bet = Bet.query.filter_by(playground_id=pg_id, id=bet_id).first()
+    if not bet:
+        raise APIException("Bet not found", 404)
+
+    if request.method == 'GET':
+        return jsonify(bet.serialize()), 200
+
+    if request.method == 'PUT':
+        data = request.get_json()
+        for key in ["name", "amount", "status"]:
+            setattr(bet, key, data.get(key, getattr(bet, key)))
+        if data.get("deadline"):
+            bet.deadline = datetime.fromisoformat(data["deadline"])
+        db.session.commit()
+        return jsonify({"message": "Bet updated", "bet": bet.serialize()}), 200
+
+    db.session.delete(bet)
+    db.session.commit()
+    return jsonify({"message": "Bet deleted"}), 200

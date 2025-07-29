@@ -8,8 +8,9 @@ export const PlaygroundEdit = () => {
 
     const [name, setName] = useState("")
     const [error, setError] = useState(null)
-    const [message, setMessage] = useState(null)
     const [slug, setSlug] = useState("")
+    const [image, setImage] = useState("")
+    const [description, setDescription] = useState("")
 
     useEffect(() => {
         const fetchPlayground = async () => {
@@ -18,7 +19,12 @@ export const PlaygroundEdit = () => {
                 if (!resp.ok) throw new Error("Failed to fetch playground");
 
                 const data = await resp.json();
+                console.log("datos recibidos", data);
+                
                 setName(data.playground.name)
+                setImage(data.playground.url_image);
+                setDescription(data.playground.description);
+
             } catch (err) {
                 console.error(err)
                 setError("Could not load playground")
@@ -31,22 +37,21 @@ export const PlaygroundEdit = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(null);
-        setMessage(null);
+
 
         try {
             const resp = await fetch(import.meta.env.VITE_BACKEND_URL + `/api/playground/${id}`, {
                 method: 'PUT',
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name })
+                body: JSON.stringify({ name, url_image: image, description })
             })
 
             if (!resp.ok) {
-                const data = await resp.json;
+                const data = await resp.json();
                 throw new Error(data.msg || "Failed to update playground")
             }
 
-            setMessage("Playground updated successfully")
-            navigate("/playground")
+            navigate("/playground", { state: { successMessage: "Playground upadted successfully!" } })
         } catch (err) {
             console.error(err);
             setError(err.message)
@@ -55,9 +60,9 @@ export const PlaygroundEdit = () => {
 
     useEffect(() => {
         const generatedSlug = name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)+/g, '');
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)+/g, '');
 
         setSlug(generatedSlug)
     }, [name])
@@ -67,7 +72,6 @@ export const PlaygroundEdit = () => {
             <h2>Edit Playground</h2>
 
             {error && <p className="text-danger">{error}</p>}
-            {message && <p className="text-success">{message}</p>}
 
             <form onSubmit={handleSubmit}>
                 <label htmlFor="playgroundName" className="form-label">Playground Name</label>
@@ -86,6 +90,24 @@ export const PlaygroundEdit = () => {
                     className="form-control"
                     value={slug}
                     readOnly
+                />
+
+                <label htmlFor="image" className="form-label">Image URL</label>
+                <input
+                    type="text"
+                    className="form-control"
+                    id="image"
+                    value={image}
+                    onChange={(e) => setImage(e.target.value)}
+                >
+                </input>
+
+                <label htmlFor="description" className="form-label">Description</label>
+                <textarea
+                    className="form-control"
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
                 />
                 <button type="submit" className="btn btn-primary mt-2">Save Changes</button>
             </form>
