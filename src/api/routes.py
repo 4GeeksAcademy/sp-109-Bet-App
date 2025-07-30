@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, url_for, Blueprint
-from api.models import db, User, Playground, AdminUser, Bet, PlaygroundChat, BetOption
+from api.models import MessageBoard, db, User, Playground, AdminUser, Bet, PlaygroundChat, BetOption
 from api.utils import generate_sitemap, APIException, generate_unique_slug
 from flask_cors import CORS
 from sqlalchemy import select
@@ -485,3 +485,56 @@ def update_bet_option(pg_id, bet_id, option_id):
         "option": option.serialize()
     }), 200
 
+@api.route('/messages', methods=['GET'])
+def get_messages():
+    messages = MessageBoard.query.all()
+    return jsonify([msg.serialize() for msg in messages]), 200
+
+
+@api.route('/messages/<int:id>', methods=['GET'])
+def get_message(id):
+    msg = MessageBoard.query.get(id)
+    if not msg:
+        raise APIException("Message not found", 404)
+    return jsonify(msg.serialize()), 200
+
+
+@api.route('/messages', methods=['POST'])
+def create_message():
+    data = request.get_json()
+    if not data or "username" not in data or "content" not in data:
+        raise APIException("Username and content are required", 400)
+
+    new_msg = MessageBoard(
+        username=data["username"],
+        content=data["content"]
+    )
+    db.session.add(new_msg)
+    db.session.commit()
+
+    return jsonify({"msg": "Message created successfully", "message": new_msg.serialize()}), 201
+
+
+@api.route('/messages/<int:id>', methods=['PUT'])
+def update_message(id):
+    msg = MessageBoard.query.get(id)
+    if not msg:
+        raise APIException("Message not found", 404)
+
+    data = request.get_json()
+    msg.content = data.get("content", msg.content)
+    db.session.commit()
+
+    return jsonify({"msg": "Message updated", "message": msg.serialize()}), 200
+
+
+@api.route('/messages/<int:id>', methods=['DELETE'])
+def delete_message(id):
+    msg = MessageBoard.query.get(id)
+    if not msg:
+        raise APIException("Message not found", 404)
+
+    db.session.delete(msg)
+    db.session.commit()
+
+    return jsonify({"msg": "Message deleted"}), 200
