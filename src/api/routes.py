@@ -352,13 +352,13 @@ def create_bet(pg_id):
 
     body = request.get_json()
 
-    user_id = body.get("user_id")
-    if not user_id:
-        raise APIException("user_id is required", 400)
+    # user_id = body.get("user_id")
+    # # if not user_id:
+    # #     raise APIException("user_id is required", 400)
 
-    user = User.query.get(user_id)
-    if not user:
-        raise APIException("User not found", 404)
+    # user = User.query.get(user_id)
+    # if not user:
+    #     raise APIException("User not found", 404)
 
     name = body.get('name')
     amount = body.get('amount', 0.0)
@@ -379,7 +379,7 @@ def create_bet(pg_id):
         amount=amount,
         status=status,
         deadline=deadline,
-        user_id=user_id,
+        # user_id=user_id,
         playground_id=pg_id
     )
 

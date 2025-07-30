@@ -20,7 +20,7 @@ export const PlaygroundEdit = () => {
 
                 const data = await resp.json();
                 console.log("datos recibidos", data);
-                
+
                 setName(data.playground.name)
                 setImage(data.playground.url_image);
                 setDescription(data.playground.description);
@@ -109,7 +109,14 @@ export const PlaygroundEdit = () => {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                 />
-                <button type="submit" className="btn btn-primary mt-2">Save Changes</button>
+                <button type="submit" className="btn btn-primary m-2">Save Changes</button>
+                <button
+                    className="btn btn-danger m-2"
+                    onClick={() => navigate(`/playground/`)}
+                >
+                    Cancel
+                </button>
+
             </form>
         </div>
     )

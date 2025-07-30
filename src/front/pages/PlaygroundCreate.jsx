@@ -9,7 +9,7 @@ export const PlaygroundCreate = () => {
     const [image, setImage] = useState("")
     const [description, setDescription] = useState("")
 
-    const navigate = useNavigate()
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
