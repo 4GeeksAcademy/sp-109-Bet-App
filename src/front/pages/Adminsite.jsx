@@ -5,7 +5,6 @@ export const Adminsite = () => {
 
     const [adminuser, setAdminuser] = useState([]);
     const [error, setError] = useState(null);
-    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
         
       useEffect(() => {
@@ -14,7 +13,7 @@ export const Adminsite = () => {
             const resp = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/adminuser");
             if (!resp.ok) throw new Error('Fail to obtein admins')
             const data = await resp.json();
-            setAdminuser(data.adminuser || [])
+            setAdminuser(data.adminuser || data || []);
           } catch (err) {
             console.error(err)
             setError('Error get admins')
