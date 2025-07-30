@@ -56,6 +56,11 @@ export const AdminEdit = () => {
         <button type="submit" className="btn btn-primary">
           Update
         </button>
+        <button type="" className="btn btn-danger"
+        onClick={() => navigate(`/adminsite/`)}
+        >
+          Cancel
+        </button>
       </form>
     </div>
   );
