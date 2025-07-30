@@ -151,3 +151,18 @@ class BetOption(db.Model):
             "bet_id": self.bet_id
         }
 
+class MessageBoard(db.Model):
+    __tablename__ = "message_board"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    username: Mapped[str] = mapped_column(String(120), nullable=False)
+    content: Mapped[str] = mapped_column(String(500), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "username": self.username,
+            "content": self.content,
+            "created_at": self.created_at.isoformat()
+        }
