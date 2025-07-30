@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, url_for, Blueprint
-from api.models import db, User, Playground, AdminUser, Bet, PlaygroundChat
+from api.models import db, User, Playground, AdminUser, Bet, PlaygroundChat, BetOption
 from api.utils import generate_sitemap, APIException, generate_unique_slug
 from flask_cors import CORS
 from sqlalchemy import select
@@ -392,6 +392,96 @@ def update_bet(pg_id, bet_id):
     db.session.commit()
 
     return jsonify({
-        "message": "New bet updated succesfully",
+        "message": "Bet updated succesfully",
         "bet": bet.serialize()
     }), 200
+
+# ----------- BET OPTION-----------
+
+@api.route('/playground/<int:pg_id>/bet/<int:bet_id>/options', methods=['GET'])
+def get_bet_options(pg_id, bet_id):
+    bet = Bet.query.filter_by(id=bet_id, playground_id=pg_id).first()
+    if not bet:
+        raise APIException("Bet not found", 404)
+
+    options = BetOption.query.filter_by(bet_id=bet_id).all()
+
+    return jsonify([option.serialize() for option in options]), 200
+
+
+@api.route('/playground/<int:pg_id>/bet/<int:bet_id>/options', methods=['POST'])
+def create_bet_option(pg_id, bet_id):
+    body = request.get_json()
+
+    playground = Playground.query.get(pg_id)
+    if not playground:
+        raise APIException("Playground not found", 404)
+
+    bet = Bet.query.filter_by(id=bet_id, playground_id=pg_id).first()
+    if not bet:
+        raise APIException("Bet not found", 404)
+
+    label = body.get('label')
+    if not label or not label.strip():
+        raise APIException("Label is required", 400)
+
+    new_option = BetOption(label=label, bet_id=bet_id)
+    db.session.add(new_option)
+    db.session.commit()
+
+    return jsonify({
+        "message": "New option created succesfully",
+        "bet": new_option.serialize()
+    }), 201
+
+
+@api.route('/playground/<int:pg_id>/bet/<int:bet_id>/options/<int:option_id>', methods=['DELETE'])
+def delete_bet_option(pg_id, bet_id, option_id):
+
+    playground = Playground.query.get(pg_id)
+    if not playground:
+        raise APIException("Playground not found", 404)
+
+    bet = Bet.query.filter_by(id=bet_id, playground_id=pg_id).first()
+    if not bet:
+        raise APIException("Bet not found", 404)
+
+    option = BetOption.query.filter_by(id=option_id, bet_id=bet_id).first()
+    if not option:
+        raise APIException("Option not found", 404)
+
+    db.session.delete(option)
+    db.session.commit()
+
+    return jsonify({"message": "Option deleted successfully"}), 200
+
+
+@api.route('/playground/<int:pg_id>/bet/<int:bet_id>/options/<int:option_id>', methods=['PUT'])
+def update_bet_option(pg_id, bet_id, option_id):
+    body = request.get_json()
+
+    playground = Playground.query.get(pg_id)
+    if not playground:
+        raise APIException("Playground not found", 404)
+
+    bet = Bet.query.filter_by(id=bet_id, playground_id=pg_id).first()
+    if not bet:
+        raise APIException("Bet not found", 404)
+
+    option = BetOption.query.filter_by(id=option_id, bet_id=bet_id).first()
+    if not option:
+        raise APIException("Option not found", 404)
+
+    label = body.get('label')
+    if not label or not label.strip():
+        raise APIException("Label is required", 400)
+ 
+    option.label = label
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Option updated succesfully",
+        "option": option.serialize()
+    }), 200
+

@@ -82,6 +82,8 @@ class Bet(db.Model):
     playground_id = mapped_column(ForeignKey("playground.id"))
     playground_link = relationship("Playground", back_populates="bets")
 
+    options = relationship("BetOption", back_populates="bet", cascade="all, delete-orphan")
+
     def serialize(self):
         return {
             "id": self.id,
@@ -93,7 +95,8 @@ class Bet(db.Model):
             "user_id": self.user_id,
             "playground_id": self.playground_id,
             "user": self.user_bet_creator.username if self.user_bet_creator else None,
-            "playground": self.playground_link.name if self.playground_link else None
+            "playground": self.playground_link.name if self.playground_link else None,
+            "options": [option.serialize() for option in self.options]
         }
 
 class PlaygroundChat(db.Model):
@@ -117,7 +120,7 @@ class PlaygroundChat(db.Model):
             "created_at": self.created_at.isoformat()
         }
 
-# (Opcional: si ya no usas este modelo, puedes eliminarlo)
+
 class Chat(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, nullable=False)
@@ -133,3 +136,18 @@ class Chat(db.Model):
             "message": self.message,
             "created_at": self.created_at.isoformat()
         }
+
+class BetOption(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    label = db.Column(db.String(100), nullable=False)
+
+    bet_id: Mapped[int] = mapped_column(ForeignKey("bet.id"), nullable=False)
+    bet: Mapped["Bet"] = relationship("Bet", back_populates="options")
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "label": self.label,
+            "bet_id": self.bet_id
+        }
+
