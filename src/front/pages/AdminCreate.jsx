@@ -1,23 +1,23 @@
-import React, { useEffect, useState } from "react";
-import { use } from "react";
+// import React, { useEffect, useState } from "react";
+// import { use } from "react";
 
-export const AdminCreate = () => {
+// export const AdminCreate = () => {
 
-const [ newadmin, setNewadmin] = useState({
-    email: "",
-    password: ""
+// const [ newadmin, setNewadmin] = useState({
+//     email: "",
+//     password: ""
 
-});
+// });
 
-const 
-
-
+// const 
 
 
-return (
 
 
-);
+// return (
 
-};
+
+// );
+
+// };
 
