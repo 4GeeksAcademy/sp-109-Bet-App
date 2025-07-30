@@ -61,6 +61,36 @@ export const PlaygroundSingle = () => {
         }
     }
 
+    const handleDeleteOption = async (betId, optionId) => {
+        if (!confirm("Are you sure you want to delete this option?")) return;
+
+        setError(null);
+        setLoading(true);
+
+        try {
+            const resp = await fetch(
+                import.meta.env.VITE_BACKEND_URL + `/api/playground/${id}/bet/${betId}/options/${optionId}`,
+                { method: 'DELETE' }
+            );
+            if (!resp.ok) throw new Error("Failed to delete option");
+
+
+            setBets((prevBets) =>
+                prevBets.map((bet) =>
+                    bet.id === betId
+                        ? { ...bet, options: bet.options.filter((opt) => opt.id !== optionId) }
+                        : bet
+                )
+            );
+        } catch (err) {
+            console.error(err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p className="text-red-500">{error}</p>;
@@ -70,7 +100,7 @@ export const PlaygroundSingle = () => {
         <div className="container mt-5">
             <h1>{playground.name}</h1>
             <p><strong>Slug:</strong> {playground.slug}</p>
-            <img src={playground.image} alt="Image" className="img-fluid mb-3" />
+            <img src={playground.url_image || playground.image} alt="Image" className="img-fluid mb-3" />
             <pre>{playground.description}</pre>
 
             {successMessage && (
@@ -92,28 +122,63 @@ export const PlaygroundSingle = () => {
             ) : (
                 <ul className="list-group">
                     {bets.map((bet) => (
-                        <li key={bet.id} className="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5 className="mb-1">{bet.name}</h5>
-                                <p className="mb-1"><strong>Amount:</strong> {bet.amount}</p>
-                                <p className="mb-1"><strong>Status:</strong> {bet.status}</p>
-                                <p className="mb-1"><strong>Deadline:</strong> {bet.deadline ? new Date(bet.deadline).toLocaleString() : "No deadline"}</p>
-                                <p className="mb-1"><strong>Created by:</strong> {bet.user || "Unknown"}</p>
-                            </div>
+                        <li key={bet.id} className="list-group-item">
+                            <div className="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h5>{bet.name}</h5>
+                                    <p><strong>Amount:</strong> {bet.amount}</p>
+                                    <p><strong>Status:</strong> {bet.status}</p>
+                                    <p><strong>Deadline:</strong> {bet.deadline ? new Date(bet.deadline).toLocaleString() : "No deadline"}</p>
+                                    <p><strong>Created by:</strong> {bet.user || "Unknown"}</p>
 
-                            <div className="btn-group d-flex flex-column gap-2">
-                                <button
-                                    className="btn btn-sm btn-outline-secondary"
-                                    onClick={() => navigate(`/playground/${id}/bet/${bet.id}/edit`)}
-                                >
-                                    Edit ✏️
-                                </button>
-                                <button
-                                    className="btn btn-sm btn-outline-danger"
-                                    onClick={() => handleDelete(bet.id)}
-                                >
-                                    Delete 🗑️
-                                </button>
+                                    {bet.options && bet.options.length > 0 && (
+                                        <>
+                                            <strong>Options:</strong>
+                                            <ul className="list-group list-group-flush">
+                                                {bet.options.map((option) => (
+                                                    <li
+                                                        key={option.id}
+                                                        className="list-group-item d-flex justify-content-between align-items-center px-0"
+                                                    >
+                                                        {option.label}
+                                                        <p
+                                                            className="text-danger m-auto"
+                                                            style={{ cursor: "pointer" }}
+                                                            onClick={() => handleDeleteOption(bet.id, option.id)}
+                                                        >
+                                                            x
+                                                        </p>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </>
+                                    )}
+
+                                </div>
+
+                                <div className="btn-group d-flex flex-column gap-2">
+                                    <button
+                                        className="btn btn-sm btn-outline-secondary"
+                                        onClick={() => navigate(`/playground/${id}/bet/${bet.id}/edit`)}
+                                    >
+                                        Edit ✏️
+                                    </button>
+
+                                    <button
+                                        className="btn btn-sm btn-outline-info"
+                                        onClick={() => navigate(`/playground/${id}/bet/${bet.id}/options`)}
+                                    >
+                                        Add Option ➕
+                                    </button>
+
+                                    <button
+                                        className="btn btn-sm btn-outline-danger"
+                                        onClick={() => handleDelete(bet.id)}
+                                    >
+                                        Delete 🗑️
+                                    </button>
+                                </div>
+
                             </div>
                         </li>
                     ))}

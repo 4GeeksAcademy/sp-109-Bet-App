@@ -19,6 +19,7 @@ class User(db.Model):
     playgrounds = relationship("Playground", back_populates="user_pg_creator", cascade="all, delete")
     bets = relationship("Bet", back_populates="user_bet_creator", cascade="all, delete")
     playground_chats: Mapped[list["PlaygroundChat"]] = relationship(back_populates="user")
+    playground_users: Mapped[list["PlaygroundUser"]] = relationship(back_populates="user")
 
     def serialize(self):
         return {
@@ -56,6 +57,8 @@ class Playground(db.Model):
 
     bets = relationship("Bet", back_populates="playground_link", cascade="all, delete")
     chats: Mapped[list["PlaygroundChat"]] = relationship(back_populates="playground")
+    
+    playground_used: Mapped[list["PlaygroundUser"]] = relationship(back_populates="playground")
 
     def serialize(self):
         return {
@@ -151,8 +154,28 @@ class BetOption(db.Model):
             "bet_id": self.bet_id
         }
 
+
+
+class PlaygroundUser(db.Model):
+    __tablename__ = "playgrounduser"
+    id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    playground_id: Mapped[int] = mapped_column(ForeignKey("playground.id"))
+    joined_at: Mapped[datetime] = mapped_column(DateTime)
+
+    user: Mapped["User"] = relationship(back_populates="playground_users")
+    playground: Mapped["Playground"] = relationship(back_populates="playground_used")
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "playground_id": self.playground_id,
+            "joined_at": self.joined_at.isoformat()
+        }
+    
 class MessageBoard(db.Model):
-    __tablename__ = "message_board"
+    
 
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(120), nullable=False)
