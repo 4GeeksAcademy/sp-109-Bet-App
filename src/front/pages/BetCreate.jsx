@@ -95,6 +95,15 @@ export const BetCreate = () => {
                 <button type="submit" className="btn btn-primary" disabled={loading}>
                     {loading ? "Creating..." : "Create Bet"}
                 </button>
+
+                <button
+                    type="button"
+                    className="btn btn-danger mx-2"
+                    onClick={() => navigate(`/playground/${id}`)}
+                    disabled={loading}
+                >
+                    Cancel
+                </button>
             </form>
         </div>
     )

@@ -87,7 +87,14 @@ export const PlaygroundCreate = () => {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)} 
                 />
-                <button type="submit" className="btn btn-primary mt-2">Create Playground</button>
+                <button type="submit" className="btn btn-primary m-2">Create Playground</button>
+
+                <button
+                    className="btn btn-danger m-2"
+                    onClick={() => navigate(`/playground/`)}
+                >
+                    Cancel
+                </button>
             </form>
         </div>
     )

@@ -105,55 +105,128 @@ def handle_single_admin(id):
 
 # ----------- PLAYGROUND -----------
 
-@api.route('/playground', methods=['GET', 'POST'])
-def handle_playgrounds():
-    if request.method == 'GET':
-        return jsonify({"message": "success", "playgrounds": [p.serialize() for p in Playground.query.all()]}), 200
+@api.route('/playground', methods=['GET'])
+def show_playgrounds():
 
+    playgrounds = Playground.query.all()
+
+    response_body = {
+        "message": "success",
+        "playgrounds": [playground.serialize() for playground in playgrounds]
+    }
+
+    return jsonify(response_body), 200
+
+
+
+@api.route('/playground', methods=['POST'])
+def create_playground():
     body = request.get_json()
+
     name = body.get("name")
+
     if not name:
-        raise APIException("Name is required", 400)
+        raise APIException("Missing required fields", 400)
+
 
     slug = generate_unique_slug(db.session, Playground, name)
-    new_pg = Playground(
-        name=name,
-        slug=slug,
-        url_image=body.get("url_image"),
-        description=body.get("description")
-    )
-    db.session.add(new_pg)
-    db.session.commit()
-    return jsonify({"message": "Playground created", "playground": new_pg.serialize()}), 201
 
-@api.route('/playground/<int:id>', methods=['GET', 'PUT', 'DELETE'])
-def handle_playground(id):
-    pg = Playground.query.get(id)
-    if not pg:
+    image = body.get('url_image')
+    description = body.get('description')
+
+
+    new_playground = Playground(name=name, slug=slug, url_image=image, description=description)
+
+
+    db.session.add(new_playground)
+    db.session.commit()
+
+    return jsonify({
+        "message": "New playground created",
+        "playground": new_playground.serialize()
+    }), 201
+
+
+@api.route('/playground/<int:id>', methods=['GET'])
+def show_playground(id):
+
+    playground = Playground.query.filter_by(id=id).first()
+
+    if not playground:
         raise APIException("Playground not found", 404)
 
-    if request.method == 'GET':
-        return jsonify({"message": "success", "playground": pg.serialize()}), 200
+    response_body = {
+        "message": "success",
+        "playground": playground.serialize()
+    }
 
-    if request.method == 'PUT':
-        data = request.get_json()
-        name = data.get("name")
-        if name and name != pg.name:
-            slug = generate_unique_slug(db.session, Playground, name)
-            if Playground.query.filter_by(slug=slug).first():
-                raise APIException("Slug already exists", 400)
-            pg.name = name
-            pg.slug = slug
+    return jsonify(response_body), 200
 
-        pg.url_image = data.get("url_image", pg.url_image)
-        pg.description = data.get("description", pg.description)
 
-        db.session.commit()
-        return jsonify({"message": "Playground updated", "playground": pg.serialize()}), 200
+@api.route('/playground/<int:id>', methods=['DELETE'])
+def delete_playground(id):
 
-    db.session.delete(pg)
+    playground = Playground.query.filter_by(id=id).first()
+
+    if not playground:
+        raise APIException("Playground not found", 404)
+
+    db.session.delete(playground)
     db.session.commit()
-    return jsonify({"message": "Playground deleted"}), 200
+
+    response_body = {
+        "message": "Playground deleted",
+    }
+
+    return jsonify(response_body), 200
+
+
+@api.route('/playground/<int:id>', methods=['PUT'])
+def update_playground(id):
+
+    playground = Playground.query.filter_by(id=id).first()
+
+    if not playground:
+        raise APIException("Playground not found", 404)
+
+    data = request.get_json()
+    new_name = data.get('name')
+    new_image = data.get('url_image')
+    new_description = data.get('description')
+
+
+    if new_name:
+        if not new_name.strip():
+            raise APIException("Name cannot be empty", 400)
+        
+
+    if new_name != playground.name:
+        new_slug = generate_unique_slug(db. session, Playground, new_name)
+        existing = Playground.query.filter_by(slug=new_slug).first()
+
+        if existing and existing.id != playground.id:
+            raise APIException("Slug already in use", 400)
+        
+        playground.name = new_name
+        playground.slug = new_slug
+
+    
+    if new_image is not None:
+        playground.url_image = new_image
+
+    if new_description is not None:
+        playground.description = new_description
+        
+           
+
+    db.session.commit()
+    
+    response_body = {
+        "message": "Playground updated",
+        "playground": playground.serialize()
+    }
+
+    return jsonify(response_body), 200
 
 # ----------- CHAT -----------
 
@@ -199,20 +272,41 @@ def get_chats_for_playground(playground_id):
 
 # ----------- BET -----------
 
-@api.route('/playground/<int:pg_id>/bet', methods=['GET', 'POST'])
-def handle_bets(pg_id):
-    if not Playground.query.get(pg_id):
-        raise APIException("Playground not found", 404)
+@api.route('/playground/<int:pg_id>/bet', methods=['GET'])
+def get_bets_by_playground(pg_id):
 
-    if request.method == 'GET':
-        bets = Bet.query.filter_by(playground_id=pg_id).all()
-        return jsonify([b.serialize() for b in bets]), 200
+    playground=Playground.query.get(pg_id)
+
+    if not playground:
+        raise APIException("Playground not found", 404)
+    
+    bets = Bet.query.filter_by(playground_id=pg_id)
+
+    return jsonify([bet.serialize() for bet in bets]), 200
+
+
+@api.route('/playground/<int:pg_id>/bet/<int:bet_id>', methods=['GET'])
+def get_single_bet(pg_id, bet_id):
+
+    playground = Playground.query.get(pg_id)
+    if not playground:
+        raise APIException("Playground not found", 404)
+    
+    bet = Bet.query.filter_by(playground_id=pg_id, id=bet_id).first()
+    if not bet:
+        raise APIException("Bet not found in this playground", 404)
+
+    return jsonify(bet.serialize()), 200
+
+
+@api.route('/playground/<int:pg_id>/bet', methods=['POST'])
+def create_bet(pg_id):
 
     body = request.get_json()
 
     # user_id = body.get("user_id")
-    # # if not user_id:
-    # #     raise APIException("user_id is required", 400)
+    # if not user_id:
+    #     raise APIException("user_id is required", 400)
 
     # user = User.query.get(user_id)
     # if not user:
@@ -240,28 +334,64 @@ def handle_bets(pg_id):
         # user_id=user_id,
         playground_id=pg_id
     )
-    db.session.add(bet)
-    db.session.commit()
-    return jsonify({"message": "Bet created", "bet": bet.serialize()}), 201
 
-@api.route('/playground/<int:pg_id>/bet/<int:bet_id>', methods=['GET', 'PUT', 'DELETE'])
-def handle_single_bet(pg_id, bet_id):
+    db.session.add(new_bet)
+    db.session.commit()
+
+    return jsonify({
+        "message": "New bet created succesfully",
+        "bet": new_bet.serialize()
+    }), 201
+
+
+@api.route('/playground/<int:pg_id>/bet/<int:bet_id>', methods=['DELETE'])
+def delete_single_bet(pg_id, bet_id):
+
+    playground = Playground.query.get(pg_id)
+    if not playground:
+        raise APIException("Playground not found", 404)
+    
     bet = Bet.query.filter_by(playground_id=pg_id, id=bet_id).first()
     if not bet:
-        raise APIException("Bet not found", 404)
-
-    if request.method == 'GET':
-        return jsonify(bet.serialize()), 200
-
-    if request.method == 'PUT':
-        data = request.get_json()
-        for key in ["name", "amount", "status"]:
-            setattr(bet, key, data.get(key, getattr(bet, key)))
-        if data.get("deadline"):
-            bet.deadline = datetime.fromisoformat(data["deadline"])
-        db.session.commit()
-        return jsonify({"message": "Bet updated", "bet": bet.serialize()}), 200
-
+        raise APIException("Bet not found in this playground", 404)
+    
     db.session.delete(bet)
     db.session.commit()
-    return jsonify({"message": "Bet deleted"}), 200
+
+    return jsonify({"message": "Bet deleted succesfully", 
+        "bet_id": bet_id,
+        "playground_id": pg_id
+    }), 200
+
+
+@api.route('/playground/<int:pg_id>/bet/<int:bet_id>', methods=['PUT'])
+def update_bet(pg_id, bet_id):
+
+    body = request.get_json()
+    
+    playground=Playground.query.get(pg_id)
+    if not playground:
+        raise APIException("Playground not found", 404)
+    
+    bet = Bet.query.filter_by(playground_id=pg_id, id=bet_id).first()
+
+    bet.name = body.get('name', bet.name)
+    bet.amount = body.get('amount', bet.amount)
+    bet.status = body.get('status', bet.status)
+
+    deadline_str = body.get('deadline')
+    if deadline_str:
+        try:
+            bet.deadline = datetime.fromisoformat(deadline_str)
+        except ValueError:
+            raise APIException("Invalid date format. Use ISO 8601 format", 400)
+    else:
+        bet.deadline = None
+
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "New bet updated succesfully",
+        "bet": bet.serialize()
+    }), 200
