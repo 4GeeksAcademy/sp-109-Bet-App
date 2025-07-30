@@ -1,42 +1,124 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 
 export const PlaygroundSingle = () => {
 
     const { id } = useParams()
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [playground, setPlayground] = useState(null);
     const [error, setError] = useState(null);
+    const [bets, setBets] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [successMessage, setSuccessMessage] = useState(null);
 
     useEffect(() => {
-        const fetchPlayground = async () => {
-            try {
-                const resp = await fetch(import.meta.env.VITE_BACKEND_URL + `/api/playground/${id}`);
-                if (!resp.ok) throw new Error("Failed to fetch playground");
+        if (location.state?.successMessage) {
+            setSuccessMessage(location.state.successMessage);
 
-                const data = await resp.json();
-                setPlayground(data.playground)
+            navigate(location.pathname, { replace: true });
+        }
+    }, [location, navigate]);
+
+
+    useEffect(() => {
+        const fetchPlaygroundAndBets = async () => {
+            try {
+                const playgroundResp = await fetch(import.meta.env.VITE_BACKEND_URL + `/api/playground/${id}`);
+                if (!playgroundResp.ok) throw new Error("Failed to fetch playground");
+                const playgroundData = await playgroundResp.json();
+                setPlayground(playgroundData.playground)
+
+                const betsResp = await fetch(import.meta.env.VITE_BACKEND_URL + `/api/playground/${id}/bet`);
+                if (!betsResp) throw new Error("Failed to fetch bets");
+                const betsData = await betsResp.json();
+                setBets(betsData)
             } catch (err) {
                 console.error(err)
-                setError("Could not load playground")
+                setError(err.message)
+            } finally {
+                setLoading(false)
             }
         }
 
-        fetchPlayground()
+        fetchPlaygroundAndBets()
     }, [id])
 
+    const handleDelete = async (betId) => {
+        if (!confirm("Are you sure you want to delete this bet?")) return;
 
-    if (error) return <p className="text-danger mt-5">{error}</p>;
-    if (!playground) return <p className="mt-5">Loading...</p>;
+        try {
+            const resp = await fetch(import.meta.env.VITE_BACKEND_URL + `/api/playground/${id}/bet/${betId}`, {
+                method: 'DELETE'
+            });
+            if (!resp.ok) throw new Error("Failed to delete bet")
+
+            setBets(prev => prev.filter(b => b.id !== betId))
+        } catch (err) {
+            console.error(err)
+            setError("Error deleting bet");
+        }
+    }
+
+
+    if (loading) return <p>Loading...</p>;
+    if (error) return <p className="text-red-500">{error}</p>;
+    if (!playground) return <p>Playground not found</p>;
 
     return (
         <div className="container mt-5">
             <h1>{playground.name}</h1>
             <p><strong>Slug:</strong> {playground.slug}</p>
-            <img src={playground.image} alt="Image" />
+            <img src={playground.image} alt="Image" className="img-fluid mb-3" />
             <pre>{playground.description}</pre>
 
+            {successMessage && (
+                <div className="alert alert-success w-100" role="alert">
+                    {successMessage}
+                </div>
+            )}
+
+            <button
+                className="btn btn-outline-primary my-3"
+                onClick={() => navigate(`/playground/${id}/bet`)}
+            >
+                Create New Bet
+            </button>
+
+            <h3>Bets</h3>
+            {bets.length === 0 ? (
+                <p>No bets found.</p>
+            ) : (
+                <ul className="list-group">
+                    {bets.map((bet) => (
+                        <li key={bet.id} className="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 className="mb-1">{bet.name}</h5>
+                                <p className="mb-1"><strong>Amount:</strong> {bet.amount}</p>
+                                <p className="mb-1"><strong>Status:</strong> {bet.status}</p>
+                                <p className="mb-1"><strong>Deadline:</strong> {bet.deadline ? new Date(bet.deadline).toLocaleString() : "No deadline"}</p>
+                                <p className="mb-1"><strong>Created by:</strong> {bet.user || "Unknown"}</p>
+                            </div>
+
+                            <div className="btn-group d-flex flex-column gap-2">
+                                <button
+                                    className="btn btn-sm btn-outline-secondary"
+                                    onClick={() => navigate(`/playground/${id}/bet/${bet.id}/edit`)}
+                                >
+                                    Edit ✏️
+                                </button>
+                                <button
+                                    className="btn btn-sm btn-outline-danger"
+                                    onClick={() => handleDelete(bet.id)}
+                                >
+                                    Delete 🗑️
+                                </button>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            )}
 
             <button
                 className="btn btn-outline-danger mt-3"

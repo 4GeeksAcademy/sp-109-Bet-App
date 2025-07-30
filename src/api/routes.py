@@ -209,13 +209,35 @@ def handle_bets(pg_id):
         return jsonify([b.serialize() for b in bets]), 200
 
     body = request.get_json()
-    deadline = body.get("deadline")
-    bet = Bet(
-        name=body.get("name"),
-        amount=body.get("amount", 0.0),
-        status=body.get("status"),
-        deadline=datetime.fromisoformat(deadline) if deadline else None,
-        user_id=body.get("user_id"),
+
+    # user_id = body.get("user_id")
+    # # if not user_id:
+    # #     raise APIException("user_id is required", 400)
+
+    # user = User.query.get(user_id)
+    # if not user:
+    #     raise APIException("User not found", 404)
+
+    name = body.get('name')
+    amount = body.get('amount', 0.0)
+    if amount is None:
+        raise APIException("amount is required", 404)
+    
+    status = body.get("status")
+    deadline_str = body.get("deadline")
+    
+    playground=Playground.query.get(pg_id)
+    if not playground:
+        raise APIException("Playground not found", 404)
+    
+    deadline = datetime.fromisoformat(deadline_str) if deadline_str else None
+
+    new_bet = Bet(
+        name=name,
+        amount=amount,
+        status=status,
+        deadline=deadline,
+        # user_id=user_id,
         playground_id=pg_id
     )
     db.session.add(bet)
