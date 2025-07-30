@@ -19,6 +19,8 @@ import { PlaygroundCreate } from "./pages/PlaygroundCreate";
 import { PlaygroundEdit } from "./pages/PlaygroundEdit";
 import { PlaygroundSingle } from "./pages/PlaygroundSingle";
 import { UserView } from "./pages/UserView";
+import { BetCreate } from "./pages/BetCreate";
+import { BetEdit } from "./pages/BetEdit";
 import { ChatList } from "./pages/ChatList";
 import { ChatCreate } from "./pages/ChatCreate";
 import { ChatEdit } from "./pages/ChatEdit";
@@ -50,6 +52,8 @@ export const router = createBrowserRouter(
         <Route path="/playground/edit/:id" element={<PlaygroundEdit />} />
         <Route path="/playground/:id" element={<PlaygroundSingle />} />
         <Route path="/view/:id" element={<UserView />} />
+        <Route path="/playground/:id/bet" element={<BetCreate />} />
+        <Route path="/playground/:id/bet/:betId/edit" element={<BetEdit />} />
         <Route path="/chats" element={<ChatList />} />
         <Route path="/chat/create" element={<ChatCreate />} />
         <Route path="/chat/edit/:id" element={<ChatEdit />} />
