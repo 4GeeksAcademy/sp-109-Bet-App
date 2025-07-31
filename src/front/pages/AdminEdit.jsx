@@ -8,9 +8,9 @@ export const AdminEdit = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const EditAdmin = async () => {
+    const editAdmin = async () => {
       try {
-        const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/adminuser/${id}`);
+        const resp = await fetch(import.meta.env.VITE_BACKEND_URL + `/api/adminuser/${id}`);
         if (!resp.ok) throw new Error("Failed to get admin");
         const data = await resp.json();
         setEmail(data.email);
@@ -19,7 +19,7 @@ export const AdminEdit = () => {
       }
     };
 
-    EditAdmin();
+    editAdmin();
   }, [id]);
 
   const handleSubmit = async (e) => {

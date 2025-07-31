@@ -19,7 +19,7 @@ export const UserCreate = () => {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		try {
-			const res = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/register", {
+			const res = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/signup", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(form)
