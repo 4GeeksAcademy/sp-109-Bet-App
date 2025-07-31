@@ -637,3 +637,80 @@ def delete_user_bet(id):
     db.session.commit()
 
     return jsonify({"msg": "User bet deleted successfully"}), 200
+
+# ----------- ADMIN USER CRUD -----------
+
+@api.route('/admin_users', methods=['GET'])
+def get_admin_users():
+    admins = AdminUser.query.all()
+    return jsonify([a.serialize() for a in admins]), 200
+
+
+@api.route('/admin_users/<int:id>', methods=['GET'])
+def get_admin_user(id):
+    admin = AdminUser.query.get(id)
+    if not admin:
+        raise APIException("Admin user not found", 404)
+    return jsonify(admin.serialize()), 200
+
+
+@api.route('/admin_users', methods=['POST'])
+def create_admin_user():
+    data = request.get_json()
+    if not data or "email" not in data or "password" not in data:
+        raise APIException("Fields 'email' and 'password' are required", 400)
+
+    # Comprobar si ya existe el email
+    if AdminUser.query.filter_by(email=data["email"]).first():
+        raise APIException("Email already exists", 400)
+
+    new_admin = AdminUser(
+        email=data["email"],
+        password=data["password"]   # ⚠️ En producción deberías usar hash
+    )
+
+    db.session.add(new_admin)
+    db.session.commit()
+
+    return jsonify({"msg": "Admin user created successfully", "admin": new_admin.serialize()}), 201
+
+
+@api.route('/admin_users/<int:id>', methods=['PUT'])
+def update_admin_user(id):
+    admin = AdminUser.query.get(id)
+    if not admin:
+        raise APIException("Admin user not found", 404)
+
+    data = request.get_json()
+    admin.email = data.get("email", admin.email)
+    admin.password = data.get("password", admin.password)
+    db.session.commit()
+
+    return jsonify({"msg": "Admin user updated", "admin": admin.serialize()}), 200
+
+
+@api.route('/admin_users/<int:id>', methods=['DELETE'])
+def delete_admin_user(id):
+    admin = AdminUser.query.get(id)
+    if not admin:
+        raise APIException("Admin user not found", 404)
+
+    db.session.delete(admin)
+    db.session.commit()
+
+    return jsonify({"msg": "Admin user deleted successfully"}), 200
+
+@api.route('/admin-login', methods=['POST'])
+def admin_login():
+    data = request.get_json()
+    email = data.get("email")
+    password = data.get("password")
+
+    # Credenciales de prueba
+    if email == "contrasena@gmail.com" and password == "contrasena":
+        return jsonify({"msg": "Admin login exitoso", "token": "fake-admin-token"}), 200
+    
+    return jsonify({"msg": "Invalid credentials"}), 401
+    
+    
+

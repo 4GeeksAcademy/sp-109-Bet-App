@@ -34,6 +34,19 @@ export const Navbar = () => {
 				<Link to="/userbets" className="btn btn-outline-success mx-2">
 					User Bets
 				</Link>
+
+				<Link to="/admin/login" className="btn btn-outline-danger mx-2">
+				    Admin Login
+				</Link>
+
+				<Link to="/admin-board" className="btn btn-outline-secondary mx-2">
+   					 Admin Board
+				</Link>
+
+				<Link to="/admin/logout" className="btn btn-danger mx-2">
+  					 Logout
+				</Link>
+
 			</div>
 		</nav>
 	);
