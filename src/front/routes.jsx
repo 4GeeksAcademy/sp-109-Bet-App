@@ -28,6 +28,8 @@ import { ChatCreate } from "./pages/ChatCreate";
 import { ChatEdit } from "./pages/ChatEdit";
 import { ChatListForPlayground } from "./pages/ChatListForPlayground";
 import PlaygroundChat from "./pages/PlaygroundChat";
+import { BetOptions } from "./pages/BetOptions";
+import { MessageBoard } from "./pages/MessageBoard.jsx";
 
 export const router = createBrowserRouter(
     createRoutesFromElements(
@@ -58,11 +60,13 @@ export const router = createBrowserRouter(
         <Route path="/view/:id" element={<UserView />} />
         <Route path="/playground/:id/bet" element={<BetCreate />} />
         <Route path="/playground/:id/bet/:betId/edit" element={<BetEdit />} />
+        <Route path="/playground/:id/bet/:betId/options" element={<BetOptions />} />
         <Route path="/chats" element={<ChatList />} />
         <Route path="/chat/create" element={<ChatCreate />} />
         <Route path="/chat/edit/:id" element={<ChatEdit />} />
         <Route path="/playground/:id/chats" element={<ChatListForPlayground />} />
         <Route path="/playground/:id/chat" element={<PlaygroundChat />} />
+        <Route path="/message-board" element={<MessageBoard />} />
       
       </Route>
     )

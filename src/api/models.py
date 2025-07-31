@@ -173,3 +173,19 @@ class PlaygroundUser(db.Model):
             "playground_id": self.playground_id,
             "joined_at": self.joined_at.isoformat()
         }
+    
+class MessageBoard(db.Model):
+    
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    username: Mapped[str] = mapped_column(String(120), nullable=False)
+    content: Mapped[str] = mapped_column(String(500), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "username": self.username,
+            "content": self.content,
+            "created_at": self.created_at.isoformat()
+        }
