@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, url_for, Blueprint
-from api.models import MessageBoard, db, User, Playground, AdminUser, Bet, PlaygroundChat, BetOption
+from api.models import MessageBoard, db, User, Playground, AdminUser, Bet, PlaygroundChat, BetOption, UserBet
 from api.utils import generate_sitemap, APIException, generate_unique_slug
 from flask_cors import CORS
 from sqlalchemy import select
@@ -575,3 +575,65 @@ def delete_message(id):
     db.session.commit()
 
     return jsonify({"msg": "Message deleted"}), 200
+
+@api.route('/user_bets', methods=['GET'])
+def get_user_bets():
+    bets = UserBet.query.all()
+    return jsonify([b.serialize() for b in bets]), 200
+
+
+@api.route('/user_bets/<int:id>', methods=['GET'])
+def get_user_bet(id):
+    bet = UserBet.query.get(id)
+    if not bet:
+        raise APIException("User bet not found", 404)
+    return jsonify(bet.serialize()), 200
+
+
+@api.route('/user_bets', methods=['POST'])
+def create_user_bet():
+    data = request.get_json()
+    if not data or "user_id" not in data or "bet_name" not in data or "bet_option_name" not in data:
+        raise APIException("Fields 'user_id', 'bet_name' and 'bet_option_name' are required", 400)
+
+    # Generar bet_id automáticamente
+    last_bet = UserBet.query.order_by(UserBet.bet_id.desc()).first()
+    new_bet_id = (last_bet.bet_id + 1) if last_bet and last_bet.bet_id else 1
+
+    new_bet = UserBet(
+        user_id=data["user_id"],
+        bet_id=new_bet_id,
+        bet_name=data["bet_name"],
+        bet_option_name=data["bet_option_name"]
+    )
+
+    db.session.add(new_bet)
+    db.session.commit()
+
+    return jsonify({"msg": "User bet created successfully", "bet": new_bet.serialize()}), 201
+
+
+@api.route('/user_bets/<int:id>', methods=['PUT'])
+def update_user_bet(id):
+    bet = UserBet.query.get(id)
+    if not bet:
+        raise APIException("User bet not found", 404)
+
+    data = request.get_json()
+    bet.bet_name = data.get("bet_name", bet.bet_name)
+    bet.bet_option_name = data.get("bet_option_name", bet.bet_option_name)
+    db.session.commit()
+
+    return jsonify({"msg": "User bet updated", "bet": bet.serialize()}), 200
+
+
+@api.route('/user_bets/<int:id>', methods=['DELETE'])
+def delete_user_bet(id):
+    bet = UserBet.query.get(id)
+    if not bet:
+        raise APIException("User bet not found", 404)
+
+    db.session.delete(bet)
+    db.session.commit()
+
+    return jsonify({"msg": "User bet deleted successfully"}), 200
