@@ -4,6 +4,8 @@ from api.utils import generate_sitemap, APIException, generate_unique_slug
 from flask_cors import CORS
 from sqlalchemy import select
 from datetime import datetime
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from werkzeug.security import check_password_hash, generate_password_hash
 
 api = Blueprint('api', __name__)
 
@@ -15,8 +17,8 @@ def handle_hello():
 
 # ----------- USER -----------
 
-@api.route('/register', methods=['POST'])
-def register_user():
+@api.route('/signup', methods=['POST'])
+def signup():
     body = request.get_json()
     required_fields = ["username", "name", "last_name", "email", "password"]
     for field in required_fields:
@@ -27,8 +29,12 @@ def register_user():
         raise APIException("Email already exists", 400)
     if User.query.filter_by(username=body["username"]).first():
         raise APIException("Username already exists", 400)
+    
 
-    user = User(**body)
+    hashed_password = generate_password_hash(body["password"])
+    user_data = { **body, "password": hashed_password }
+    user = User(**user_data)
+
     db.session.add(user)
     db.session.commit()
 
@@ -37,10 +43,41 @@ def register_user():
 @api.route('/login', methods=['POST'])
 def login_user():
     body = request.get_json()
-    user = User.query.filter_by(email=body.get("email")).first()
+    email = body.get('email')
+    password = body.get('password')
+
+    if not email or not password:
+        raise APIException("Email and password required", 400)
+
+
+    user = User.query.filter_by(email=email).first()
     if not user:
         raise APIException("User not found", 404)
-    return jsonify({"msg": "Login successful", "user": user.serialize()}), 200
+    
+    if not check_password_hash(user.password, password):
+        raise APIException("Incorrect password", 401)
+    
+    token = create_access_token(identity=str(user.id))
+    
+    return jsonify({
+        "token": token,
+        "user": user.serialize()
+    }), 200
+
+
+@api.route('/private', methods=['GET'])
+@jwt_required()
+def private_zone():
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+    if not user:
+        raise APIException("User not found", 404)
+    
+    return jsonify({
+        "msg": "Welcome to the private zone",
+        "user": user.serialize()
+    }), 200
+
 
 @api.route('/users', methods=['GET'])
 def get_users():
