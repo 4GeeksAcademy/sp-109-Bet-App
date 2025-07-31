@@ -10,7 +10,7 @@ export const AdminEdit = () => {
   useEffect(() => {
     const editAdmin = async () => {
       try {
-        const resp = await fetch(import.meta.env.VITE_BACKEND_URL + `/api/adminsite/${id}`);
+        const resp = await fetch(import.meta.env.VITE_BACKEND_URL + `/api/adminuser/${id}`);
         if (!resp.ok) throw new Error("Failed to get admin");
         const data = await resp.json();
         setEmail(data.email);
@@ -25,7 +25,7 @@ export const AdminEdit = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/adminsite/${id}`, {
+      const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/adminuser/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
