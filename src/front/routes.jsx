@@ -34,6 +34,10 @@ import { Private } from "./pages/Private";
 import PrivateRoutes from "./PrivateRoutes";
 import { Login } from "./pages/Login";
 import { UserBetsBoard } from "./pages/UserBetsBoard"
+import { AdminLogin } from "./pages/AdminLogin";
+import { AdminLogout } from "./pages/AdminLogout";
+import { AdminBoard } from "./pages/AdminBoard";
+
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -72,6 +76,9 @@ export const router = createBrowserRouter(
         <Route path="/playground/:id/chat" element={<PlaygroundChat />} />
         <Route path="/message-board" element={<MessageBoard />} />
         <Route path="/userbets" element={<UserBetsBoard />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/logout" element={<AdminLogout />} />
+        <Route path="/admin-board" element={<AdminBoard />} />
       
       </Route>
     )
