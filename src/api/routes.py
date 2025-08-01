@@ -706,11 +706,20 @@ def admin_login():
     email = data.get("email")
     password = data.get("password")
 
-    # Credenciales de prueba
-    if email == "contrasena@gmail.com" and password == "contrasena":
-        return jsonify({"msg": "Admin login exitoso", "token": "fake-admin-token"}), 200
     
-    return jsonify({"msg": "Invalid credentials"}), 401
+    admin = AdminUser.query.filter_by(email=email).first()
+ 
+    if not admin:
+        if email == "contrasena@gmail.com" and password == "contrasena":
+            token = create_access_token(identity="superadmin")
+            return jsonify({"msg": "Admin login exitoso", "token": token}), 200
+        return jsonify({"msg": "Invalid credentials"}), 401
+    
+    if admin.password != password:
+        return jsonify({"msg": "Invalid credentials"}), 401
+    
+    token = create_access_token(identity=str(admin.id))
+    return jsonify({"msg": "Admin login exitoso", "token": token}), 200
     
     
 

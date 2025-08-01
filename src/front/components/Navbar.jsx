@@ -43,9 +43,7 @@ export const Navbar = () => {
    					 Admin Board
 				</Link>
 
-				<Link to="/admin/logout" className="btn btn-danger mx-2">
-  					 Logout
-				</Link>
+			
 
 			</div>
 		</nav>
