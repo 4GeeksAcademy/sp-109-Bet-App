@@ -50,36 +50,44 @@ export const router = createBrowserRouter(
     // Root Route: All navigation will start from here.
     <Route path="/" element={<Layout />} errorElement={<h1>Not found!</h1>} >
 
-        {/* Nested Routes: Defines sub-routes within the BaseHome component. */}
-        <Route path= "/" element={<Home />} />
-        <Route path="/single/:theId" element={ <Single />} />  {/* Dynamic route for single items */}
-        <Route path="/demo" element={<Demo />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/users" element={<Users />} />
-        <Route path="/create" element={<UserCreate />} />
-        <Route path="/edit/:id" element={<UserEdit />} />
-        <Route path="/adminsite" element={<Adminsite />} />
-        <Route path="/admincreate" element={<AdminCreate />} />
-        <Route path="/admin/adminsite/:id" element={<AdminEdit />} />
-        <Route path="/playground" element={<Playgrounds />} />
-        <Route path="/playground/create" element={<PlaygroundCreate />} />
-        <Route path="/playground/edit/:id" element={<PlaygroundEdit />} />
-        <Route path="/playground/:id" element={<PlaygroundSingle />} />
-        <Route path="/view/:id" element={<UserView />} />
-        <Route path="/playground/:id/bet" element={<BetCreate />} />
-        <Route path="/playground/:id/bet/:betId/edit" element={<BetEdit />} />
-        <Route path="/playground/:id/bet/:betId/options" element={<BetOptions />} />
-        <Route path="/chats" element={<ChatList />} />
-        <Route path="/chat/create" element={<ChatCreate />} />
-        <Route path="/chat/edit/:id" element={<ChatEdit />} />
-        <Route path="/playground/:id/chats" element={<ChatListForPlayground />} />
-        <Route path="/playground/:id/chat" element={<PlaygroundChat />} />
-        <Route path="/message-board" element={<MessageBoard />} />
-        <Route path="/userbets" element={<UserBetsBoard />} />
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin/logout" element={<AdminLogout />} />
-        <Route path="/admin-board" element={<AdminBoard />} />
-      
-      </Route>
-    )
+      {/* Nested Routes: Defines sub-routes within the BaseHome component. */}
+      <Route path="/" element={<Home />} />
+      <Route path="/single/:theId" element={<Single />} />  {/* Dynamic route for single items */}
+      <Route path="/demo" element={<Demo />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/users" element={<Users />} />
+      <Route path="/create" element={<UserCreate />} />
+      <Route path="/edit/:id" element={<UserEdit />} />
+      <Route path="/adminsite" element={<Adminsite />} />
+      <Route path="/admincreate" element={<AdminCreate />} />
+      <Route path="/admin/adminsite/:id" element={<AdminEdit />} />
+      <Route path="/playground" element={<Playgrounds />} />
+      <Route path="/playground/create" element={<PlaygroundCreate />} />
+      <Route path="/playground/edit/:id" element={<PlaygroundEdit />} />
+      <Route path="/playground/:id" element={<PlaygroundSingle />} />
+      <Route path="/view/:id" element={<UserView />} />
+      <Route path="/playground/:id/bet" element={<BetCreate />} />
+      <Route path="/playground/:id/bet/:betId/edit" element={<BetEdit />} />
+      <Route path="/playground/:id/bet/:betId/options" element={<BetOptions />} />
+      <Route path="/chats" element={<ChatList />} />
+      <Route path="/chat/create" element={<ChatCreate />} />
+      <Route path="/chat/edit/:id" element={<ChatEdit />} />
+      <Route path="/playground/:id/chats" element={<ChatListForPlayground />} />
+      <Route path="/playground/:id/chat" element={<PlaygroundChat />} />
+      <Route path="/message-board" element={<MessageBoard />} />
+      <Route path="/userbets" element={<UserBetsBoard />} />
+      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin/logout" element={<AdminLogout />} />
+      <Route path="/admin-board" element={<AdminBoard />} />
+      <Route path="/login" element={<Login />} />
+
+
+      <Route path="/private" element={
+        <PrivateRoutes>
+          <Private />
+        </PrivateRoutes>
+      } />
+
+    </Route>
+  )
 );

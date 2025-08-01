@@ -175,8 +175,6 @@ class PlaygroundUser(db.Model):
         }
     
 class MessageBoard(db.Model):
-    
-
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(120), nullable=False)
     content: Mapped[str] = mapped_column(String(500), nullable=False)
@@ -194,7 +192,7 @@ class MessageBoard(db.Model):
 class UserBet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, nullable=False)
-    bet_id = db.Column(db.Integer, nullable=True)  # ✅ Quitar ForeignKey para permitir ID libre
+    bet_id = db.Column(db.Integer, nullable=True)
     bet_name = db.Column(db.String(120), nullable=False)
     bet_option_name = db.Column(db.String(120), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
