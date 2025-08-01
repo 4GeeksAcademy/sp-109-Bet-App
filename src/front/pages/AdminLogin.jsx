@@ -1,14 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 export const AdminLogin = () => {
-    const [form, setForm] = useState({
-        email: "",
-        password: ""
-    });
+    const [form, setForm] = useState({ email: "", password: "" });
     const [error, setError] = useState(null);
-
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const token = localStorage.getItem("adminToken");
+        if (token) {
+            navigate("/admin-board"); 
+        }
+    }, [navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -27,11 +30,9 @@ export const AdminLogin = () => {
                 throw new Error(data.msg || "Invalid credentials");
             }
 
-            // Guardar el token y email
             localStorage.setItem("adminToken", data.token);
             localStorage.setItem("adminEmail", form.email);
 
-            // ✅ Redirigir al CRUD de admins
             navigate('/admin-board');
         } catch (err) {
             console.error(err);
@@ -43,7 +44,7 @@ export const AdminLogin = () => {
         <div className="container mt-5">
             <h1 className="mb-4">ADMIN LOGIN</h1>
 
-            {/* Nota con las credenciales de prueba */}
+            
             <div className="alert alert-info">
                 <strong>ℹ️ Credenciales de prueba:</strong><br />
                 Email: <code>contrasena@gmail.com</code><br />
