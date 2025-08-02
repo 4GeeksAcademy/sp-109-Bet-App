@@ -576,7 +576,6 @@ def delete_message(id):
 
     return jsonify({"msg": "Message deleted"}), 200
 
-<<<<<<< HEAD
 
 
 @api.route('/playgrounduser', methods=['GET', 'POST'])
@@ -639,7 +638,6 @@ def delete_playground_user(id):
     return jsonify({"id": id,"msg": f"Playground user {id} deleted"}), 200
 
 
-=======
 @api.route('/user_bets', methods=['GET'])
 def get_user_bets():
     bets = UserBet.query.all()
@@ -787,4 +785,3 @@ def admin_login():
     
     
 
->>>>>>> develop
