@@ -175,8 +175,6 @@ class PlaygroundUser(db.Model):
         }
     
 class MessageBoard(db.Model):
-    
-
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(120), nullable=False)
     content: Mapped[str] = mapped_column(String(500), nullable=False)
@@ -187,5 +185,24 @@ class MessageBoard(db.Model):
             "id": self.id,
             "username": self.username,
             "content": self.content,
+            "created_at": self.created_at.isoformat()
+        }
+    
+
+class UserBet(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, nullable=False)
+    bet_id = db.Column(db.Integer, nullable=True)
+    bet_name = db.Column(db.String(120), nullable=False)
+    bet_option_name = db.Column(db.String(120), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "bet_id": self.bet_id,
+            "bet_name": self.bet_name,
+            "bet_option_name": self.bet_option_name,
             "created_at": self.created_at.isoformat()
         }

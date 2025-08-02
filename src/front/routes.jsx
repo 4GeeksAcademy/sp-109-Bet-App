@@ -1,9 +1,9 @@
 // Import necessary components and functions from react-router-dom.
 
 import {
-    createBrowserRouter,
-    createRoutesFromElements,
-    Route,
+  createBrowserRouter,
+  createRoutesFromElements,
+  Route,
 } from "react-router-dom";
 import { Layout } from "./pages/Layout";
 import { Home } from "./pages/Home";
@@ -30,20 +30,28 @@ import { ChatListForPlayground } from "./pages/ChatListForPlayground";
 import PlaygroundChat from "./pages/PlaygroundChat";
 import { BetOptions } from "./pages/BetOptions";
 import { MessageBoard } from "./pages/MessageBoard.jsx";
+import { Private } from "./pages/Private";
+import PrivateRoutes from "./PrivateRoutes";
+import { Login } from "./pages/Login";
+import { UserBetsBoard } from "./pages/UserBetsBoard"
+import { AdminLogin } from "./pages/AdminLogin";
+
+import { AdminBoard } from "./pages/AdminBoard";
+
 import PlaygroundUser from "./pages/PlaygroundUser.jsx";
 import {PlaygroundUserCreate} from "./pages/PlaygroundUserCreate.jsx";
 import {PlaygroundUserEdit} from "./pages/PlaygroundUserEdit.jsx";
 
 export const router = createBrowserRouter(
-    createRoutesFromElements(
+  createRoutesFromElements(
     // CreateRoutesFromElements function allows you to build route elements declaratively.
     // Create your routes here, if you want to keep the Navbar and Footer in all views, add your new routes inside the containing Route.
     // Root, on the contrary, create a sister Route, if you have doubts, try it!
     // Note: keep in mind that errorElement will be the default page when you don't get a route, customize that page to make your project more attractive.
     // Note: The child paths of the Layout element replace the Outlet component with the elements contained in the "element" attribute of these child paths.
 
-      // Root Route: All navigation will start from here.
-      <Route path="/" element={<Layout />} errorElement={<h1>Not found!</h1>} >
+    // Root Route: All navigation will start from here.
+    <Route path="/" element={<Layout />} errorElement={<h1>Not found!</h1>} >
 
         {/* Nested Routes: Defines sub-routes within the BaseHome component. */}
         <Route path= "/" element={<Home />} />
@@ -72,7 +80,20 @@ export const router = createBrowserRouter(
         <Route path="/message-board" element={<MessageBoard />} />
         <Route path="/playgrounduser" element={<PlaygroundUser />} />
         <Route path="/playgrounduser/create" element={<PlaygroundUserCreate />} />
-        <Route path="/playgrounduser/edit/:id" element={<PlaygroundUserEdit />} />       
+        <Route path="/playgrounduser/edit/:id" element={<PlaygroundUserEdit />} />
+        <Route path="/userbets" element={<UserBetsBoard />} />
+        <Route path="/admin/login" element={<AdminLogin />} />        
+        <Route path="/admin-board" element={<AdminBoard />} />
+        <Route path="/login" element={<Login />} />
+
+
+        <Route path="/private" element={
+          <PrivateRoutes>
+            <Private />
+          </PrivateRoutes>
+        } />
+      
+      
       </Route>
     )
 );

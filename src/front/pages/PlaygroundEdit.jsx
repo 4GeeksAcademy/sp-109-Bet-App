@@ -19,7 +19,6 @@ export const PlaygroundEdit = () => {
                 if (!resp.ok) throw new Error("Failed to fetch playground");
 
                 const data = await resp.json();
-                console.log("datos recibidos", data);
 
                 setName(data.playground.name)
                 setImage(data.playground.url_image);

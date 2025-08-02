@@ -1,9 +1,19 @@
 from flask import Flask, request, jsonify, url_for, Blueprint
+<<<<<<< HEAD
 from api.models import MessageBoard, db, User, Playground, AdminUser, Bet, PlaygroundChat, BetOption, PlaygroundUser
 from api.utils import generate_sitemap, APIException, generate_unique_slug
 from flask_cors import CORS
 from sqlalchemy import select
 from datetime import datetime, timezone 
+=======
+from api.models import MessageBoard, db, User, Playground, AdminUser, Bet, PlaygroundChat, BetOption, UserBet
+from api.utils import generate_sitemap, APIException, generate_unique_slug
+from flask_cors import CORS
+from sqlalchemy import select
+from datetime import datetime
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from werkzeug.security import check_password_hash, generate_password_hash
+>>>>>>> develop
 
 api = Blueprint('api', __name__)
 
@@ -15,8 +25,8 @@ def handle_hello():
 
 # ----------- USER -----------
 
-@api.route('/register', methods=['POST'])
-def register_user():
+@api.route('/signup', methods=['POST'])
+def signup():
     body = request.get_json()
     required_fields = ["username", "name", "last_name", "email", "password"]
     for field in required_fields:
@@ -27,8 +37,12 @@ def register_user():
         raise APIException("Email already exists", 400)
     if User.query.filter_by(username=body["username"]).first():
         raise APIException("Username already exists", 400)
+    
 
-    user = User(**body)
+    hashed_password = generate_password_hash(body["password"])
+    user_data = { **body, "password": hashed_password }
+    user = User(**user_data)
+
     db.session.add(user)
     db.session.commit()
 
@@ -37,10 +51,41 @@ def register_user():
 @api.route('/login', methods=['POST'])
 def login_user():
     body = request.get_json()
-    user = User.query.filter_by(email=body.get("email")).first()
+    email = body.get('email')
+    password = body.get('password')
+
+    if not email or not password:
+        raise APIException("Email and password required", 400)
+
+
+    user = User.query.filter_by(email=email).first()
     if not user:
         raise APIException("User not found", 404)
-    return jsonify({"msg": "Login successful", "user": user.serialize()}), 200
+    
+    if not check_password_hash(user.password, password):
+        raise APIException("Incorrect password", 401)
+    
+    token = create_access_token(identity=str(user.id))
+    
+    return jsonify({
+        "token": token,
+        "user": user.serialize()
+    }), 200
+
+
+@api.route('/private', methods=['GET'])
+@jwt_required()
+def private_zone():
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+    if not user:
+        raise APIException("User not found", 404)
+    
+    return jsonify({
+        "msg": "Welcome to the private zone",
+        "user": user.serialize()
+    }), 200
+
 
 @api.route('/users', methods=['GET'])
 def get_users():
@@ -539,6 +584,7 @@ def delete_message(id):
 
     return jsonify({"msg": "Message deleted"}), 200
 
+<<<<<<< HEAD
 
 
 @api.route('/playgrounduser', methods=['GET', 'POST'])
@@ -601,3 +647,152 @@ def delete_playground_user(id):
     return jsonify({"id": id,"msg": f"Playground user {id} deleted"}), 200
 
 
+=======
+@api.route('/user_bets', methods=['GET'])
+def get_user_bets():
+    bets = UserBet.query.all()
+    return jsonify([b.serialize() for b in bets]), 200
+
+
+@api.route('/user_bets/<int:id>', methods=['GET'])
+def get_user_bet(id):
+    bet = UserBet.query.get(id)
+    if not bet:
+        raise APIException("User bet not found", 404)
+    return jsonify(bet.serialize()), 200
+
+
+@api.route('/user_bets', methods=['POST'])
+def create_user_bet():
+    data = request.get_json()
+    if not data or "user_id" not in data or "bet_name" not in data or "bet_option_name" not in data:
+        raise APIException("Fields 'user_id', 'bet_name' and 'bet_option_name' are required", 400)
+
+    # Generar bet_id automáticamente
+    last_bet = UserBet.query.order_by(UserBet.bet_id.desc()).first()
+    new_bet_id = (last_bet.bet_id + 1) if last_bet and last_bet.bet_id else 1
+
+    new_bet = UserBet(
+        user_id=data["user_id"],
+        bet_id=new_bet_id,
+        bet_name=data["bet_name"],
+        bet_option_name=data["bet_option_name"]
+    )
+
+    db.session.add(new_bet)
+    db.session.commit()
+
+    return jsonify({"msg": "User bet created successfully", "bet": new_bet.serialize()}), 201
+
+
+@api.route('/user_bets/<int:id>', methods=['PUT'])
+def update_user_bet(id):
+    bet = UserBet.query.get(id)
+    if not bet:
+        raise APIException("User bet not found", 404)
+
+    data = request.get_json()
+    bet.bet_name = data.get("bet_name", bet.bet_name)
+    bet.bet_option_name = data.get("bet_option_name", bet.bet_option_name)
+    db.session.commit()
+
+    return jsonify({"msg": "User bet updated", "bet": bet.serialize()}), 200
+
+
+@api.route('/user_bets/<int:id>', methods=['DELETE'])
+def delete_user_bet(id):
+    bet = UserBet.query.get(id)
+    if not bet:
+        raise APIException("User bet not found", 404)
+
+    db.session.delete(bet)
+    db.session.commit()
+
+    return jsonify({"msg": "User bet deleted successfully"}), 200
+
+# ----------- ADMIN USER CRUD -----------
+
+@api.route('/admin_users', methods=['GET'])
+def get_admin_users():
+    admins = AdminUser.query.all()
+    return jsonify([a.serialize() for a in admins]), 200
+
+
+@api.route('/admin_users/<int:id>', methods=['GET'])
+def get_admin_user(id):
+    admin = AdminUser.query.get(id)
+    if not admin:
+        raise APIException("Admin user not found", 404)
+    return jsonify(admin.serialize()), 200
+
+
+@api.route('/admin_users', methods=['POST'])
+def create_admin_user():
+    data = request.get_json()
+    if not data or "email" not in data or "password" not in data:
+        raise APIException("Fields 'email' and 'password' are required", 400)
+
+    # Comprobar si ya existe el email
+    if AdminUser.query.filter_by(email=data["email"]).first():
+        raise APIException("Email already exists", 400)
+
+    new_admin = AdminUser(
+        email=data["email"],
+        password=data["password"]   # ⚠️ En producción deberías usar hash
+    )
+
+    db.session.add(new_admin)
+    db.session.commit()
+
+    return jsonify({"msg": "Admin user created successfully", "admin": new_admin.serialize()}), 201
+
+
+@api.route('/admin_users/<int:id>', methods=['PUT'])
+def update_admin_user(id):
+    admin = AdminUser.query.get(id)
+    if not admin:
+        raise APIException("Admin user not found", 404)
+
+    data = request.get_json()
+    admin.email = data.get("email", admin.email)
+    admin.password = data.get("password", admin.password)
+    db.session.commit()
+
+    return jsonify({"msg": "Admin user updated", "admin": admin.serialize()}), 200
+
+
+@api.route('/admin_users/<int:id>', methods=['DELETE'])
+def delete_admin_user(id):
+    admin = AdminUser.query.get(id)
+    if not admin:
+        raise APIException("Admin user not found", 404)
+
+    db.session.delete(admin)
+    db.session.commit()
+
+    return jsonify({"msg": "Admin user deleted successfully"}), 200
+
+@api.route('/admin-login', methods=['POST'])
+def admin_login():
+    data = request.get_json()
+    email = data.get("email")
+    password = data.get("password")
+
+    
+    admin = AdminUser.query.filter_by(email=email).first()
+ 
+    if not admin:
+        if email == "contrasena@gmail.com" and password == "contrasena":
+            token = create_access_token(identity="superadmin")
+            return jsonify({"msg": "Admin login exitoso", "token": token}), 200
+        return jsonify({"msg": "Invalid credentials"}), 401
+    
+    if admin.password != password:
+        return jsonify({"msg": "Invalid credentials"}), 401
+    
+    token = create_access_token(identity=str(admin.id))
+    return jsonify({"msg": "Admin login exitoso", "token": token}), 200
+    
+    
+
+>>>>>>> develop
