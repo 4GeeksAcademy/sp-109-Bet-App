@@ -1,19 +1,11 @@
 from flask import Flask, request, jsonify, url_for, Blueprint
-<<<<<<< HEAD
-from api.models import MessageBoard, db, User, Playground, AdminUser, Bet, PlaygroundChat, BetOption, PlaygroundUser
+from api.models import MessageBoard, db, User, Playground, AdminUser, Bet, PlaygroundChat, BetOption, UserBet,  PlaygroundUser
 from api.utils import generate_sitemap, APIException, generate_unique_slug
 from flask_cors import CORS
 from sqlalchemy import select
-from datetime import datetime, timezone 
-=======
-from api.models import MessageBoard, db, User, Playground, AdminUser, Bet, PlaygroundChat, BetOption, UserBet
-from api.utils import generate_sitemap, APIException, generate_unique_slug
-from flask_cors import CORS
-from sqlalchemy import select
-from datetime import datetime
+from datetime import datetime, timezone
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from werkzeug.security import check_password_hash, generate_password_hash
->>>>>>> develop
 
 api = Blueprint('api', __name__)
 
