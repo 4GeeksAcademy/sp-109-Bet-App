@@ -1,9 +1,9 @@
 from flask import Flask, request, jsonify, url_for, Blueprint
-from api.models import MessageBoard, db, User, Playground, AdminUser, Bet, PlaygroundChat, BetOption
+from api.models import MessageBoard, db, User, Playground, AdminUser, Bet, PlaygroundChat, BetOption, PlaygroundUser
 from api.utils import generate_sitemap, APIException, generate_unique_slug
 from flask_cors import CORS
 from sqlalchemy import select
-from datetime import datetime
+from datetime import datetime, timezone 
 
 api = Blueprint('api', __name__)
 
@@ -538,3 +538,66 @@ def delete_message(id):
     db.session.commit()
 
     return jsonify({"msg": "Message deleted"}), 200
+
+
+
+@api.route('/playgrounduser', methods=['GET', 'POST'])
+def handle_playground_users():
+    if request.method == 'GET':
+        users = PlaygroundUser.query.all()
+        return jsonify([user.serialize() for user in users]), 200
+    
+    data = request.get_json()
+    required_fields = ['user_id', 'playground_id']
+
+    if not all(field in data for field in required_fields):
+        raise APIException('Fields "user_id" and "playground_id" are required', 400)
+    
+    new_user = PlaygroundUser(
+        user_id=data['user_id'],
+        playground_id=data['playground_id'],
+        joined_at=datetime.now(timezone.utc) 
+    )
+
+    db.session.add(new_user)
+    db.session.commit()
+
+    return jsonify({
+        "msg": "Playground user created",
+        "user": new_user.serialize()
+    }), 201
+    
+
+@api.route('/playgrounduser/<int:id>', methods=['PUT'])
+def update_playground_user(id):
+    user = PlaygroundUser.query.get(id)
+    if not user:
+        raise APIException("PlaygroundUser not found", 404)
+
+    data = request.get_json()
+
+    if 'user_id' in data:
+        user.user_id = data['user_id']
+    if 'playground_id' in data:
+        user.playground_id = data['playground_id']
+
+    db.session.commit()
+
+    return jsonify({
+        "msg": "Playground user updated",
+        "user": user.serialize()
+    }), 200
+
+
+@api.route('/playgrounduser/<int:id>', methods=['DELETE'])
+def delete_playground_user(id):
+    user = PlaygroundUser.query.get(id)
+    if not user:
+        raise APIException("Playground User not found", 404)
+
+    db.session.delete(user)
+    db.session.commit()
+
+    return jsonify({"id": id,"msg": f"Playground user {id} deleted"}), 200
+
+
