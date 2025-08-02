@@ -1,4 +1,11 @@
 from flask import Flask, request, jsonify, url_for, Blueprint
+<<<<<<< HEAD
+from api.models import MessageBoard, db, User, Playground, AdminUser, Bet, PlaygroundChat, BetOption, PlaygroundUser
+from api.utils import generate_sitemap, APIException, generate_unique_slug
+from flask_cors import CORS
+from sqlalchemy import select
+from datetime import datetime, timezone 
+=======
 from api.models import MessageBoard, db, User, Playground, AdminUser, Bet, PlaygroundChat, BetOption, UserBet
 from api.utils import generate_sitemap, APIException, generate_unique_slug
 from flask_cors import CORS
@@ -6,6 +13,7 @@ from sqlalchemy import select
 from datetime import datetime
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from werkzeug.security import check_password_hash, generate_password_hash
+>>>>>>> develop
 
 api = Blueprint('api', __name__)
 
@@ -576,6 +584,70 @@ def delete_message(id):
 
     return jsonify({"msg": "Message deleted"}), 200
 
+<<<<<<< HEAD
+
+
+@api.route('/playgrounduser', methods=['GET', 'POST'])
+def handle_playground_users():
+    if request.method == 'GET':
+        users = PlaygroundUser.query.all()
+        return jsonify([user.serialize() for user in users]), 200
+    
+    data = request.get_json()
+    required_fields = ['user_id', 'playground_id']
+
+    if not all(field in data for field in required_fields):
+        raise APIException('Fields "user_id" and "playground_id" are required', 400)
+    
+    new_user = PlaygroundUser(
+        user_id=data['user_id'],
+        playground_id=data['playground_id'],
+        joined_at=datetime.now(timezone.utc) 
+    )
+
+    db.session.add(new_user)
+    db.session.commit()
+
+    return jsonify({
+        "msg": "Playground user created",
+        "user": new_user.serialize()
+    }), 201
+    
+
+@api.route('/playgrounduser/<int:id>', methods=['PUT'])
+def update_playground_user(id):
+    user = PlaygroundUser.query.get(id)
+    if not user:
+        raise APIException("PlaygroundUser not found", 404)
+
+    data = request.get_json()
+
+    if 'user_id' in data:
+        user.user_id = data['user_id']
+    if 'playground_id' in data:
+        user.playground_id = data['playground_id']
+
+    db.session.commit()
+
+    return jsonify({
+        "msg": "Playground user updated",
+        "user": user.serialize()
+    }), 200
+
+
+@api.route('/playgrounduser/<int:id>', methods=['DELETE'])
+def delete_playground_user(id):
+    user = PlaygroundUser.query.get(id)
+    if not user:
+        raise APIException("Playground User not found", 404)
+
+    db.session.delete(user)
+    db.session.commit()
+
+    return jsonify({"id": id,"msg": f"Playground user {id} deleted"}), 200
+
+
+=======
 @api.route('/user_bets', methods=['GET'])
 def get_user_bets():
     bets = UserBet.query.all()
@@ -723,3 +795,4 @@ def admin_login():
     
     
 
+>>>>>>> develop

@@ -169,9 +169,9 @@ class PlaygroundUser(db.Model):
     def serialize(self):
         return {
             "id": self.id,
-            "user_id": self.user_id,
-            "playground_id": self.playground_id,
-            "joined_at": self.joined_at.isoformat()
+            "username": self.user.username if self.user else None,
+            "playground": self.playground.name if self.playground else None,
+            "joined_at": self.joined_at.strftime('%d-%m-%Y') if self.joined_at else None
         }
     
 class MessageBoard(db.Model):

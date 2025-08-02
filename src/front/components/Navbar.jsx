@@ -43,8 +43,9 @@ export const Navbar = () => {
    					 Admin Board
 				</Link>
 
-			
-
+				<Link to="/playgrounduser" className="btn btn-outline-success ms-2">
+					Playground Users
+				</Link>
 			</div>
 		</nav>
 	);
