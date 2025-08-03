@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, url_for, Blueprint
-from api.models import MessageBoard, db, User, Playground, AdminUser, Bet, PlaygroundChat, BetOption, UserBet
+from api.models import MessageBoard, db, User, Playground, AdminUser, Bet, PlaygroundChat, BetOption, UserBet, PlaygroundUser, Message
 from api.utils import generate_sitemap, APIException, generate_unique_slug
 from flask_cors import CORS
 from sqlalchemy import select
@@ -140,48 +140,48 @@ def handle_single_admin(id):
     db.session.commit()
     return jsonify({"msg": "Admin deleted"}), 200
 
-# ----------- PLAYGROUND -----------
-
-@api.route('/playground', methods=['GET'])
-def show_playgrounds():
-
-    playgrounds = Playground.query.all()
-
-    response_body = {
-        "message": "success",
-        "playgrounds": [playground.serialize() for playground in playgrounds]
-    }
-
-    return jsonify(response_body), 200
 
 
 
-@api.route('/playground', methods=['POST'])
-def create_playground():
-    body = request.get_json()
-
-    name = body.get("name")
-
-    if not name:
-        raise APIException("Missing required fields", 400)
 
 
-    slug = generate_unique_slug(db.session, Playground, name)
+    
 
-    image = body.get('url_image')
-    description = body.get('description')
+    
+        
+        
+    
+
+    
 
 
-    new_playground = Playground(name=name, slug=slug, url_image=image, description=description)
 
 
-    db.session.add(new_playground)
-    db.session.commit()
 
-    return jsonify({
-        "message": "New playground created",
-        "playground": new_playground.serialize()
-    }), 201
+    
+
+    
+
+    
+        
+
+
+    
+
+    
+    
+
+
+    
+
+
+    
+    
+
+    
+        
+        
+    
 
 
 @api.route('/playground/<int:id>', methods=['GET'])
@@ -265,7 +265,7 @@ def update_playground(id):
 
     return jsonify(response_body), 200
 
-# ----------- CHAT -----------
+
 
 @api.route('/chat', methods=['POST'])
 def create_chat():
@@ -307,7 +307,7 @@ def get_chats_for_playground(playground_id):
     chats = PlaygroundChat.query.filter_by(playground_id=playground_id).order_by(PlaygroundChat.created_at.desc()).all()
     return jsonify({"chats": [chat.serialize() for chat in chats]}), 200
 
-# ----------- BET -----------
+
 
 @api.route('/playground/<int:pg_id>/bet', methods=['GET'])
 def get_bets_by_playground(pg_id):
@@ -341,13 +341,13 @@ def create_bet(pg_id):
 
     body = request.get_json()
 
-    # user_id = body.get("user_id")
-    # if not user_id:
-    #     raise APIException("user_id is required", 400)
+    
+    
+    
 
-    # user = User.query.get(user_id)
-    # if not user:
-    #     raise APIException("User not found", 404)
+    
+    
+    
 
     name = body.get('name')
     amount = body.get('amount', 0.0)
@@ -433,7 +433,7 @@ def update_bet(pg_id, bet_id):
         "bet": bet.serialize()
     }), 200
 
-# ----------- BET OPTION-----------
+
 
 @api.route('/playground/<int:pg_id>/bet/<int:bet_id>/options', methods=['GET'])
 def get_bet_options(pg_id, bet_id):
@@ -523,9 +523,31 @@ def update_bet_option(pg_id, bet_id, option_id):
     }), 200
 
 @api.route('/messages', methods=['GET'])
+@jwt_required()
 def get_messages():
-    messages = MessageBoard.query.all()
-    return jsonify([msg.serialize() for msg in messages]), 200
+    try:
+        current_user_id = get_jwt_identity()
+
+        
+        user_playgrounds = db.session.query(Playground.id).filter(
+            Playground.created_by == current_user_id
+        ).union(
+            db.session.query(PlaygroundUser.playground_id).filter(
+                PlaygroundUser.user_id == current_user_id
+            )
+        ).all()
+
+        playground_ids = [pg.id for pg in user_playgrounds]
+
+        if not playground_ids:
+            return jsonify([]), 200
+
+        messages = Message.query.filter(Message.playground_id.in_(playground_ids)).all()
+        return jsonify([msg.serialize() for msg in messages]), 200
+
+    except Exception as e:
+        print("❌ ERROR GET_MESSAGES:", e)
+        return jsonify({"error": "Internal server error"}), 500
 
 
 @api.route('/messages/<int:id>', methods=['GET'])
@@ -537,20 +559,32 @@ def get_message(id):
 
 
 @api.route('/messages', methods=['POST'])
+@jwt_required()
 def create_message():
-    data = request.get_json()
-    if not data or "username" not in data or "content" not in data:
-        raise APIException("Username and content are required", 400)
+    current_user_id = get_jwt_identity()
+    body = request.get_json()
 
-    new_msg = MessageBoard(
-        username=data["username"],
-        content=data["content"]
+    content = body.get("content")
+    playground_id = body.get("playground_id")
+
+    if not content or not playground_id:
+        return jsonify({"msg": "Content and playground_id are required"}), 400
+
+    
+    user = User.query.get(current_user_id)
+    if not user:
+        return jsonify({"msg": "User not found"}), 404
+
+    message = Message(
+        username=user.username,
+        content=content,
+        playground_id=playground_id,
+        user_id=current_user_id
     )
-    db.session.add(new_msg)
+    db.session.add(message)
     db.session.commit()
 
-    return jsonify({"msg": "Message created successfully", "message": new_msg.serialize()}), 201
-
+    return jsonify({"message": message.serialize()}), 201
 
 @api.route('/messages/<int:id>', methods=['PUT'])
 def update_message(id):
@@ -596,7 +630,7 @@ def create_user_bet():
     if not data or "user_id" not in data or "bet_name" not in data or "bet_option_name" not in data:
         raise APIException("Fields 'user_id', 'bet_name' and 'bet_option_name' are required", 400)
 
-    # Generar bet_id automáticamente
+    
     last_bet = UserBet.query.order_by(UserBet.bet_id.desc()).first()
     new_bet_id = (last_bet.bet_id + 1) if last_bet and last_bet.bet_id else 1
 
@@ -638,7 +672,7 @@ def delete_user_bet(id):
 
     return jsonify({"msg": "User bet deleted successfully"}), 200
 
-# ----------- ADMIN USER CRUD -----------
+
 
 @api.route('/admin_users', methods=['GET'])
 def get_admin_users():
@@ -660,13 +694,13 @@ def create_admin_user():
     if not data or "email" not in data or "password" not in data:
         raise APIException("Fields 'email' and 'password' are required", 400)
 
-    # Comprobar si ya existe el email
+    
     if AdminUser.query.filter_by(email=data["email"]).first():
         raise APIException("Email already exists", 400)
 
     new_admin = AdminUser(
         email=data["email"],
-        password=data["password"]   # ⚠️ En producción deberías usar hash
+        password=data["password"]   
     )
 
     db.session.add(new_admin)
@@ -721,5 +755,225 @@ def admin_login():
     token = create_access_token(identity=str(admin.id))
     return jsonify({"msg": "Admin login exitoso", "token": token}), 200
     
-    
+@api.route('/playground/<int:pg_id>/invite', methods=['POST'])
+@jwt_required()
+def invite_user_to_playground(pg_id):
+    current_user_id = get_jwt_identity()
+    body = request.get_json()
+    user_id = body.get("user_id")
 
+    if not user_id:
+        raise APIException("user_id is required", 400)
+
+    playground = Playground.query.get(pg_id)
+    if not playground:
+        raise APIException("Playground not found", 404)
+
+    
+    if playground.created_by != int(current_user_id):
+        raise APIException("You are not the owner of this playground", 403)
+
+    
+    existing = PlaygroundUser.query.filter_by(user_id=user_id, playground_id=pg_id).first()
+    if existing:
+        return jsonify({"msg": "User already invited"}), 200
+
+    invitation = PlaygroundUser(
+        user_id=user_id,
+        playground_id=pg_id,
+        joined_at=datetime.utcnow()
+    )
+    db.session.add(invitation)
+    db.session.commit()
+
+    return jsonify({"msg": "User invited successfully"}), 201   
+
+@api.route('/playground', methods=['POST'])
+@jwt_required()
+def create_playground():
+    body = request.get_json()
+    current_user_id = get_jwt_identity()
+
+    name = body.get("name")
+    if not name:
+        raise APIException("Missing required fields", 400)
+
+    slug = generate_unique_slug(db.session, Playground, name)
+    image = body.get('url_image')
+    description = body.get('description')
+
+    
+    new_playground = Playground(
+        name=name,
+        slug=slug,
+        url_image=image,
+        description=description,
+        created_by=current_user_id
+    )
+
+    db.session.add(new_playground)
+    db.session.commit()
+
+    return jsonify({
+        "message": "New playground created",
+        "playground": new_playground.serialize()
+    }), 201
+
+
+@api.route('/playground', methods=['GET'])
+@jwt_required(optional=True)
+def show_playgrounds():
+    current_user_id = get_jwt_identity()
+
+    
+    playgrounds = Playground.query.all()
+    data = []
+
+    for pg in playgrounds:
+        creator = User.query.get(pg.created_by)
+        item = pg.serialize()
+        item["creator_name"] = creator.username if creator else "Desconocido"
+        item["is_owner"] = (str(pg.created_by) == str(current_user_id))
+
+        
+        if current_user_id:
+            invited = PlaygroundUser.query.filter_by(
+                user_id=current_user_id,
+                playground_id=pg.id
+            ).first()
+            item["is_invited"] = True if invited else False
+        else:
+            item["is_invited"] = False
+
+        
+        if item["is_owner"] or item["is_invited"]:
+            data.append(item)
+
+    return jsonify({
+        "message": "success",
+        "playgrounds": data
+    }), 200
+
+
+
+@api.route('/playground/<int:pg_id>/members', methods=['GET'])
+@jwt_required()
+def get_playground_members(pg_id):
+    playground = Playground.query.get(pg_id)
+    if not playground:
+        raise APIException("Playground not found", 404)
+
+    members = PlaygroundUser.query.filter_by(playground_id=pg_id).all()
+
+    return jsonify({
+        "members": [ 
+            {
+                "id": m.user.id,
+                "username": m.user.username,
+                "email": m.user.email,
+                "joined_at": m.joined_at.isoformat()
+            }
+            for m in members
+        ]
+    }), 200
+
+@api.route('/messages/<int:pg_id>', methods=['GET'])
+@jwt_required()
+def get_playground_messages_alt(pg_id):   
+    current_user_id = get_jwt_identity()
+
+    
+    is_creator = Playground.query.filter_by(id=pg_id, created_by=current_user_id).first()
+    is_invited = PlaygroundUser.query.filter_by(playground_id=pg_id, user_id=current_user_id).first()
+
+    if not is_creator and not is_invited:
+        raise APIException("No tienes acceso a este Playground", 403)
+
+    messages = Message.query.filter_by(playground_id=pg_id).all()
+    return jsonify([msg.serialize() for msg in messages]), 200
+
+@api.route('/messages/my-playgrounds', methods=['GET'])
+@jwt_required()
+def get_my_playground_messages():
+    try:
+        current_user_id = get_jwt_identity()
+
+        
+        created_playgrounds = Playground.query.filter_by(created_by=current_user_id).with_entities(Playground.id).all()
+        created_pg_ids = [pg.id for pg in created_playgrounds]
+
+        
+        invited_playgrounds = PlaygroundUser.query.filter_by(user_id=current_user_id).with_entities(PlaygroundUser.playground_id).all()
+        invited_pg_ids = [pg.playground_id for pg in invited_playgrounds]
+
+        
+        all_pg_ids = list(set(created_pg_ids + invited_pg_ids))
+
+        if not all_pg_ids:
+            return jsonify({"messages": []}), 200
+
+        
+        messages = Message.query.filter(Message.playground_id.in_(all_pg_ids)).order_by(Message.created_at.desc()).all()
+
+        return jsonify({
+            "messages": [msg.serialize() for msg in messages]
+        }), 200
+
+    except Exception as e:
+        print("Error obteniendo mensajes:", str(e))
+        return jsonify({"msg": "Error fetching messages"}), 500
+
+@api.route('/playground/<int:pg_id>/messages', methods=['GET'])
+@jwt_required()
+def get_playground_messages(pg_id):
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)  # 
+
+    invited = PlaygroundUser.query.filter_by(user_id=current_user_id, playground_id=pg_id).first()
+    playground = Playground.query.get(pg_id)
+
+    if not playground:
+        return jsonify({"msg": "Playground not found"}), 404
+
+    
+    if not invited and str(playground.created_by) not in [str(current_user_id), str(user.username)]:
+        return jsonify({"msg": "Access denied"}), 403
+
+    messages = Message.query.filter_by(playground_id=pg_id).order_by(Message.created_at.asc()).all()
+    return jsonify([m.serialize() for m in messages]), 200
+
+@api.route('/playground/<int:pg_id>/messages', methods=['POST'])
+@jwt_required()
+def post_playground_message(pg_id):
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+
+    if not user:
+        return jsonify({"msg": "User not found"}), 404
+
+    body = request.get_json()
+    content = body.get("content")
+
+    if not content:
+        return jsonify({"msg": "Content is required"}), 400
+
+    invited = PlaygroundUser.query.filter_by(user_id=current_user_id, playground_id=pg_id).first()
+    playground = Playground.query.get(pg_id)
+
+    if not playground:
+        return jsonify({"msg": "Playground not found"}), 404
+
+    
+    if not invited and str(playground.created_by) not in [str(current_user_id), str(user.username)]:
+        return jsonify({"msg": "Access denied"}), 403
+
+    new_message = Message(
+        username=user.username,
+        content=content,
+        playground_id=pg_id
+    )
+
+    db.session.add(new_message)
+    db.session.commit()
+
+    return jsonify({"msg": "Message added", "message": new_message.serialize()}), 201
