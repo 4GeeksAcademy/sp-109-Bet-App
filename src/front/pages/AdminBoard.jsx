@@ -1,13 +1,27 @@
 import React, { useEffect, useState } from "react";
 import { FaEdit, FaTrash } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 export const AdminBoard = () => {
   const [admins, setAdmins] = useState([]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [editingAdmin, setEditingAdmin] = useState(null);
+  const [adminEmail, setAdminEmail] = useState("");
+  const navigate = useNavigate();
 
-  // 🔹 Obtener lista de administradores
+  
+  useEffect(() => {
+    const token = localStorage.getItem("adminToken");
+    const email = localStorage.getItem("adminEmail");
+    if (!token) {
+      navigate("/admin/login");
+    } else {
+      setAdminEmail(email);
+    }
+  }, [navigate]);
+
+  
   const getAdmins = async () => {
     try {
       const resp = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/admin_users");
@@ -18,12 +32,12 @@ export const AdminBoard = () => {
     }
   };
 
-  // 🔹 Crear o actualizar administrador
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       if (editingAdmin) {
-        // Editar admin
+        
         await fetch(import.meta.env.VITE_BACKEND_URL + `/api/admin_users/${editingAdmin.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -31,7 +45,7 @@ export const AdminBoard = () => {
         });
         setEditingAdmin(null);
       } else {
-        // Crear admin
+        
         await fetch(import.meta.env.VITE_BACKEND_URL + "/api/admin_users", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -47,14 +61,14 @@ export const AdminBoard = () => {
     }
   };
 
-  // 🔹 Editar admin (cargar datos en inputs)
+  
   const handleEdit = (admin) => {
     setEditingAdmin(admin);
     setEmail(admin.email);
     setPassword("");
   };
 
-  // 🔹 Eliminar admin
+  
   const handleDelete = async (id) => {
     if (!confirm("¿Seguro que deseas eliminar este administrador?")) return;
     try {
@@ -67,13 +81,24 @@ export const AdminBoard = () => {
     }
   };
 
+  
+  const handleLogout = () => {
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("adminEmail");
+    navigate("/admin/login");
+  };
+
   useEffect(() => {
     getAdmins();
   }, []);
 
   return (
     <div className="container mt-4">
-      <h2>Administradores</h2>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h2>👋 Bienvenido, {adminEmail || "Admin"}</h2>
+        <button className="btn btn-danger" onClick={handleLogout}>Cerrar sesión</button>
+      </div>
+
       <form onSubmit={handleSubmit} className="mb-3">
         <label className="form-label">Email</label>
         <input

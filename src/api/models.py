@@ -69,7 +69,8 @@ class Playground(db.Model):
             "description": self.description,
             "url_image": self.url_image,
             "created_at": self.created_at.isoformat(),
-            "created_by": self.created_by
+            "created_by": self.created_by,
+            "playground_used": [pu.serialize() for pu in self.playground_used]
         }
 
 class BetType(enum.Enum):
@@ -190,9 +191,9 @@ class PlaygroundUser(db.Model):
     def serialize(self):
         return {
             "id": self.id,
-            "user_id": self.user_id,
-            "playground_id": self.playground_id,
-            "joined_at": self.joined_at.isoformat()
+            "username": self.user.username if self.user else None,
+            "playground": self.playground.name if self.playground else None,
+            "joined_at": self.joined_at.strftime('%d-%m-%Y') if self.joined_at else None
         }
     
 class MessageBoard(db.Model):
@@ -225,5 +226,22 @@ class UserBet(db.Model):
             "bet_id": self.bet_id,
             "bet_name": self.bet_name,
             "bet_option_name": self.bet_option_name,
+            "created_at": self.created_at.isoformat()
+        }
+    
+
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), nullable=False)
+    content = db.Column(db.String(255), nullable=False)
+    playground_id = db.Column(db.Integer, db.ForeignKey('playground.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "username": self.username,
+            "content": self.content,
+            "playground_id": self.playground_id,
             "created_at": self.created_at.isoformat()
         }

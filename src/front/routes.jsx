@@ -1,5 +1,3 @@
-// Import necessary components and functions from react-router-dom.
-
 import {
   createBrowserRouter,
   createRoutesFromElements,
@@ -33,60 +31,131 @@ import { MessageBoard } from "./pages/MessageBoard.jsx";
 import { Private } from "./pages/Private";
 import PrivateRoutes from "./PrivateRoutes";
 import { Login } from "./pages/Login";
-import { UserBetsBoard } from "./pages/UserBetsBoard"
+import { UserBetsBoard } from "./pages/UserBetsBoard";
 import { AdminLogin } from "./pages/AdminLogin";
-import { AdminLogout } from "./pages/AdminLogout";
 import { AdminBoard } from "./pages/AdminBoard";
-
+import { PlaygroundInvite } from "./pages/PlaygroundInvite";
+import PlaygroundUser from "./pages/PlaygroundUser.jsx";
+import {PlaygroundUserCreate} from "./pages/PlaygroundUserCreate.jsx";
+import {PlaygroundUserEdit} from "./pages/PlaygroundUserEdit.jsx";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
-    // CreateRoutesFromElements function allows you to build route elements declaratively.
-    // Create your routes here, if you want to keep the Navbar and Footer in all views, add your new routes inside the containing Route.
-    // Root, on the contrary, create a sister Route, if you have doubts, try it!
-    // Note: keep in mind that errorElement will be the default page when you don't get a route, customize that page to make your project more attractive.
-    // Note: The child paths of the Layout element replace the Outlet component with the elements contained in the "element" attribute of these child paths.
-
-    // Root Route: All navigation will start from here.
     <Route path="/" element={<Layout />} errorElement={<h1>Not found!</h1>} >
 
-      {/* Nested Routes: Defines sub-routes within the BaseHome component. */}
+      {/* ✅ Rutas públicas */}
       <Route path="/" element={<Home />} />
-      <Route path="/single/:theId" element={<Single />} />  {/* Dynamic route for single items */}
+      <Route path="/single/:theId" element={<Single />} />
       <Route path="/demo" element={<Demo />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/users" element={<Users />} />
-      <Route path="/create" element={<UserCreate />} />
-      <Route path="/edit/:id" element={<UserEdit />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/message-board" element={<MessageBoard />} />
+      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin-board" element={<AdminBoard />} />
+
+      {/* ✅ Admin visible y accesible */}
       <Route path="/adminsite" element={<Adminsite />} />
       <Route path="/admincreate" element={<AdminCreate />} />
       <Route path="/admin/adminsite/:id" element={<AdminEdit />} />
-      <Route path="/playground" element={<Playgrounds />} />
-      <Route path="/playground/create" element={<PlaygroundCreate />} />
-      <Route path="/playground/edit/:id" element={<PlaygroundEdit />} />
-      <Route path="/playground/:id" element={<PlaygroundSingle />} />
-      <Route path="/view/:id" element={<UserView />} />
-      <Route path="/playground/:id/bet" element={<BetCreate />} />
-      <Route path="/playground/:id/bet/:betId/edit" element={<BetEdit />} />
-      <Route path="/playground/:id/bet/:betId/options" element={<BetOptions />} />
-      <Route path="/chats" element={<ChatList />} />
-      <Route path="/chat/create" element={<ChatCreate />} />
-      <Route path="/chat/edit/:id" element={<ChatEdit />} />
-      <Route path="/playground/:id/chats" element={<ChatListForPlayground />} />
-      <Route path="/playground/:id/chat" element={<PlaygroundChat />} />
-      <Route path="/message-board" element={<MessageBoard />} />
-      <Route path="/userbets" element={<UserBetsBoard />} />
-      <Route path="/admin/login" element={<AdminLogin />} />
-      <Route path="/admin/logout" element={<AdminLogout />} />
-      <Route path="/admin-board" element={<AdminBoard />} />
-      <Route path="/login" element={<Login />} />
 
-
+      {/* ✅ Rutas privadas de usuario */}
       <Route path="/private" element={
         <PrivateRoutes>
           <Private />
         </PrivateRoutes>
       } />
+
+      <Route path="/users" element={
+        <PrivateRoutes>
+          <Users />
+        </PrivateRoutes>
+      } />
+      <Route path="/create" element={<UserCreate />} />
+      
+      <Route path="/edit/:id" element={
+        <PrivateRoutes>
+          <UserEdit />
+        </PrivateRoutes>
+      } />
+      <Route path="/view/:id" element={
+        <PrivateRoutes>
+          <UserView />
+        </PrivateRoutes>
+      } />
+
+      {/* ✅ Todas las rutas de Playground protegidas */}
+      <Route path="/playground" element={
+        <PrivateRoutes>
+          <Playgrounds />
+        </PrivateRoutes>
+      } />
+      <Route path="/playground/create" element={
+        <PrivateRoutes>
+          <PlaygroundCreate />
+        </PrivateRoutes>
+      } />
+      <Route path="/playground/edit/:id" element={
+        <PrivateRoutes>
+          <PlaygroundEdit />
+        </PrivateRoutes>
+      } />
+      <Route path="/playground/:id" element={
+        <PrivateRoutes>
+          <PlaygroundSingle />
+        </PrivateRoutes>
+      } />
+      <Route path="/playground/:id/bet" element={
+        <PrivateRoutes>
+          <BetCreate />
+        </PrivateRoutes>
+      } />
+      <Route path="/playground/:id/bet/:betId/edit" element={
+        <PrivateRoutes>
+          <BetEdit />
+        </PrivateRoutes>
+      } />
+      <Route path="/playground/:id/bet/:betId/options" element={
+        <PrivateRoutes>
+          <BetOptions />
+        </PrivateRoutes>
+      } />
+      <Route path="/playground/:id/chats" element={
+        <PrivateRoutes>
+          <ChatListForPlayground />
+        </PrivateRoutes>
+      } />
+      <Route path="/playground/:id/chat" element={
+        <PrivateRoutes>
+          <PlaygroundChat />
+        </PrivateRoutes>
+      } />
+
+      {/* ✅ Chats protegidos */}
+      <Route path="/chats" element={
+        <PrivateRoutes>
+          <ChatList />
+        </PrivateRoutes>
+      } />
+      <Route path="/chat/create" element={
+        <PrivateRoutes>
+          <ChatCreate />
+        </PrivateRoutes>
+      } />
+      <Route path="/chat/edit/:id" element={
+        <PrivateRoutes>
+          <ChatEdit />
+        </PrivateRoutes>
+      } />
+
+      {/* ✅ User bets protegidas */}
+      <Route path="/userbets" element={
+        <PrivateRoutes>
+          <UserBetsBoard />
+        </PrivateRoutes>
+      } />
+
+      {/* ✅ Ruta de invitación abierta */}
+      <Route path="/playground/:id/invite" element={<PlaygroundInvite />} />
 
     </Route>
   )
