@@ -78,13 +78,20 @@ export const Navbar = () => {
                     User Bets
                 </Link>
 
-                <Link to="/admin/login" className="btn btn-outline-danger mx-2">
-                    Admin Login
-                </Link>
-                
-                <Link to="/admin-board" className="btn btn-outline-secondary mx-2">
-                    Admin Board
-                </Link>
+				<Link to="/admin/login" className="btn btn-outline-danger mx-2">
+				    Admin Login
+				</Link>
+
+				<Link to="/admin-board" className="btn btn-outline-secondary mx-2">
+   					 Admin Board
+				</Link>
+
+				<Link to="/playgrounduser" className="btn btn-outline-success ms-2">
+					Playground Users
+				</Link>
+			</div>
+		</nav>
+	);
             </div>
         </nav>
     );

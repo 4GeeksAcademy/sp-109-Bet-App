@@ -35,6 +35,9 @@ import { UserBetsBoard } from "./pages/UserBetsBoard";
 import { AdminLogin } from "./pages/AdminLogin";
 import { AdminBoard } from "./pages/AdminBoard";
 import { PlaygroundInvite } from "./pages/PlaygroundInvite";
+import PlaygroundUser from "./pages/PlaygroundUser.jsx";
+import {PlaygroundUserCreate} from "./pages/PlaygroundUserCreate.jsx";
+import {PlaygroundUserEdit} from "./pages/PlaygroundUserEdit.jsx";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
