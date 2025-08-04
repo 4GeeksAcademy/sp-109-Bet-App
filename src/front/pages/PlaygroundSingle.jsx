@@ -125,7 +125,8 @@ export const PlaygroundSingle = () => {
                         <li key={bet.id} className="list-group-item">
                             <div className="d-flex justify-content-between align-items-start">
                                 <div>
-                                    <h5>{bet.name}</h5>
+                                    <h4 className="mb-4">{bet.name}</h4>
+                                    <p><strong>Event:</strong> {bet.event_id}</p>
                                     <p><strong>Amount:</strong> {bet.amount}</p>
                                     <p><strong>Status:</strong> {bet.status}</p>
                                     <p><strong>Deadline:</strong> {bet.deadline ? new Date(bet.deadline).toLocaleString() : "No deadline"}</p>
