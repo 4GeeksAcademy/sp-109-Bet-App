@@ -92,7 +92,4 @@ export const Navbar = () => {
 			</div>
 		</nav>
 	);
-            </div>
-        </nav>
-    );
 };

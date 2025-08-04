@@ -1,7 +1,8 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, Boolean, Float, DateTime, ForeignKey
+from sqlalchemy import String, Boolean, Float, DateTime, ForeignKey, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
+import enum
 
 db = SQLAlchemy()
 
@@ -72,13 +73,27 @@ class Playground(db.Model):
             "playground_used": [pu.serialize() for pu in self.playground_used]
         }
 
+class BetType(enum.Enum):
+    sports = "sports"
+    others = "others"
+
+class BetStatus(enum.Enum):
+    pending = "pending"
+    active = "active"
+    locked = "locked" 
+    resolved = "resolved"
+    cancelled = "cancelled"
+
 class Bet(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(120), nullable=True)
-    amount: Mapped[float] = mapped_column(Float, default=0.0)
-    status: Mapped[str] = mapped_column(String(250), nullable=True)
-    deadline: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    amount: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    status: Mapped[BetStatus] = mapped_column(Enum(BetStatus), default=BetStatus.active, nullable=False)
+    type: Mapped[BetType] = mapped_column(Enum(BetType), default=BetType.sports, nullable=False)
+    event_id: Mapped[str] = mapped_column(String(100), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    deadline: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    resolved_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
 
     user_id = mapped_column(ForeignKey("user.id"))
     user_bet_creator = relationship("User", back_populates="bets")
@@ -93,16 +108,35 @@ class Bet(db.Model):
             "id": self.id,
             "name": self.name,
             "amount": self.amount,
-            "status": self.status,
+            "status": self.status.value if self.status else None,
             "deadline": self.deadline.isoformat() if self.deadline else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
+            "resolved_at": self.resolved_at.isoformat() if self.resolved_at else None,
             "user_id": self.user_id,
             "playground_id": self.playground_id,
             "user": self.user_bet_creator.username if self.user_bet_creator else None,
             "playground": self.playground_link.name if self.playground_link else None,
-            "options": [option.serialize() for option in self.options]
+            "options": [option.serialize() for option in self.options],
+            "type": self.type.value if self.type else None,
+            "event_id": self.event_id,
         }
 
+class BetOption(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    label = db.Column(db.String(100), nullable=False)
+
+    bet_id: Mapped[int] = mapped_column(ForeignKey("bet.id"), nullable=False)
+    bet: Mapped["Bet"] = relationship("Bet", back_populates="options")
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "label": self.label,
+            "bet_id": self.bet_id
+        }
+
+
+    
 class PlaygroundChat(db.Model):
     __tablename__ = "playground_chat"
 
@@ -141,19 +175,6 @@ class Chat(db.Model):
             "created_at": self.created_at.isoformat()
         }
 
-class BetOption(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    label = db.Column(db.String(100), nullable=False)
-
-    bet_id: Mapped[int] = mapped_column(ForeignKey("bet.id"), nullable=False)
-    bet: Mapped["Bet"] = relationship("Bet", back_populates="options")
-
-    def serialize(self):
-        return {
-            "id": self.id,
-            "label": self.label,
-            "bet_id": self.bet_id
-        }
 
 
 
