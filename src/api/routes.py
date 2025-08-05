@@ -1,11 +1,12 @@
 from flask import Flask, request, jsonify, url_for, Blueprint
-from api.models import MessageBoard, db, User, Playground, AdminUser, Bet, PlaygroundChat, BetOption, UserBet, PlaygroundUser, PlaygroundUser, Message
+from api.models import MessageBoard, db, User, Playground, AdminUser, Bet, PlaygroundChat, BetOption, UserBet, PlaygroundUser, PlaygroundUser, Message, BetStatus, BetType
 from api.utils import generate_sitemap, APIException, generate_unique_slug
 from flask_cors import CORS
 from sqlalchemy import select
 from datetime import datetime, timezone 
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from werkzeug.security import check_password_hash, generate_password_hash
+import requests
 
 api = Blueprint('api', __name__)
 
@@ -20,7 +21,7 @@ def handle_hello():
 @api.route('/signup', methods=['POST'])
 def signup():
     body = request.get_json()
-    required_fields = ["username", "name", "last_name", "email", "password"]
+    required_fields = ["username", "name", "last_name", "email", "password", "money"]
     for field in required_fields:
         if not body.get(field):
             raise APIException(f"{field} is required", 400)
@@ -141,49 +142,6 @@ def handle_single_admin(id):
     return jsonify({"msg": "Admin deleted"}), 200
 
 
-
-
-
-
-    
-
-    
-        
-        
-    
-
-    
-
-
-
-
-
-    
-
-    
-
-    
-        
-
-
-    
-
-    
-    
-
-
-    
-
-
-    
-    
-
-    
-        
-        
-    
-
-
 @api.route('/playground/<int:id>', methods=['GET'])
 def show_playground(id):
 
@@ -254,8 +212,7 @@ def update_playground(id):
     if new_description is not None:
         playground.description = new_description
         
-           
-
+        
     db.session.commit()
     
     response_body = {
@@ -308,6 +265,34 @@ def get_chats_for_playground(playground_id):
     return jsonify({"chats": [chat.serialize() for chat in chats]}), 200
 
 
+FOOTBALL_DATA_API_KEY = "a268de8b85fe4470ace196029753955c" 
+FOOTBALL_DATA_BASE_URL = "https://api.football-data.org/v4"
+
+@api.route('/football/competitions', methods=['GET'])
+def get_football_competitions():
+    try:
+        headers = {'X-Auth-Token': FOOTBALL_DATA_API_KEY}
+        resp = requests.get(f"{FOOTBALL_DATA_BASE_URL}/competitions", headers=headers)
+        resp.raise_for_status()
+        return jsonify(resp.json()), 200
+    except requests.RequestException as e:
+        return jsonify({"error": str(e)}), 500
+
+@api.route('/football/matches', methods=['GET'])
+def get_football_matches():
+    competition_code = request.args.get('competition')
+    if not competition_code:
+        raise APIException("Missing competition parameter", 400)
+    
+    try:
+        headers = {'X-Auth-Token': FOOTBALL_DATA_API_KEY}
+        url = f"{FOOTBALL_DATA_BASE_URL}/competitions/{competition_code}/matches?status=SCHEDULED"
+        resp = requests.get(url, headers=headers)
+        resp.raise_for_status()
+        return jsonify(resp.json()), 200
+    except requests.RequestException as e:
+        return jsonify({"error": str(e)}), 500
+
 
 @api.route('/playground/<int:pg_id>/bet', methods=['GET'])
 def get_bets_by_playground(pg_id):
@@ -337,25 +322,42 @@ def get_single_bet(pg_id, bet_id):
 
 
 @api.route('/playground/<int:pg_id>/bet', methods=['POST'])
+@jwt_required()
 def create_bet(pg_id):
 
     body = request.get_json()
 
     
-    
-    
+    user_id = int(get_jwt_identity())
+    print(user_id)
+    if not user_id:
+        raise APIException("user_id is required", 400)
 
+        
+    user = User.query.get(user_id)
+    if not user:
+        raise APIException("User not found", 404)
     
     
-    
-
     name = body.get('name')
     amount = body.get('amount', 0.0)
     if amount is None:
         raise APIException("amount is required", 404)
     
-    status = body.get("status")
+    status_str = body.get("status")
+    type_str = body.get("type", "sports")
+    event_description = body.get("event_description")
     deadline_str = body.get("deadline")
+
+    try:
+        status_enum = BetStatus[status_str] if status_str else BetStatus.active
+    except KeyError:
+        raise APIException(f"Invalid status '{status_str}'", 400)
+
+    try:
+        type_enum = BetType[type_str]
+    except KeyError:
+        raise APIException(f"Invalid type '{type_str}'", 400)
     
     playground=Playground.query.get(pg_id)
     if not playground:
@@ -366,10 +368,12 @@ def create_bet(pg_id):
     new_bet = Bet(
         name=name,
         amount=amount,
-        status=status,
+        status=status_enum,
         deadline=deadline,
-        # user_id=user_id,
-        playground_id=pg_id
+        type=type_enum,
+        user_id=user_id,
+        playground_id=pg_id,
+        event_description=event_description
     )
 
     db.session.add(new_bet)

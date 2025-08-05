@@ -18,7 +18,7 @@ export const PlaygroundSingle = () => {
     const [showInvite, setShowInvite] = useState(false);
     const [inviteMsg, setInviteMsg] = useState("");
 
-    // ✅ Mensajes
+    // Mensajes
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState("");
 
@@ -29,7 +29,7 @@ export const PlaygroundSingle = () => {
         }
     }, [location, navigate]);
 
-    // ✅ Obtener Playground, Bets y Mensajes
+    // Obtener Playground, Bets y Mensajes
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -69,7 +69,7 @@ export const PlaygroundSingle = () => {
         fetchData();
     }, [id]);
 
-    // ✅ Obtener lista de usuarios
+    // Obtener lista de usuarios
     const fetchUsers = async () => {
         try {
             const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/users`);
@@ -81,7 +81,7 @@ export const PlaygroundSingle = () => {
         }
     };
 
-    // ✅ Invitar usuario
+    // Invitar usuario
     const handleInvite = async (userId) => {
         try {
             const token = localStorage.getItem("token");
@@ -103,7 +103,7 @@ export const PlaygroundSingle = () => {
         }
     };
 
-    // ✅ Crear mensaje (sin username manual)
+    // Crear mensaje (sin username manual)
     const handleSendMessage = async (e) => {
         e.preventDefault();
         if (!newMessage.trim()) return;
@@ -131,7 +131,7 @@ export const PlaygroundSingle = () => {
         }
     };
 
-    // ✅ Eliminar bet
+    // Eliminar bet
     const handleDelete = async (betId) => {
         if (!confirm("Are you sure you want to delete this bet?")) return;
 
@@ -148,7 +148,7 @@ export const PlaygroundSingle = () => {
         }
     };
 
-    // ✅ Eliminar opción
+    // Eliminar opción
     const handleDeleteOption = async (betId, optionId) => {
         if (!confirm("Are you sure you want to delete this option?")) return;
 
@@ -208,7 +208,6 @@ export const PlaygroundSingle = () => {
                     </div>
                 )}
 
-                {/* ✅ Crear nueva apuesta */}
                 <button
                     className="btn btn-primary my-3"
                     onClick={() => navigate(`/playground/${id}/bet`)}
@@ -216,7 +215,7 @@ export const PlaygroundSingle = () => {
                     ➕ Create New Bet
                 </button>
 
-                {/* ✅ INVITAR USUARIOS */}
+
                 <div className="my-3">
                     <button
                         className="btn btn-outline-info"
@@ -263,7 +262,7 @@ export const PlaygroundSingle = () => {
                     )}
                 </div>
 
-                {/* ✅ Mensajes del playground */}
+
                 <div className="mt-4">
                     <h3>💬 Mensajes</h3>
                     <form onSubmit={handleSendMessage} className="mb-3 d-flex gap-2">
@@ -289,7 +288,7 @@ export const PlaygroundSingle = () => {
                     </ul>
                 </div>
 
-                {/* ✅ Lista de apuestas */}
+
                 <h3 className="mt-4">Bets</h3>
                 {bets.length === 0 ? (
                     <p className="text-muted">No bets found.</p>
@@ -300,7 +299,8 @@ export const PlaygroundSingle = () => {
                                 <div className="d-flex justify-content-between align-items-start">
                                     <div>
                                         <h5 className="text-dark">{bet.name}</h5>
-                                        <p><strong>💰 Amount:</strong> {bet.amount}</p>
+                                        <p><strong>Event:</strong> {bet.event_description}</p>
+                                        <p><strong>Amount:</strong> {bet.amount}</p>
                                         <p><strong>Status:</strong> {bet.status}</p>
                                         <p><strong>Deadline:</strong> {bet.deadline ? new Date(bet.deadline).toLocaleString() : "No deadline"}</p>
                                         <p><strong>Created by:</strong> {bet.user || "Unknown"}</p>
