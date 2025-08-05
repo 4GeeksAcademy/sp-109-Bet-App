@@ -4,10 +4,12 @@ from api.utils import generate_sitemap, APIException, generate_unique_slug
 from flask_cors import CORS
 from sqlalchemy import select
 from datetime import datetime, timezone
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt, verify_jwt_in_request
 from werkzeug.security import check_password_hash, generate_password_hash
 
+
 api = Blueprint('api', __name__)
+
 
 @api.route('/hello', methods=['POST', 'GET'])
 def handle_hello():
@@ -780,8 +782,15 @@ def admin_login():
     if admin.password != password:
         return jsonify({"msg": "Invalid credentials"}), 401
     
-    token = create_access_token(identity=str(admin.id))
+    token = create_access_token(
+    identity=str(admin.id),
+    additional_claims={
+        "email": admin.email,
+        "role": "admin"
+    }
+)
     return jsonify({"msg": "Admin login exitoso", "token": token}), 200
+
     
     
 

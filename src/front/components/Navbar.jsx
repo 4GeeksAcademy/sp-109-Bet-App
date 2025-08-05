@@ -2,6 +2,8 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 export const Navbar = () => {
+	const isAdminLoggedIn = !!localStorage.getItem("adminToken");
+	
 	return (
 		<nav className="navbar navbar-light bg-light px-4">
 			<Link to="/" className="navbar-brand fw-bold">
@@ -39,8 +41,12 @@ export const Navbar = () => {
 				    Admin Login
 				</Link>
 
+				<Link to="/adminsite" className="btn btn-outline-secondary">
+					Admins
+				</Link>
+				
 				<Link to="/admin-board" className="btn btn-outline-secondary mx-2">
-   					 Admin Board
+					Admin Board
 				</Link>
 
 				<Link to="/playgrounduser" className="btn btn-outline-success ms-2">
