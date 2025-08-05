@@ -38,6 +38,7 @@ import { PlaygroundInvite } from "./pages/PlaygroundInvite";
 import PlaygroundUser from "./pages/PlaygroundUser.jsx";
 import {PlaygroundUserCreate} from "./pages/PlaygroundUserCreate.jsx";
 import {PlaygroundUserEdit} from "./pages/PlaygroundUserEdit.jsx";
+import { MyProfile } from "./pages/MyProfile.jsx";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -156,6 +157,8 @@ export const router = createBrowserRouter(
 
       {/* ✅ Ruta de invitación abierta */}
       <Route path="/playground/:id/invite" element={<PlaygroundInvite />} />
+
+      <Route path="/my-profile" element={<MyProfile />} />
 
     </Route>
   )

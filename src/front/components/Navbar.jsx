@@ -89,10 +89,12 @@ export const Navbar = () => {
 				<Link to="/playgrounduser" className="btn btn-outline-success ms-2">
 					Playground Users
 				</Link>
+
+                <Link to="/my-profile" className="btn btn-outline-success ms-2">
+                    Mi Perfil
+                </Link>
+                
 			</div>
 		</nav>
 	);
-            </div>
-        </nav>
-    );
-};
+}
