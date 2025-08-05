@@ -212,8 +212,7 @@ def update_playground(id):
     if new_description is not None:
         playground.description = new_description
         
-           
-
+        
     db.session.commit()
     
     response_body = {
@@ -266,20 +265,31 @@ def get_chats_for_playground(playground_id):
     return jsonify({"chats": [chat.serialize() for chat in chats]}), 200
 
 
-@api.route('/sports/search', methods=['GET'])
-def search_sports_events():
-    query = request.args.get('q')
-    if not query:
-        raise APIException("Missing query parameter 'q'", 400)
-    
-    SERPAPI_KEY = "e00765e499ff09032eb4e88b65bb198add442a3bab52ed42326b10b149ec5def"
-    url = f"https://serpapi.com/search?engine=google&q={query}&api_key={SERPAPI_KEY}"
+FOOTBALL_DATA_API_KEY = "a268de8b85fe4470ace196029753955c" 
+FOOTBALL_DATA_BASE_URL = "https://api.football-data.org/v4"
 
+@api.route('/football/competitions', methods=['GET'])
+def get_football_competitions():
     try:
-        resp = requests.get(url)
+        headers = {'X-Auth-Token': FOOTBALL_DATA_API_KEY}
+        resp = requests.get(f"{FOOTBALL_DATA_BASE_URL}/competitions", headers=headers)
         resp.raise_for_status()
-        data = resp.json()
-        return jsonify(data)
+        return jsonify(resp.json()), 200
+    except requests.RequestException as e:
+        return jsonify({"error": str(e)}), 500
+
+@api.route('/football/matches', methods=['GET'])
+def get_football_matches():
+    competition_code = request.args.get('competition')
+    if not competition_code:
+        raise APIException("Missing competition parameter", 400)
+    
+    try:
+        headers = {'X-Auth-Token': FOOTBALL_DATA_API_KEY}
+        url = f"{FOOTBALL_DATA_BASE_URL}/competitions/{competition_code}/matches?status=SCHEDULED"
+        resp = requests.get(url, headers=headers)
+        resp.raise_for_status()
+        return jsonify(resp.json()), 200
     except requests.RequestException as e:
         return jsonify({"error": str(e)}), 500
 
@@ -329,8 +339,6 @@ def create_bet(pg_id):
         raise APIException("User not found", 404)
     
     
-    
-
     name = body.get('name')
     amount = body.get('amount', 0.0)
     if amount is None:
@@ -338,7 +346,7 @@ def create_bet(pg_id):
     
     status_str = body.get("status")
     type_str = body.get("type", "sports")
-    event_id = body.get("event_id")
+    event_description = body.get("event_description")
     deadline_str = body.get("deadline")
 
     try:
@@ -365,7 +373,7 @@ def create_bet(pg_id):
         type=type_enum,
         user_id=user_id,
         playground_id=pg_id,
-        event_id=event_id
+        event_description=event_description
     )
 
     db.session.add(new_bet)
@@ -1035,4 +1043,3 @@ def post_playground_message(pg_id):
     db.session.commit()
 
     return jsonify({"msg": "Message added", "message": new_message.serialize()}), 201
-

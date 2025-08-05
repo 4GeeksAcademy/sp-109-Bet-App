@@ -90,7 +90,7 @@ class Bet(db.Model):
     amount: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
     status: Mapped[BetStatus] = mapped_column(Enum(BetStatus), default=BetStatus.active, nullable=False)
     type: Mapped[BetType] = mapped_column(Enum(BetType), default=BetType.sports, nullable=False)
-    event_id: Mapped[str] = mapped_column(String(100), nullable=True)
+    event_description: Mapped[str] = mapped_column(String(100), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     deadline: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     resolved_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
@@ -118,7 +118,7 @@ class Bet(db.Model):
             "playground": self.playground_link.name if self.playground_link else None,
             "options": [option.serialize() for option in self.options],
             "type": self.type.value if self.type else None,
-            "event_id": self.event_id,
+            "event_description": self.event_description,
         }
 
 class BetOption(db.Model):
