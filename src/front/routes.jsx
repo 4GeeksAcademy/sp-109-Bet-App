@@ -41,6 +41,8 @@ import {PlaygroundUserEdit} from "./pages/PlaygroundUserEdit.jsx";
 import { MyProfile } from "./pages/MyProfile.jsx";
 import {AdminUsers} from "./pages/AdminUsers.jsx";
 import {AdminPlaygrounds} from "./pages/AdminPlaygrounds.jsx"
+import { AdminBets } from "./pages/AdminBets.jsx";
+
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -57,6 +59,7 @@ export const router = createBrowserRouter(
       <Route path="/admin-board" element={<AdminBoard />} />
       <Route path="/adminusers" element={<AdminUsers/>} />
       <Route path="/adminplaygrounds" element={<AdminPlaygrounds/>} />
+      <Route path="/adminbets" element={<AdminBets/>} />
       
       
 
@@ -136,6 +139,7 @@ export const router = createBrowserRouter(
           <PlaygroundChat />
         </PrivateRoutes>
       } />
+
 
       {/* ✅ Chats protegidos */}
       <Route path="/chats" element={
