@@ -4,9 +4,9 @@ from api.utils import generate_sitemap, APIException, generate_unique_slug
 from flask_cors import CORS
 from sqlalchemy import select
 from datetime import datetime, timezone 
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt
 from werkzeug.security import check_password_hash, generate_password_hash
-import requests
+# import requests
 
 api = Blueprint('api', __name__)
 
@@ -1062,3 +1062,30 @@ def post_playground_message(pg_id):
     db.session.commit()
 
     return jsonify({"msg": "Message added", "message": new_message.serialize()}), 201
+
+
+@api.route('/playground/all', methods=['GET'])
+@jwt_required()
+def get_all_playgrounds():
+    claims = get_jwt()
+    if claims.get("role") != "admin":
+        return jsonify({"msg": "Unauthorized"}), 403
+
+    playgrounds = Playground.query.all()
+    return jsonify({"playgrounds": [pg.serialize() for pg in playgrounds]}), 200
+
+
+@api.route('/adminuser/private', methods=['GET'])
+@jwt_required()
+def admin_private():
+    claims = get_jwt()
+    print("Claims:", claims)
+    if claims.get("role") != "admin":
+        return jsonify({"msg": "Unauthorized"}), 403
+
+    return jsonify({
+        "admin": {
+            "email": claims.get("email"),
+            "role": claims.get("role")
+        }
+    }), 200
