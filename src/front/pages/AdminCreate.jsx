@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 export const AdminCreate = () => {
@@ -8,7 +8,17 @@ export const AdminCreate = () => {
   });
 
   const [error, setError] = useState(null);
+  const [hasToken, setHasToken] = useState(true);
   const navigate = useNavigate();
+
+  const token = localStorage.getItem("adminToken");
+
+    useEffect(() => {
+    if (!token) {
+      setHasToken(false);
+      setError("Access denied. You must be an Admin.");
+    }
+  }, [token]);
 
   const handleChange = (e) => {
   const { name, value } = e.target;
@@ -16,13 +26,15 @@ export const AdminCreate = () => {
   };
 
   
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const resp = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/adminuser", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify(newadmin),
       });
 
@@ -30,9 +42,20 @@ export const AdminCreate = () => {
 
       navigate("/adminsite");
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Error creating admin.");
     }
   };
+
+   if (!hasToken) {
+    return (
+      <div className="container mt-5">
+        <p className="text-danger fw-bold">{error}</p>
+        <button className="btn btn-warning mt-3" onClick={() => navigate("/admin/login")}>
+        <i className="fas fa-sign-in-alt me-2"></i>Go back to login
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="container mt-5">
@@ -62,12 +85,12 @@ export const AdminCreate = () => {
           />
         </div>
         <button type="submit" className="btn btn-success">
-          Create
+        <i className="fas fa-user-plus me-2"></i>Create
         </button>
         <button type="" className="btn btn-danger"
         onClick={() => navigate(`/adminsite/`)}
         >
-          Cancel
+        <i className="fas fa-times me-2"></i>Cancel
         </button>
       </form>
     </div>

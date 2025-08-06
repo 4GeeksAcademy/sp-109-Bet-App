@@ -6,12 +6,24 @@ export const AdminEdit = () => {
   const [email, setEmail] = useState("");
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const token = localStorage.getItem("adminToken");
 
   useEffect(() => {
     const editAdmin = async () => {
+      if (!token) {
+        setError("Access denied. You must be an Admin to access.");
+        return;
+      }
+
       try {
-        const resp = await fetch(import.meta.env.VITE_BACKEND_URL + `/api/adminuser/${id}`);
+        const resp = await fetch(import.meta.env.VITE_BACKEND_URL + `/api/adminuser/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
         if (!resp.ok) throw new Error("Failed to get admin");
+
         const data = await resp.json();
         setEmail(data.email);
       } catch (err) {
@@ -20,14 +32,19 @@ export const AdminEdit = () => {
     };
 
     editAdmin();
-  }, [id]);
+  }, [id, token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!token) {
+      setError("Unauthorized. You must be an Admin to updated.");
+      return;
+    }
     try {
       const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/adminuser/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        Authorization: `Bearer ${token}`,
         body: JSON.stringify({ email }),
       });
       if (!resp.ok) throw new Error("Update failed");
@@ -37,6 +54,17 @@ export const AdminEdit = () => {
       setError("Failed to update admin");
     }
   };
+
+  if (error && error.toLowerCase().includes("access")) {
+    return (
+      <div className="container mt-5">
+        <p className="text-danger fw-bold">{error}</p>
+        <button className="btn btn-warning" onClick={() => navigate("/admin/login")}>
+          <i className="fas fa-sign-in-alt me-2"></i>Go back to login
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="container mt-5">
@@ -54,12 +82,12 @@ export const AdminEdit = () => {
           />
         </div>
         <button type="submit" className="btn btn-primary">
-          Update
+        <i className="fas fa-save me-2"></i>Update
         </button>
         <button type="" className="btn btn-danger"
         onClick={() => navigate(`/adminsite/`)}
         >
-          Cancel
+        <i className="fas fa-times me-2"></i>Cancel
         </button>
       </form>
     </div>
