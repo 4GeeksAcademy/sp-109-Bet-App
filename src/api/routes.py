@@ -406,6 +406,7 @@ def delete_single_bet(pg_id, bet_id):
 
 
 @api.route('/playground/<int:pg_id>/bet/<int:bet_id>', methods=['PUT'])
+@jwt_required()
 def update_bet(pg_id, bet_id):
 
     body = request.get_json()
@@ -418,7 +419,15 @@ def update_bet(pg_id, bet_id):
 
     bet.name = body.get('name', bet.name)
     bet.amount = body.get('amount', bet.amount)
-    bet.status = body.get('status', bet.status)
+    bet.event_description = body.get('event_description', bet.event_description)
+
+    status_str = body.get("status")
+    if status_str:
+        try:
+            bet.status = BetStatus[status_str]
+        except KeyError:
+            raise APIException(f"Invalid status '{status_str}'", 400)
+
 
     deadline_str = body.get('deadline')
     if deadline_str:
