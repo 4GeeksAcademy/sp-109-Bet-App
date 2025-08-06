@@ -42,7 +42,8 @@ export const Private = () => {
         const handleLogOut = () => {
         if (confirm("Are you sure you want to log out?")) {
             localStorage.removeItem('token');
-            navigate('/');
+            navigate ('/login');
+            window.location.reload();
         }
         };
 
