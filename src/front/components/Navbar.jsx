@@ -51,7 +51,7 @@ export const Navbar = () => {
                 <Link to="/playground" className="btn btn-outline-warning mx-2">
                     Playgrounds
                 </Link>
-
+                
                 <Link to="/adminsite" className="btn btn-outline-secondary">
                     Admins
                 </Link>
@@ -59,6 +59,10 @@ export const Navbar = () => {
                 <Link to="/adminusers" className="btn btn-outline-secondary">
 					AdminUsers
 				</Link>
+
+                <Link to="/adminplaygrounds" className="btn btn-outline-secondary mx-2">
+                    Admin-Playgrounds
+                </Link>
 
                 <Link to="/message-board" className="btn btn-outline-success ms-2">
                     Message Board
