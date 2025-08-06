@@ -1089,3 +1089,54 @@ def admin_private():
             "role": claims.get("role")
         }
     }), 200
+
+
+
+
+@api.route('/admin_bets/all', methods=['GET'])
+@jwt_required()
+def get_admin_bets():
+    claims = get_jwt()
+    if claims.get("role") != "admin":
+        return jsonify({"msg": "Unauthorized"}), 403
+
+    bets = Bet.query.all()
+    return jsonify({"bets": [bet.serialize() for bet in bets]}), 200
+
+@api.route('/admin_bets/<int:id>', methods=['DELETE'])
+@jwt_required()
+def delete_admin_bet(id):
+    claims = get_jwt()
+    if claims.get("role") != "admin":
+        return jsonify({"msg": "Unauthorized"}), 403
+
+    bet = Bet.query.get(id)
+    if not bet:
+        return jsonify({"msg": "Bet not found"}), 404
+
+    db.session.delete(bet)
+    db.session.commit()
+
+    return jsonify({"msg": "Bet deleted"}), 200
+
+@api.route('/admin_bets/<int:id>', methods=['PUT'])
+@jwt_required()
+def update_admin_bet(id):
+    claims = get_jwt()
+    if claims.get("role") != "admin":
+        return jsonify({"msg": "Unauthorized"}), 403
+
+    bet = Bet.query.get(id)
+    if not bet:
+        return jsonify({"msg": "Bet not found"}), 404
+
+    data = request.get_json()
+
+    allowed_fields = ["name", "amount", "status", "deadline", "user_id", "playground_id"]
+    for field in allowed_fields:
+        if field in data:
+            setattr(bet, field, data[field])
+
+    db.session.commit()
+
+    return jsonify({"msg": "Bet updated", "bet": bet.serialize()}), 200

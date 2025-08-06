@@ -63,6 +63,9 @@ export const Navbar = () => {
                 <Link to="/adminplaygrounds" className="btn btn-outline-secondary mx-2">
                     Admin-Playgrounds
                 </Link>
+                <Link to="/adminbets" className="btn btn-outline-secondary mx-2">
+                    Admin-Bets
+                </Link>
 
                 <Link to="/message-board" className="btn btn-outline-success ms-2">
                     Message Board
