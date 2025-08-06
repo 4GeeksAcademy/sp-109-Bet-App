@@ -39,6 +39,7 @@ import PlaygroundUser from "./pages/PlaygroundUser.jsx";
 import {PlaygroundUserCreate} from "./pages/PlaygroundUserCreate.jsx";
 import {PlaygroundUserEdit} from "./pages/PlaygroundUserEdit.jsx";
 import { MyProfile } from "./pages/MyProfile.jsx";
+import {AdminUsers} from "./pages/AdminUsers.jsx";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -53,6 +54,7 @@ export const router = createBrowserRouter(
       <Route path="/message-board" element={<MessageBoard />} />
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin-board" element={<AdminBoard />} />
+      <Route path="/adminusers" element={<AdminUsers/>} />
 
       {/* ✅ Admin visible y accesible */}
       <Route path="/adminsite" element={<Adminsite />} />

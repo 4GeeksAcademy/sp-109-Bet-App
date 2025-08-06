@@ -10,6 +10,7 @@ import requests
 
 api = Blueprint('api', __name__)
 
+
 @api.route('/hello', methods=['POST', 'GET'])
 def handle_hello():
     return jsonify({
@@ -81,10 +82,13 @@ def private_zone():
 
 
 @api.route('/users', methods=['GET'])
+@jwt_required()
 def get_users():
     return jsonify([user.serialize() for user in User.query.all()]), 200
 
+
 @api.route('/user/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+@jwt_required()
 def handle_user(id):
     user = User.query.get(id)
     if not user:
@@ -818,7 +822,13 @@ def admin_login():
     if admin.password != password:
         return jsonify({"msg": "Invalid credentials"}), 401
     
-    token = create_access_token(identity=str(admin.id))
+    token = create_access_token(
+    identity=str(admin.id),
+    additional_claims={
+        "email": admin.email,
+        "role": "admin"
+    }
+)
     return jsonify({"msg": "Admin login exitoso", "token": token}), 200
     
 @api.route('/playground/<int:pg_id>/invite', methods=['POST'])

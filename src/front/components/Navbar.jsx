@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 
 export const Navbar = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
+    const isAdminLoggedIn = !!localStorage.getItem("adminToken");
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -55,6 +56,10 @@ export const Navbar = () => {
                     Admins
                 </Link>
 
+                <Link to="/adminusers" className="btn btn-outline-secondary">
+					AdminUsers
+				</Link>
+
                 <Link to="/message-board" className="btn btn-outline-success ms-2">
                     Message Board
                 </Link>
@@ -82,8 +87,12 @@ export const Navbar = () => {
 				    Admin Login
 				</Link>
 
+				<Link to="/adminsite" className="btn btn-outline-secondary">
+					Admins
+				</Link>
+				
 				<Link to="/admin-board" className="btn btn-outline-secondary mx-2">
-   					 Admin Board
+					Admin Board
 				</Link>
 
 				<Link to="/playgrounduser" className="btn btn-outline-success ms-2">
