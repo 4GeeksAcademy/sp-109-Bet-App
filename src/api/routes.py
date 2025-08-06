@@ -82,10 +82,13 @@ def private_zone():
 
 
 @api.route('/users', methods=['GET'])
+@jwt_required()
 def get_users():
     return jsonify([user.serialize() for user in User.query.all()]), 200
 
+
 @api.route('/user/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+@jwt_required()
 def handle_user(id):
     user = User.query.get(id)
     if not user:
@@ -790,6 +793,9 @@ def admin_login():
     }
 )
     return jsonify({"msg": "Admin login exitoso", "token": token}), 200
+
+
+
 
     
     

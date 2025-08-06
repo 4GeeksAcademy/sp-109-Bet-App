@@ -41,6 +41,7 @@ import { AdminBoard } from "./pages/AdminBoard";
 import PlaygroundUser from "./pages/PlaygroundUser.jsx";
 import {PlaygroundUserCreate} from "./pages/PlaygroundUserCreate.jsx";
 import {PlaygroundUserEdit} from "./pages/PlaygroundUserEdit.jsx";
+import {AdminUsers} from "./pages/AdminUsers.jsx";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -84,6 +85,7 @@ export const router = createBrowserRouter(
         <Route path="/userbets" element={<UserBetsBoard />} />
         <Route path="/admin/login" element={<AdminLogin />} />        
         <Route path="/admin-board" element={<AdminBoard />} />
+        <Route path="/adminusers" element={<AdminUsers/>} />
         <Route path="/login" element={<Login />} />
 
 
