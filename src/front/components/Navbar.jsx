@@ -78,6 +78,12 @@ export const Navbar = () => {
                 )}
 
                 {isLoggedIn && (
+                    <Link to="/solicitudes" className="btn btn-outline-primary ms-2">
+                        Solicitudes
+                    </Link>
+                )}
+
+                {isLoggedIn && (
                     <button
                         onClick={handleLogout}
                         className="btn btn-danger ms-2"
@@ -108,6 +114,10 @@ export const Navbar = () => {
 
                 <Link to="/my-profile" className="btn btn-outline-success ms-2">
                     Mi Perfil
+                </Link>
+
+                <Link to="/playground/search" className="btn btn-outline-info mx-2">
+                     Buscar Playground
                 </Link>
                 
 			</div>

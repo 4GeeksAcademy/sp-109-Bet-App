@@ -13,7 +13,12 @@ export const Login = () => {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const resp = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/users");
+                const token = localStorage.getItem("token"); // ⬅️ añadido
+                const resp = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/users", {
+                    headers: {
+                        "User-Token": token, // ⬅️ cambiado
+                    },
+                });
                 if (!resp.ok) throw new Error("Error al obtener usuarios");
                 const data = await resp.json();
                 setUsersList(data);

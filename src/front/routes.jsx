@@ -42,6 +42,8 @@ import { MyProfile } from "./pages/MyProfile.jsx";
 import {AdminUsers} from "./pages/AdminUsers.jsx";
 import {AdminPlaygrounds} from "./pages/AdminPlaygrounds.jsx"
 import { AdminBets } from "./pages/AdminBets.jsx";
+import { PlaygroundSearch } from "./pages/PlaygroundSearch";
+import { Requests } from "./pages/Requests";
 
 
 export const router = createBrowserRouter(
@@ -169,6 +171,18 @@ export const router = createBrowserRouter(
       <Route path="/playground/:id/invite" element={<PlaygroundInvite />} />
 
       <Route path="/my-profile" element={<MyProfile />} />
+
+      <Route path="/playground/search" element={
+       <PrivateRoutes>
+        <PlaygroundSearch />
+       </PrivateRoutes>
+      } />
+
+      <Route path="/solicitudes" element={
+        <PrivateRoutes>
+          <Requests />
+        </PrivateRoutes>
+      } />
 
     </Route>
   )

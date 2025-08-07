@@ -245,3 +245,26 @@ class Message(db.Model):
             "playground_id": self.playground_id,
             "created_at": self.created_at.isoformat()
         }
+    
+class PlaygroundAccessRequest(db.Model):
+    __tablename__ = "playground_access_request"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    playground_id = db.Column(db.Integer, db.ForeignKey("playground.id"), nullable=False)
+    status = db.Column(db.String(20), default="pending")  # pending / accepted / rejected
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship("User", backref="access_requests_sent")
+    playground = db.relationship("Playground", backref="access_requests_received")
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "user_name": self.user.username,
+            "playground_name": self.playground.name,
+            "status": self.status,
+            "playground_id": self.playground_id,
+            "user_id": self.user_id,
+            "created_at": self.created_at.strftime("%d-%m-%Y")
+        }

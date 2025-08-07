@@ -21,7 +21,7 @@ app.url_map.strict_slashes = False
 CORS(app)
 app.config["JWT_SECRET_KEY"] = "super-secret-key-final-proyect-que-te-apuestas-app"
 jwt = JWTManager(app)
-
+    
 
 # CORS manual (requerido en Codespaces)
 @app.after_request
