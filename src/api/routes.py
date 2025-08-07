@@ -1,12 +1,12 @@
 from flask import Flask, request, jsonify, url_for, Blueprint
-from api.models import MessageBoard, db, User, Playground, AdminUser, Bet, PlaygroundChat, BetOption, UserBet, PlaygroundUser, PlaygroundUser, Message, BetStatus, BetType
+from api.models import MessageBoard, db, User, Playground, AdminUser, Bet, PlaygroundChat, BetOption, UserBet, PlaygroundUser, PlaygroundUser, Message, BetStatus, BetType, PlaygroundAccessRequest
 from api.utils import generate_sitemap, APIException, generate_unique_slug
 from flask_cors import CORS
 from sqlalchemy import select
 from datetime import datetime, timezone 
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt
 from werkzeug.security import check_password_hash, generate_password_hash
-# import requests
+import requests
 
 api = Blueprint('api', __name__)
 
@@ -1140,3 +1140,89 @@ def update_admin_bet(id):
     db.session.commit()
 
     return jsonify({"msg": "Bet updated", "bet": bet.serialize()}), 200
+
+@api.route('/playgrounds/search', methods=['GET'])
+@jwt_required()
+def search_playgrounds():
+    query = request.args.get("q", "").strip().lower()
+    if len(query) < 1:
+        results = Playground.query.order_by(Playground.created_at.desc()).limit(5).all()
+    else:
+        results = Playground.query.filter(Playground.name.ilike(f"%{query}%")).limit(5).all()
+
+    return jsonify([{
+        "id": pg.id,
+        "name": pg.name,
+        "slug": pg.slug,
+        "created_by": pg.created_by
+    } for pg in results]), 200
+
+
+@api.route('/playground/<int:pg_id>/access-request', methods=['POST'])
+@jwt_required()
+def request_playground_access(pg_id):
+    user_id = get_jwt_identity()
+
+    existing = PlaygroundAccessRequest.query.filter_by(
+        user_id=user_id, playground_id=pg_id, status="pending"
+    ).first()
+
+    if existing:
+        return jsonify({"msg": "Solicitud ya enviada"}), 400
+
+    new_req = PlaygroundAccessRequest(
+        user_id=user_id,
+        playground_id=pg_id
+    )
+
+    db.session.add(new_req)
+    db.session.commit()
+
+    return jsonify({"msg": "Solicitud enviada"}), 201
+
+@api.route('/requests', methods=['GET'])
+@jwt_required()
+def get_requests():
+    current_user_id = get_jwt_identity()
+
+    received = PlaygroundAccessRequest.query.join(Playground).filter(
+        Playground.created_by == current_user_id,
+        PlaygroundAccessRequest.status == "pending"
+    ).all()
+
+    sent = PlaygroundAccessRequest.query.filter_by(user_id=current_user_id).all()
+
+    return jsonify({
+        "received": [r.serialize() for r in received],
+        "sent": [r.serialize() for r in sent]
+    }), 200
+
+@api.route('/requests', methods=['POST'])
+@jwt_required()
+def create_access_request():
+    current_user_id = get_jwt_identity()
+    body = request.get_json()
+    pg_id = body.get("playground_id")
+
+    if not pg_id:
+        raise APIException("playground_id is required", 400)
+
+    # Validar que no haya una solicitud previa
+    existing = PlaygroundAccessRequest.query.filter_by(
+        user_id=current_user_id,
+        playground_id=pg_id,
+        status="pending"
+    ).first()
+
+    if existing:
+        return jsonify({"msg": "Solicitud ya enviada"}), 200
+
+    new_request = PlaygroundAccessRequest(
+        user_id=current_user_id,
+        playground_id=pg_id,
+        status="pending"
+    )
+    db.session.add(new_request)
+    db.session.commit()
+
+    return jsonify({"msg": "Solicitud enviada"}), 201
