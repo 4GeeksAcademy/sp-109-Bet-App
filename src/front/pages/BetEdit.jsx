@@ -346,7 +346,7 @@ export const BetEdit = () => {
                     {loading ? "Saving..." : "Save changes"}
                 </button>
 
-                <button type="button" className="btn btn-danger mx-2" onClick={() => navigate(`/playground/${id}`)} disabled={loading}>
+                <button type="button" className="btn btn-danger mx-2" onClick={() => navigate(`/playground/${id}/bet/${betId}`)} >
                     Cancel
                 </button>
             </form>

@@ -36,14 +36,15 @@ import { AdminLogin } from "./pages/AdminLogin";
 import { AdminBoard } from "./pages/AdminBoard";
 import { PlaygroundInvite } from "./pages/PlaygroundInvite";
 import PlaygroundUser from "./pages/PlaygroundUser.jsx";
-import {PlaygroundUserCreate} from "./pages/PlaygroundUserCreate.jsx";
-import {PlaygroundUserEdit} from "./pages/PlaygroundUserEdit.jsx";
+import { PlaygroundUserCreate } from "./pages/PlaygroundUserCreate.jsx";
+import { PlaygroundUserEdit } from "./pages/PlaygroundUserEdit.jsx";
 import { MyProfile } from "./pages/MyProfile.jsx";
-import {AdminUsers} from "./pages/AdminUsers.jsx";
-import {AdminPlaygrounds} from "./pages/AdminPlaygrounds.jsx"
+import { AdminUsers } from "./pages/AdminUsers.jsx";
+import { AdminPlaygrounds } from "./pages/AdminPlaygrounds.jsx"
 import { AdminBets } from "./pages/AdminBets.jsx";
 import { PlaygroundSearch } from "./pages/PlaygroundSearch";
 import { Requests } from "./pages/Requests";
+import { BetSingle } from "./pages/BetSingle";
 
 
 export const router = createBrowserRouter(
@@ -59,11 +60,11 @@ export const router = createBrowserRouter(
       <Route path="/message-board" element={<MessageBoard />} />
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin-board" element={<AdminBoard />} />
-      <Route path="/adminusers" element={<AdminUsers/>} />
-      <Route path="/adminplaygrounds" element={<AdminPlaygrounds/>} />
-      <Route path="/adminbets" element={<AdminBets/>} />
-      
-      
+      <Route path="/adminusers" element={<AdminUsers />} />
+      <Route path="/adminplaygrounds" element={<AdminPlaygrounds />} />
+      <Route path="/adminbets" element={<AdminBets />} />
+
+
 
       {/* ✅ Admin visible y accesible */}
       <Route path="/adminsite" element={<Adminsite />} />
@@ -76,6 +77,11 @@ export const router = createBrowserRouter(
           <Private />
         </PrivateRoutes>
       } />
+      <Route path="/playground/:id/bet/:betId" element={
+        <PrivateRoutes>
+          <BetSingle />
+        </PrivateRoutes>
+      } />
 
       <Route path="/users" element={
         <PrivateRoutes>
@@ -83,7 +89,7 @@ export const router = createBrowserRouter(
         </PrivateRoutes>
       } />
       <Route path="/create" element={<UserCreate />} />
-      
+
       <Route path="/edit/:id" element={
         <PrivateRoutes>
           <UserEdit />
@@ -173,9 +179,9 @@ export const router = createBrowserRouter(
       <Route path="/my-profile" element={<MyProfile />} />
 
       <Route path="/playground/search" element={
-       <PrivateRoutes>
-        <PlaygroundSearch />
-       </PrivateRoutes>
+        <PrivateRoutes>
+          <PlaygroundSearch />
+        </PrivateRoutes>
       } />
 
       <Route path="/solicitudes" element={
