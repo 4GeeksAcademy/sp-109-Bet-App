@@ -44,6 +44,7 @@ import {AdminPlaygrounds} from "./pages/AdminPlaygrounds.jsx"
 import { AdminBets } from "./pages/AdminBets.jsx";
 import { PlaygroundSearch } from "./pages/PlaygroundSearch";
 import { Requests } from "./pages/Requests";
+import { AdminMessageBoard } from "./pages/AdminMessageBoard.jsx";
 
 
 export const router = createBrowserRouter(
@@ -62,6 +63,7 @@ export const router = createBrowserRouter(
       <Route path="/adminusers" element={<AdminUsers/>} />
       <Route path="/adminplaygrounds" element={<AdminPlaygrounds/>} />
       <Route path="/adminbets" element={<AdminBets/>} />
+      <Route path="/admin-message-board" element={<AdminMessageBoard/>} />
       
       
 

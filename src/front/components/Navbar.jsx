@@ -71,6 +71,10 @@ export const Navbar = () => {
                     Message Board
                 </Link>
 
+                 <Link to="/admin-message-board" className="btn btn-outline-secondary mx-2">
+                    Admin-Message Board
+                </Link>
+
                 {!isLoggedIn && (
                     <Link to="/login" className="btn btn-outline-success ms-2">
                         Login

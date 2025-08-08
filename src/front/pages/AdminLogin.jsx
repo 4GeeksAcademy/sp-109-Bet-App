@@ -11,10 +11,23 @@ export const AdminLogin = () => {
 
 
     useEffect(() => {
+        const verifyToken = async () => {
         const token = localStorage.getItem("adminToken");
-        if (token) {
-            navigate("/admin-board"); 
+        if (!token) return;
+
+        try {
+        const res = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/adminuser/private", {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },});
+        
+        if (res.ok) {
+        navigate("/admin-board");
+        } } catch (err) {
+      console.error("Token verification failed:", err);
         }
+        }; 
+        verifyToken();
     }, [navigate]);
 
     const handleSubmit = async (e) => {
