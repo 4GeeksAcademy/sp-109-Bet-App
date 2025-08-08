@@ -311,18 +311,18 @@ def get_bets_by_playground(pg_id):
     return jsonify([bet.serialize() for bet in bets]), 200
 
 
-@api.route('/playground/<int:pg_id>/bet/<int:bet_id>', methods=['GET'])
-def get_single_bet(pg_id, bet_id):
+# @api.route('/playground/<int:pg_id>/bet/<int:bet_id>', methods=['GET'])
+# def get_single_bet(pg_id, bet_id):
     
-    playground = Playground.query.get(pg_id)
-    if not playground:
-        raise APIException("Playground not found", 404)
+#     playground = Playground.query.get(pg_id)
+#     if not playground:
+#         raise APIException("Playground not found", 404)
     
-    bet = Bet.query.filter_by(playground_id=pg_id, id=bet_id).first()
-    if not bet:
-        raise APIException("Bet not found in this playground", 404)
+#     bet = Bet.query.filter_by(playground_id=pg_id, id=bet_id).first()
+#     if not bet:
+#         raise APIException("Bet not found in this playground", 404)
 
-    return jsonify(bet.serialize()), 200
+#     return jsonify(bet.serialize()), 200
 
 
 @api.route('/playground/<int:pg_id>/bet', methods=['POST'])
@@ -430,10 +430,12 @@ def update_bet(pg_id, bet_id):
     bet = Bet.query.filter_by(playground_id=pg_id, id=bet_id).first()
     if not bet:
         raise APIException("Bet not found", 404)
-
+    
     bet.name = body.get('name', bet.name)
     bet.amount = body.get('amount', bet.amount)
     bet.event_description = body.get('event_description', bet.event_description)
+
+
 
     if bet.amount is None:
         raise APIException("Amount is required", 404)
@@ -516,15 +518,15 @@ def vote_bet_option(pg_id, bet_id):
     existing_vote = UserBet.query.filter_by(user_id=user_id, bet_id=bet_id).first()
 
     if existing_vote:
-        existing_vote.option_id = option_id
-        db.session.add(existing_vote)
-    else:
-        new_user_bet = UserBet(
-            user_id=user_id,
-            bet_id=bet_id,
-            option_id=option_id
+        raise APIException("You have already voted and cannot change your vote", 400)
+
+
+    new_user_bet = UserBet(
+        user_id=user_id,
+        bet_id=bet_id,
+        option_id=option_id
         )
-        db.session.add(new_user_bet)
+    db.session.add(new_user_bet)
 
 
     db.session.commit()
@@ -545,9 +547,9 @@ def get_bet_options(pg_id, bet_id):
     return jsonify([option.serialize() for option in options]), 200
 
 @api.route('/playground/<int:pg_id>/bet/<int:bet_id>', methods=['GET'])
-@jwt_required(optional=True)
+@jwt_required()
 def get_bet(pg_id, bet_id):
-    user_id = get_jwt_identity()  # puede ser None si no está logueado
+    user_id = get_jwt_identity() 
 
     bet = Bet.query.filter_by(id=bet_id, playground_id=pg_id).first()
     if not bet:
