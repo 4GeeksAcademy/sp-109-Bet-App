@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export const MessageBoard = () => {
   const [messages, setMessages] = useState([]);
@@ -6,25 +7,33 @@ export const MessageBoard = () => {
   const [content, setContent] = useState("");
   const [error, setError] = useState(null);
 
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const token = localStorage.getItem("adminToken");
+
+  const loginMessage = location.state?.fromProtected ? "⚠️ Please log in first." : null;
+
+  useEffect(() => {
+    if (!token) {
+      navigate("/admin/login", { state: { fromProtected: true } });
+    }
+  }, [token, navigate]);
+
+
   // ✅ Obtener mensajes solo de los playgrounds del usuario
   const getMessages = async () => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setError("Debes iniciar sesión para ver los mensajes.");
-        return;
-      }
-
-      const resp = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/messages/my-playgrounds", {
+      const resp = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/messages", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!resp.ok) throw new Error("Failed to fetch messages");
+      if (!resp.ok) throw new Error("Failed to load messages");
 
       const data = await resp.json();
       setMessages(data.messages || []);
     } catch (err) {
-      console.error("Error fetching messages:", err);
-      setError("Error cargando mensajes");
+      console.error("Error loading messages:", err);
+      setError("Error loading messages:");
     }
   };
 
@@ -41,19 +50,19 @@ export const MessageBoard = () => {
         },
         body: JSON.stringify({ username, content }),
       });
-      if (!resp.ok) throw new Error("Error enviando mensaje");
+      if (!resp.ok) throw new Error("Error sending message");
 
       setUsername("");
       setContent("");
       getMessages();
     } catch (err) {
       console.error(err);
-      setError("No se pudo enviar el mensaje");
+      setError("Could not send message");
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("¿Seguro que quieres eliminar este mensaje?")) return;
+    if (!window.confirm("¿Are you sure you want to delete this message?")) return;
     try {
       const token = localStorage.getItem("token");
       const resp = await fetch(import.meta.env.VITE_BACKEND_URL + `/api/messages/${id}`, {
@@ -96,6 +105,7 @@ export const MessageBoard = () => {
     <div className="container mt-4">
       <h2>Message Board</h2>
 
+      {loginMessage && <div className="alert alert-warning">{loginMessage}</div>}
       {error && <p className="text-danger">{error}</p>}
 
       <form onSubmit={handleSubmit} className="mb-3">
