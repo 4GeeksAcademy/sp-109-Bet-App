@@ -1,18 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 
 export const AdminUserView = () => {
     const { id } = useParams();
     const [user, setUser] = useState(null);
     const [error, setError] = useState("");
-    const [hasToken, setHasToken] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchUser = async () => {
             const token = localStorage.getItem("adminToken");
             if (!token) {
-                setHasToken(false);
-                setError("You must be an admin to access this page.");
+                navigate("admin/login");
                 return;
             }
 
@@ -40,16 +39,6 @@ export const AdminUserView = () => {
 
         fetchUser();
     }, [id]);
-
-    if (!hasToken) {
-        return (
-            <div className="container mt-5">
-                <p style={{ color: "red", fontWeight: "bold" }}>
-                    You must be an admin to access this page.
-                </p>
-            </div>
-        );
-    }
 
     if (error) {
         return (

@@ -13,8 +13,7 @@ export const AdminBets = () => {
   // Verificar acceso de administrador
   useEffect(() => {
     if (!token) {
-      setIsAdmin(false);
-      setError("Access denied. You must be an Admin.");
+      navigate("admin/login");
       return;
     }
 
@@ -27,8 +26,7 @@ export const AdminBets = () => {
         });
 
         if (!res.ok) {
-          setIsAdmin(false);
-          setError("Access denied. You must be an Admin.");
+          navigate("admin/login");
           return;
         }
 
@@ -37,18 +35,16 @@ export const AdminBets = () => {
         if (data.admin?.role === "admin") {
           setIsAdmin(true);
         } else {
-          setIsAdmin(false);
-          setError("Access denied. You must be an Admin.");
+          navigate("admin/login");
         }
       } catch (err) {
         console.error(err);
-        setIsAdmin(false);
-        setError("Error verifying admin access.");
+        navigate("admin/login");
       }
     };
 
     verifyAdmin();
-  }, [token]);
+  }, [token, navigate]);
 
   // Obtener todas las apuestas si es admin
   useEffect(() => {
@@ -63,7 +59,7 @@ export const AdminBets = () => {
         });
 
         const data = await res.json();
-        if (!res.ok) throw new Error("Failed to fetch bets");
+        if (!res.ok) throw new Error("Failed to load bets");
 
         setBets(data.bets);
       } catch (err) {
@@ -87,7 +83,7 @@ export const AdminBets = () => {
         },
       });
 
-      if (!res.ok) throw new Error("Failed to delete bet");
+      if (!res.ok) throw new Error("Failed to delete the bet");
 
       setBets((prev) => prev.filter((bet) => bet.id !== id));
     } catch (err) {
@@ -98,17 +94,6 @@ export const AdminBets = () => {
 
   if (isAdmin === undefined) {
     return <div className="container mt-5">Checking admin access...</div>;
-  }
-
-  if (!isAdmin) {
-    return (
-      <div className="container mt-5">
-        <p className="text-danger fw-bold">{error}</p>
-        <button className="btn btn-secondary mt-3" onClick={() => navigate("/admin/login")}>
-          <i className="fas fa-arrow-left me-2"></i>Go to Login
-        </button>
-      </div>
-    );
   }
 
   return (
