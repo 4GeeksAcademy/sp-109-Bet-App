@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export const AdminUsers = () => {
     const [users, setUsers] = useState([]);
     const [error, setError] = useState('');
-    const [hasToken, setHasToken] = useState(true); // por defecto asumimos que sí
+    const navigate = useNavigate();
+    
 
     const getUsers = async () => {
         const token = localStorage.getItem("adminToken");
         if (!token) {
-            setHasToken(false);
-            setError("You must be an admin to access this page.");
+            navigate("admin/login");
             return;
         }
 
@@ -22,14 +23,15 @@ export const AdminUsers = () => {
                 }
             });
 
-            const data = await resp.json();
-            if (resp.ok) setUsers(data);
-            else {
-                setError(data.msg || "Failed to load users.");
-                console.error("Error en la respuesta:", data.msg || data);
-            }
+        const data = await resp.json();
+        if (resp.ok){
+        setUsers(data);
+        } else {
+        setError(data.msg || "Failed to load users.");
+        console.error("Error in the request:", data);
+        }
         } catch (err) {
-            setError("Error fetching users.");
+            setError("Error, it's impossible to obtein users.");
             console.error("Error fetching users:", err);
         }
     };
@@ -37,19 +39,14 @@ export const AdminUsers = () => {
     const handleDelete = async (id) => {
     const token = localStorage.getItem("adminToken");
     if (!token) {
-        setHasToken(false);
-        setError("You must be an admin to access this page.");
+        navigate("admin/login");
         return;
     }
 
     if (!confirm("Are you sure you want to delete this user?")) return;
 
-    const url = import.meta.env.VITE_BACKEND_URL + `/api/user/${id}`;
-    console.log("DELETE URL:", url);
-    console.log("Token:", token);
-
     try {
-        const resp = await fetch(url, {
+        const resp = await fetch(import.meta.env.VITE_BACKEND_URL + `/api/user/${id}`, {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json",
@@ -58,38 +55,23 @@ export const AdminUsers = () => {
         });
 
         if (!resp.ok) {
-            // Intenta leer la respuesta como texto o JSON
-            let errorText = "";
-            try {
-                errorText = await resp.text();
-            } catch (e) {
-                errorText = "Could not parse error response";
-            }
-
-            console.error("Error response from server:", errorText);
-            setError("Error deleting user: " + errorText);
+            const data = await resp.json();
+            setError(data.msg || "Failed to delete user.");
+            console.error("Error deleting user:", data);
             return;
+        } getUsers()
+        ;} 
+    catch (err) {
+    console.error("Network/server error:", err);
+    setError("Error deleting user.");
         }
+    };
 
-        getUsers(); // reload list
-    } catch (err) {
-        setError("Error deleting user (network or server).");
-        console.error("Network/server error:", err);
-    }
-};
+        
     useEffect(() => {
         getUsers();
     }, []);
 
-    if (!hasToken) {
-        return (
-            <div className="container mt-5">
-                <p style={{ color: "red", fontWeight: "bold" }}>
-                    You must be an admin to access this page.
-                </p>
-            </div>
-        );
-    }
 
     return (
         <div className="container mt-5">

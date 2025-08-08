@@ -18,6 +18,10 @@ export const PlaygroundSingle = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [newMessage, setNewMessage] = useState("");
+  const [playground, setPlayground] = useState(null);
+  const [bets, setBets] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
 
     // Cargar datos principales
     useEffect(() => {
@@ -31,6 +35,32 @@ export const PlaygroundSingle = () => {
                         headers: { "Authorization": `Bearer ${token}` }
                     })
                 ]);
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Mostrar mensaje de éxito tras volver de otra pantalla
+  useEffect(() => {
+    if (location.state?.successMessage) {
+      setSuccessMessage(location.state.successMessage);
+      // Limpia el state de la URL
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location, navigate]);
+
+  // Cargar Playground, Bets y Mensajes
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+
+        const [pgResp, betsResp, msgResp] = await Promise.all([
+          fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}`),
+          fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/bet`),
+          fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/messages`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
 
                 if (pgResp.ok) {
                     const pgData = await pgResp.json();
@@ -50,9 +80,36 @@ export const PlaygroundSingle = () => {
                 setLoading(false);
             }
         };
+        if (pgResp.ok) {
+          const pgData = await pgResp.json();
+          setPlayground(pgData.playground);
+        } else {
+          setPlayground(null);
+        }
 
-        fetchData();
-    }, [id]);
+        if (betsResp.ok) {
+          const betsData = await betsResp.json();
+          setBets(betsData);
+        } else {
+          setBets([]);
+        }
+
+        if (msgResp.ok) {
+          const msgData = await msgResp.json();
+          setMessages(msgData);
+        } else {
+          setMessages([]);
+        }
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError("Error loading data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [id]);
 
     // Invitar usuario
     const fetchUsers = async () => {
@@ -84,6 +141,10 @@ export const PlaygroundSingle = () => {
     const handleSendMessage = async (e) => {
         e.preventDefault();
         if (!newMessage.trim()) return;
+  // Enviar mensaje
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!newMessage.trim()) return;
 
         try {
             const token = localStorage.getItem("token");

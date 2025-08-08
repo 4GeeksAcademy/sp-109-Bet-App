@@ -11,8 +11,14 @@ export const AdminUserCreate = () => {
         money: 0
     });
     const [error, setError] = useState("");
-    const [hasToken, setHasToken] = useState(true);
     const navigate = useNavigate();
+    const token = localStorage.getItem("adminToken");
+
+    useEffect(() => {
+        if (!token) {
+            navigate("/admin-login");
+        }
+    }, [token, navigate]);
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -21,15 +27,14 @@ export const AdminUserCreate = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const token = localStorage.getItem("adminToken");
         if (!token) {
-            setHasToken(false);
-            setError("You must be an admin to access this page.");
+            setError("Unauthorized");
+            navigate("/admin-login");
             return;
         }
 
         try {
-            const res = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/signup", {
+            const res = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/admin-login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -51,15 +56,7 @@ export const AdminUserCreate = () => {
         }
     };
 
-    if (!hasToken) {
-        return (
-            <div className="container mt-5">
-                <p style={{ color: "red", fontWeight: "bold" }}>
-                    You must be an admin to access this page.
-                </p>
-            </div>
-        );
-    }
+
 
     return (
         <div className="container mt-5">
@@ -96,7 +93,9 @@ export const AdminUserCreate = () => {
                     <label htmlFor="money">Money</label>
                 </div>
 
-                <button className="btn btn-success">Save</button>
+                <button className="btn btn-success">
+                <i className="fas fa-save me-2"></i>Save
+                </button>
             </form>
         </div>
     );

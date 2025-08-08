@@ -5,15 +5,13 @@ export const AdminUserEdit = () => {
     const { id } = useParams();
     const [form, setForm] = useState({});
     const [error, setError] = useState("");
-    const [hasToken, setHasToken] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
         const fetchUser = async () => {
             const token = localStorage.getItem("adminToken");
             if (!token) {
-                setHasToken(false);
-                setError("You must be an admin to access this page.");
+                navigate("admin/login");
                 return;
             }
 
@@ -51,8 +49,7 @@ export const AdminUserEdit = () => {
         const token = localStorage.getItem("adminToken");
 
         if (!token) {
-            setHasToken(false);
-            setError("You must be an admin to access this page.");
+            navigate("admin/login");
             return;
         }
 
@@ -78,15 +75,6 @@ export const AdminUserEdit = () => {
         }
     };
 
-    if (!hasToken) {
-        return (
-            <div className="container mt-5">
-                <p style={{ color: "red", fontWeight: "bold" }}>
-                    You must be an admin to access this page.
-                </p>
-            </div>
-        );
-    }
 
     return (
         <div className="container mt-5">

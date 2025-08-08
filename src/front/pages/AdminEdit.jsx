@@ -11,7 +11,7 @@ export const AdminEdit = () => {
   useEffect(() => {
     const editAdmin = async () => {
       if (!token) {
-        setError("Access denied. You must be an Admin to access.");
+        navigate("admin/login");
         return;
       }
 
@@ -32,14 +32,11 @@ export const AdminEdit = () => {
     };
 
     editAdmin();
-  }, [id, token]);
+  }, [id, token, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!token) {
-      setError("Unauthorized. You must be an Admin to updated.");
-      return;
-    }
+    
     try {
       const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/adminuser/${id}`, {
         method: "PUT",
@@ -55,16 +52,6 @@ export const AdminEdit = () => {
     }
   };
 
-  if (error && error.toLowerCase().includes("access")) {
-    return (
-      <div className="container mt-5">
-        <p className="text-danger fw-bold">{error}</p>
-        <button className="btn btn-warning" onClick={() => navigate("/admin/login")}>
-          <i className="fas fa-sign-in-alt me-2"></i>Go back to login
-        </button>
-      </div>
-    );
-  }
 
   return (
     <div className="container mt-5">

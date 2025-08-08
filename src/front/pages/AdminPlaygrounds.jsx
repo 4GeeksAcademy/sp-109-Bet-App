@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export const AdminPlaygrounds = () => {
   const [playgrounds, setPlaygrounds] = useState([]);
   const [error, setError] = useState(null);
   const [isAdmin, setIsAdmin] = useState(undefined);
+  const navigate = useNavigate();
   const token = localStorage.getItem("adminToken");
 
   useEffect(() => {
     if (!token) {
-      setIsAdmin(false);
-      setError("You must be an admin to access this page.");
+      navigate("/admin/login");
       return;
     }
 
@@ -26,21 +27,23 @@ export const AdminPlaygrounds = () => {
         } else {
           setIsAdmin(false);
           setError("Access denied. Not an admin.");
+          navigate("/admin-login");
         }
       } catch (err) {
         console.error("Error verifying admin access:", err);
         setIsAdmin(false);
         setError("Error verifying admin access.");
+        navigate("admin/login");
       }
     };
 
     verifyAdmin();
-  }, [token]);
+  }, [token, navigate]);
 
   useEffect(() => {
     if (!isAdmin) return;
 
-    const fetchPlaygrounds = async () => {
+    const getAllplaygrounds = async () => {
       try {
         const res = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/playground/all", {
           headers: { Authorization: `Bearer ${token}` },
@@ -59,7 +62,7 @@ export const AdminPlaygrounds = () => {
       }
     };
 
-    fetchPlaygrounds();
+    getAllplaygrounds();
   }, [isAdmin]);
 
   const handleDelete = async (id) => {
@@ -89,13 +92,6 @@ export const AdminPlaygrounds = () => {
     return <div className="container mt-5">Checking admin access...</div>;
   }
 
-  if (!isAdmin) {
-    return (
-      <div className="container mt-5">
-        <p className="text-danger fw-bold">{error}</p>
-      </div>
-    );
-  }
 
   return (
     <div className="container mt-5">
