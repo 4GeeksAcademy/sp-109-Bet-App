@@ -11,7 +11,7 @@ export const AdminUserView = () => {
         const fetchUser = async () => {
             const token = localStorage.getItem("adminToken");
             if (!token) {
-                navigate("admin/login");
+                navigate("admin/login", { state: { fromProtected: true } });
                 return;
             }
 

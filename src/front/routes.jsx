@@ -45,6 +45,7 @@ import { AdminBets } from "./pages/AdminBets.jsx";
 import { PlaygroundSearch } from "./pages/PlaygroundSearch";
 import { Requests } from "./pages/Requests";
 import { BetSingle } from "./pages/BetSingle";
+import { AdminMessageBoard } from "./pages/AdminMessageBoard.jsx";
 
 
 export const router = createBrowserRouter(
@@ -70,6 +71,7 @@ export const router = createBrowserRouter(
       <Route path="/adminsite" element={<Adminsite />} />
       <Route path="/admincreate" element={<AdminCreate />} />
       <Route path="/admin/adminsite/:id" element={<AdminEdit />} />
+        <Route path="/admin-message-board" element={<AdminMessageBoard/>} />
 
       {/* ✅ Rutas privadas de usuario */}
       <Route path="/private" element={

@@ -1395,3 +1395,17 @@ def resolve_access_request(req_id, action):
     db.session.commit()
 
     return jsonify({"msg": "Request accepted", "request": req.serialize()}), 200
+
+@api.route('/admin/messages', methods=['GET'])
+@jwt_required()
+def get_all_messages_byadmin():
+    current_admin_id = get_jwt_identity()
+
+    admin = AdminUser.query.get(current_admin_id)
+    if not admin or admin.role != "admin":
+        raise APIException("Access denied. Only admins can view all messages.", 403)
+
+    messages = Message.query.all()
+    return jsonify({
+        "messages": [msg.serialize() for msg in messages]
+    }), 200

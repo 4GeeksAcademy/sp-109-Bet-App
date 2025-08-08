@@ -13,7 +13,7 @@ export const AdminCreate = () => {
 
     useEffect(() => {
     if (!token) {
-      navigate("/admin-login");
+      navigate("/admin-login", { state: { fromProtected: true } });
     }
   }, [token, navigate]);
 

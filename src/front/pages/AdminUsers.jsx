@@ -10,7 +10,7 @@ export const AdminUsers = () => {
     const getUsers = async () => {
         const token = localStorage.getItem("adminToken");
         if (!token) {
-            navigate("admin/login");
+            navigate("admin/login", { state: { fromProtected: true } });
             return;
         }
 
