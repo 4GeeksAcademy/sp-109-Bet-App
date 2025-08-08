@@ -1,12 +1,12 @@
 from flask import Flask, request, jsonify, url_for, Blueprint
-from api.models import MessageBoard, db, User, Playground, AdminUser, Bet, PlaygroundChat, BetOption, UserBet, PlaygroundUser, PlaygroundUser, Message, BetStatus, BetType
+from api.models import MessageBoard, db, User, Playground, AdminUser, Bet, PlaygroundChat, BetOption, UserBet, PlaygroundUser, PlaygroundUser, Message, BetStatus, BetType, PlaygroundAccessRequest
 from api.utils import generate_sitemap, APIException, generate_unique_slug
 from flask_cors import CORS
 from sqlalchemy import select
 from datetime import datetime, timezone 
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt
 from werkzeug.security import check_password_hash, generate_password_hash
-# import requests
+import requests
 
 api = Blueprint('api', __name__)
 
@@ -331,11 +331,8 @@ def create_bet(pg_id):
 
     body = request.get_json()
 
-    
+
     user_id = int(get_jwt_identity())
-    print(user_id)
-    if not user_id:
-        raise APIException("user_id is required", 400)
 
         
     user = User.query.get(user_id)
@@ -344,14 +341,18 @@ def create_bet(pg_id):
     
     
     name = body.get('name')
-    amount = body.get('amount', 0.0)
+    amount = body.get('amount')
     if amount is None:
-        raise APIException("amount is required", 404)
+        raise APIException("Amount is required", 404)
     
     status_str = body.get("status")
     type_str = body.get("type", "sports")
     event_description = body.get("event_description")
     deadline_str = body.get("deadline")
+
+    options = body.get('options', [])
+    if not options or not isinstance(options, list):
+        raise APIException("At least one option is required", 400)
 
     try:
         status_enum = BetStatus[status_str] if status_str else BetStatus.active
@@ -368,6 +369,13 @@ def create_bet(pg_id):
         raise APIException("Playground not found", 404)
     
     deadline = datetime.fromisoformat(deadline_str) if deadline_str else None
+        
+    bet_options = []
+    for option in options:
+        label = option.get('label')
+        if not label:
+            raise APIException("Option label is required", 400)
+        bet_options.append(BetOption(label=label))
 
     new_bet = Bet(
         name=name,
@@ -377,7 +385,8 @@ def create_bet(pg_id):
         type=type_enum,
         user_id=user_id,
         playground_id=pg_id,
-        event_description=event_description
+        event_description=event_description,
+        options=bet_options
     )
 
     db.session.add(new_bet)
@@ -412,26 +421,56 @@ def delete_single_bet(pg_id, bet_id):
 @api.route('/playground/<int:pg_id>/bet/<int:bet_id>', methods=['PUT'])
 @jwt_required()
 def update_bet(pg_id, bet_id):
-
     body = request.get_json()
-    
-    playground=Playground.query.get(pg_id)
+
+    playground = Playground.query.get(pg_id)
     if not playground:
         raise APIException("Playground not found", 404)
-    
+
     bet = Bet.query.filter_by(playground_id=pg_id, id=bet_id).first()
+    if not bet:
+        raise APIException("Bet not found", 404)
 
     bet.name = body.get('name', bet.name)
     bet.amount = body.get('amount', bet.amount)
     bet.event_description = body.get('event_description', bet.event_description)
 
-    status_str = body.get("status")
-    if status_str:
+    if bet.amount is None:
+        raise APIException("Amount is required", 404)
+    
+    type_str = body.get("type")
+    if type_str:
         try:
-            bet.status = BetStatus[status_str]
+            bet.type = BetType[type_str]
         except KeyError:
-            raise APIException(f"Invalid status '{status_str}'", 400)
+            raise APIException(f"Invalid type '{type_str}'", 400)
 
+
+    new_options = body.get('options', [])
+    if not isinstance(new_options, list) or not new_options:
+        raise APIException("At least one option is required", 400)
+
+    current_options_by_id = {opt.id: opt for opt in bet.options}
+    updated_options = []
+
+    for opt in new_options:
+        label = opt.get('label')
+        if not label:
+            raise APIException("Each option must have a label", 400)
+
+        opt_id = opt.get('id')
+        if opt_id and opt_id in current_options_by_id:
+            existing_opt = current_options_by_id.pop(opt_id)
+            existing_opt.label = label
+            updated_options.append(existing_opt)
+        else:
+            new_opt = BetOption(label=label)
+            updated_options.append(new_opt)
+
+    for deleted_opt in current_options_by_id.values():
+        db.session.delete(deleted_opt)
+
+    bet.options = updated_options
 
     deadline_str = body.get('deadline')
     if deadline_str:
@@ -442,14 +481,48 @@ def update_bet(pg_id, bet_id):
     else:
         bet.deadline = None
 
-
     db.session.commit()
 
     return jsonify({
-        "message": "Bet updated succesfully",
+        "message": "Bet updated successfully",
         "bet": bet.serialize()
     }), 200
 
+
+#-------------- USER-BET ------------------
+
+@api.route('/bet/<int:bet_id>/vote', methods=['POST'])
+@jwt_required()
+def vote_bet_option(bet_id):
+
+    user_id = int(get_jwt_identity())
+    body = request.get_json()
+    option_id = body.get("option_id")
+
+    if not option_id:
+        raise APIException("Option ID is required", 400)
+    
+    option = BetOption.query.filter_by(id=option_id, bet_id=bet_id).first()
+    if not option:
+        raise APIException("Option not found or doesn't belong to the bet", 404)
+    
+    existing_vote = UserBet.query.filter_by(user_id=user_id, bet_id=bet_id).first()
+    if existing_vote:
+        raise APIException("User has already voted on this bet", 400)
+    
+    new_user_bet = UserBet(
+        user_id=user_id,
+        bet_id=bet_id,
+        option_id=option_id
+    )
+
+    db.session.add(new_user_bet)
+    db.session.commit()
+    
+    return jsonify({
+        "message": "Vote registered successfully",
+        "user_bet": new_user_bet.serialize()
+    }), 201
 
 
 @api.route('/playground/<int:pg_id>/bet/<int:bet_id>/options', methods=['GET'])
@@ -463,30 +536,30 @@ def get_bet_options(pg_id, bet_id):
     return jsonify([option.serialize() for option in options]), 200
 
 
-@api.route('/playground/<int:pg_id>/bet/<int:bet_id>/options', methods=['POST'])
-def create_bet_option(pg_id, bet_id):
-    body = request.get_json()
+# @api.route('/playground/<int:pg_id>/bet/<int:bet_id>/options', methods=['POST'])
+# def create_bet_option_2(pg_id, bet_id):
+#     body = request.get_json()
 
-    playground = Playground.query.get(pg_id)
-    if not playground:
-        raise APIException("Playground not found", 404)
+#     playground = Playground.query.get(pg_id)
+#     if not playground:
+#         raise APIException("Playground not found", 404)
 
-    bet = Bet.query.filter_by(id=bet_id, playground_id=pg_id).first()
-    if not bet:
-        raise APIException("Bet not found", 404)
+#     bet = Bet.query.filter_by(id=bet_id, playground_id=pg_id).first()
+#     if not bet:
+#         raise APIException("Bet not found", 404)
 
-    label = body.get('label')
-    if not label or not label.strip():
-        raise APIException("Label is required", 400)
+#     label = body.get('label')
+#     if not label or not label.strip():
+#         raise APIException("Label is required", 400)
 
-    new_option = BetOption(label=label, bet_id=bet_id)
-    db.session.add(new_option)
-    db.session.commit()
+#     new_option = BetOption(label=label, bet_id=bet_id)
+#     db.session.add(new_option)
+#     db.session.commit()
 
-    return jsonify({
-        "message": "New option created succesfully",
-        "bet": new_option.serialize()
-    }), 201
+#     return jsonify({
+#         "message": "New option created succesfully",
+#         "bet": new_option.serialize()
+#     }), 201
 
 
 @api.route('/playground/<int:pg_id>/bet/<int:bet_id>/options/<int:option_id>', methods=['DELETE'])
@@ -1140,3 +1213,89 @@ def update_admin_bet(id):
     db.session.commit()
 
     return jsonify({"msg": "Bet updated", "bet": bet.serialize()}), 200
+
+@api.route('/playgrounds/search', methods=['GET'])
+@jwt_required()
+def search_playgrounds():
+    query = request.args.get("q", "").strip().lower()
+    if len(query) < 1:
+        results = Playground.query.order_by(Playground.created_at.desc()).limit(5).all()
+    else:
+        results = Playground.query.filter(Playground.name.ilike(f"%{query}%")).limit(5).all()
+
+    return jsonify([{
+        "id": pg.id,
+        "name": pg.name,
+        "slug": pg.slug,
+        "created_by": pg.created_by
+    } for pg in results]), 200
+
+
+@api.route('/playground/<int:pg_id>/access-request', methods=['POST'])
+@jwt_required()
+def request_playground_access(pg_id):
+    user_id = get_jwt_identity()
+
+    existing = PlaygroundAccessRequest.query.filter_by(
+        user_id=user_id, playground_id=pg_id, status="pending"
+    ).first()
+
+    if existing:
+        return jsonify({"msg": "Solicitud ya enviada"}), 400
+
+    new_req = PlaygroundAccessRequest(
+        user_id=user_id,
+        playground_id=pg_id
+    )
+
+    db.session.add(new_req)
+    db.session.commit()
+
+    return jsonify({"msg": "Solicitud enviada"}), 201
+
+@api.route('/requests', methods=['GET'])
+@jwt_required()
+def get_requests():
+    current_user_id = get_jwt_identity()
+
+    received = PlaygroundAccessRequest.query.join(Playground).filter(
+        Playground.created_by == current_user_id,
+        PlaygroundAccessRequest.status == "pending"
+    ).all()
+
+    sent = PlaygroundAccessRequest.query.filter_by(user_id=current_user_id).all()
+
+    return jsonify({
+        "received": [r.serialize() for r in received],
+        "sent": [r.serialize() for r in sent]
+    }), 200
+
+@api.route('/requests', methods=['POST'])
+@jwt_required()
+def create_access_request():
+    current_user_id = get_jwt_identity()
+    body = request.get_json()
+    pg_id = body.get("playground_id")
+
+    if not pg_id:
+        raise APIException("playground_id is required", 400)
+
+    # Validar que no haya una solicitud previa
+    existing = PlaygroundAccessRequest.query.filter_by(
+        user_id=current_user_id,
+        playground_id=pg_id,
+        status="pending"
+    ).first()
+
+    if existing:
+        return jsonify({"msg": "Solicitud ya enviada"}), 200
+
+    new_request = PlaygroundAccessRequest(
+        user_id=current_user_id,
+        playground_id=pg_id,
+        status="pending"
+    )
+    db.session.add(new_request)
+    db.session.commit()
+
+    return jsonify({"msg": "Solicitud enviada"}), 201
