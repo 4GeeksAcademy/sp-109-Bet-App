@@ -10,7 +10,7 @@ export const AdminPlaygrounds = () => {
 
   useEffect(() => {
     if (!token) {
-      navigate("/admin/login");
+      navigate("/admin/login", { state: { fromProtected: true } });
       return;
     }
 

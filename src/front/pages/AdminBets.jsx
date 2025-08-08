@@ -13,7 +13,7 @@ export const AdminBets = () => {
   // Verificar acceso de administrador
   useEffect(() => {
     if (!token) {
-      navigate("admin/login");
+      navigate("admin/login", { state: { fromProtected: true } });
       return;
     }
 

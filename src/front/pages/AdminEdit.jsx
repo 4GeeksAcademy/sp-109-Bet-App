@@ -11,7 +11,7 @@ export const AdminEdit = () => {
   useEffect(() => {
     const editAdmin = async () => {
       if (!token) {
-        navigate("admin/login");
+        navigate("admin/login", { state: { fromProtected: true } });
         return;
       }
 

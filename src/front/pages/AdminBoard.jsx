@@ -15,7 +15,7 @@ export const AdminBoard = () => {
     const token = localStorage.getItem("adminToken");
     const email = localStorage.getItem("adminEmail");
     if (!token) {
-      navigate("/admin/login");
+      navigate("/admin/login", { state: { fromProtected: true } });
     } else {
       setAdminEmail(email);
     }

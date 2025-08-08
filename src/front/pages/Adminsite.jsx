@@ -14,7 +14,7 @@ export const Adminsite = () => {
     if (!token) {
     setIsAuthorized(false);
     setError("You must be an admin to access this page.");
-    navigate("admin/login");
+    navigate("admin/login", { state: { fromProtected: true } });
       return;
     }
 

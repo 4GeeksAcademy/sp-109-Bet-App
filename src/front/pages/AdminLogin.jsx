@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export const AdminLogin = () => {
     const [form, setForm] = useState({ email: "", password: "" });
     const [error, setError] = useState(null);
     const navigate = useNavigate();
+    const location = useLocation();
+
+    const loginMessage = location.state?.fromProtected ? "⚠️ Please log in first." : null;
+
 
     useEffect(() => {
         const token = localStorage.getItem("adminToken");
@@ -44,6 +48,11 @@ export const AdminLogin = () => {
         <div className="container mt-5">
             <h1 className="mb-4">ADMIN LOGIN</h1>
 
+             {loginMessage && (
+                <div className="alert alert-warning">
+                    {loginMessage}
+                </div>
+            )}
             
             <div className="alert alert-info">
                 <strong>ℹ️ Credenciales de prueba:</strong><br />
