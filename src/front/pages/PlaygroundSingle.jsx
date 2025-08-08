@@ -141,6 +141,19 @@ export const PlaygroundSingle = () => {
       {/* Cabecera */}
       <div className="text-center mb-4">
         <h1 className="text-primary">{playground?.name}</h1>
+
+        {/* Imagen del playground */}
+        {(playground?.url_image || playground?.image) && (
+          <div className="d-flex justify-content-center my-3">
+            <img
+              src={playground.url_image || playground.image}
+              alt={playground?.name || "Playground"}
+              className="img-fluid rounded"
+              style={{ maxHeight: 260, objectFit: "cover" }}
+            />
+          </div>
+        )}
+
         <p className="text-muted">{playground?.description}</p>
       </div>
 
