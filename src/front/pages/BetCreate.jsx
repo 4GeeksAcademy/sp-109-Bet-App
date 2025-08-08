@@ -36,9 +36,9 @@ export const BetCreate = () => {
 		setLoadingLeagues(true);
 		setError(null);
 		try {
-			const userToken = localStorage.getItem("token");
+			const token = localStorage.getItem("token");
 			const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/football/competitions`, {
-				headers: { Authorization: `Bearer ${userToken}` }
+				headers: { Authorization: `Bearer ${token}` }
 			});
 			if (!resp.ok) throw new Error("Error fetching leagues");
 			const data = await resp.json();

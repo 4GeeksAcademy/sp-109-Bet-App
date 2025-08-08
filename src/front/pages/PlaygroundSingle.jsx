@@ -1,369 +1,273 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { FaRegClock } from "react-icons/fa";
 
 export const PlaygroundSingle = () => {
-    const { id } = useParams();
-    const navigate = useNavigate();
-    const location = useLocation();
+  const { id } = useParams();
+  const navigate = useNavigate();
 
-    const [playground, setPlayground] = useState(null);
-    const [error, setError] = useState(null);
-    const [bets, setBets] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [successMessage, setSuccessMessage] = useState(null);
+  // Datos principales
+  const [playground, setPlayground] = useState(null);
+  const [bets, setBets] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
 
-    // ✅ Invitaciones
-    const [usersList, setUsersList] = useState([]);
-    const [search, setSearch] = useState("");
-    const [showInvite, setShowInvite] = useState(false);
-    const [inviteMsg, setInviteMsg] = useState("");
+  // UI / Estados
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-    // Mensajes
-    const [messages, setMessages] = useState([]);
-    const [newMessage, setNewMessage] = useState("");
+  // --- Invitaciones (tu flujo inline) ---
+  const [usersList, setUsersList] = useState([]);
+  const [search, setSearch] = useState("");
+  const [showInvite, setShowInvite] = useState(false);
+  const [inviteMsg, setInviteMsg] = useState("");
 
-    useEffect(() => {
-        if (location.state?.successMessage) {
-            setSuccessMessage(location.state.successMessage);
-            navigate(location.pathname, { replace: true });
+  // Cargar datos principales (playground, apuestas, mensajes)
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const [pgResp, betsResp, msgResp] = await Promise.all([
+          fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}`),
+          fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/bet`),
+          fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/messages`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+
+        if (pgResp.ok) {
+          const pgData = await pgResp.json();
+          setPlayground(pgData.playground);
         }
-    }, [location, navigate]);
-
-    // Obtener Playground, Bets y Mensajes
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const token = localStorage.getItem("token");
-
-                const [pgResp, betsResp, msgResp] = await Promise.all([
-                    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}`),
-                    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/bet`),
-                    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/messages`, {
-                        headers: { "Authorization": `Bearer ${token}` }
-                    })
-                ]);
-
-                if (pgResp.ok) {
-                    const pgData = await pgResp.json();
-                    setPlayground(pgData.playground);
-                }
-
-                if (betsResp.ok) {
-                    const betsData = await betsResp.json();
-                    setBets(betsData);
-                }
-
-                if (msgResp.ok) {
-                    const msgData = await msgResp.json();
-                    setMessages(msgData);
-                }
-
-            } catch (err) {
-                console.error("Error fetching data:", err);
-                setError("Error loading data");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [id]);
-
-    // Obtener lista de usuarios
-    const fetchUsers = async () => {
-        try {
-            const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/users`);
-            if (!resp.ok) throw new Error("Failed to fetch users");
-            const data = await resp.json();
-            setUsersList(data);
-        } catch (err) {
-            console.error("Error fetching users", err);
+        if (betsResp.ok) {
+          const betsData = await betsResp.json();
+          setBets(betsData);
         }
+        if (msgResp.ok) {
+          const msgData = await msgResp.json();
+          setMessages(msgData);
+        }
+      } catch {
+        setError("Error loading data");
+      } finally {
+        setLoading(false);
+      }
     };
 
-    // Invitar usuario
-    const handleInvite = async (userId) => {
-        try {
-            const token = localStorage.getItem("token");
-            const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/invite`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify({ user_id: userId })
-            });
+    fetchData();
+  }, [id]);
 
-            const data = await resp.json();
-            if (!resp.ok) throw new Error(data.msg || "Error al invitar usuario");
-            setInviteMsg("✅ Usuario invitado correctamente");
-        } catch (err) {
-            console.error("Error invitando usuario:", err);
-            setInviteMsg("❌ Error al invitar usuario");
-        }
+  // Buscar usuarios mientras escribes (cuando el panel está abierto)
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    let aborted = false;
+
+    const run = async () => {
+      if (!showInvite) { setUsersList([]); return; }
+      if (search.trim().length < 2) { setUsersList([]); return; }
+
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/users/find?q=${encodeURIComponent(search)}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!aborted) setUsersList(data || []);
+      } catch {
+        // silent
+      }
     };
 
-    // Crear mensaje (sin username manual)
-    const handleSendMessage = async (e) => {
-        e.preventDefault();
-        if (!newMessage.trim()) return;
+    const t = setTimeout(run, 250); // debounce
+    return () => { aborted = true; clearTimeout(t); };
+  }, [showInvite, search]);
 
-        try {
-            const token = localStorage.getItem("token");
-
-            const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/messages`, {
-                method: "POST",
-                headers: { 
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify({ content: newMessage }),
-            });
-
-            const data = await resp.json();
-            if (!resp.ok) throw new Error(data.msg || "Error sending message");
-
-            setMessages(prev => [...prev, data.message]);
-            setNewMessage("");
-        } catch (err) {
-            console.error("Error sending message:", err);
-            setError("Error al enviar el mensaje");
+  // Invitar usuario
+  const handleInvite = async (userId) => {
+    setInviteMsg("");
+    try {
+      const token = localStorage.getItem("token");
+      const resp = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/invite`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ user_id: userId }),
         }
-    };
+      );
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.msg || "Error al invitar");
+      setInviteMsg(data.msg || "✅ Usuario invitado correctamente");
+    } catch (e) {
+      setInviteMsg(e.message || "❌ Error al invitar usuario");
+    }
+  };
 
-    // Eliminar bet
-    const handleDelete = async (betId) => {
-        if (!confirm("Are you sure you want to delete this bet?")) return;
+  // Enviar mensaje
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!newMessage.trim()) return;
 
-        try {
-            const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/bet/${betId}`, {
-                method: 'DELETE'
-            });
-            if (!resp.ok) throw new Error("Failed to delete bet");
+    try {
+      const token = localStorage.getItem("token");
+      const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/messages`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ content: newMessage }),
+      });
 
-            setBets(prev => prev.filter(b => b.id !== betId));
-        } catch (err) {
-            console.error(err);
-            setError("Error deleting bet");
-        }
-    };
+      const data = await resp.json();
+      if (!resp.ok) throw new Error();
 
-    // Eliminar opción
-    const handleDeleteOption = async (betId, optionId) => {
-        if (!confirm("Are you sure you want to delete this option?")) return;
+      setMessages((prev) => [...prev, data.message]);
+      setNewMessage("");
+    } catch {
+      setError("Error al enviar el mensaje");
+    }
+  };
 
-        setError(null);
-        setLoading(true);
+  if (loading) return <p className="text-center mt-5">⏳ Loading...</p>;
+  if (error) return <p className="text-center text-danger mt-5">{error}</p>;
 
-        try {
-            const resp = await fetch(
-                `${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/bet/${betId}/options/${optionId}`,
-                { method: 'DELETE' }
-            );
-            if (!resp.ok) throw new Error("Failed to delete option");
+  return (
+    <div className="container mt-5 bg-light shadow-sm rounded p-3 h-100">
+      {/* Cabecera */}
+      <div className="text-center mb-4">
+        <h1 className="text-primary">{playground?.name}</h1>
+        <p className="text-muted">{playground?.description}</p>
+      </div>
 
-            setBets((prevBets) =>
-                prevBets.map((bet) =>
-                    bet.id === betId
-                        ? { ...bet, options: bet.options.filter((opt) => opt.id !== optionId) }
-                        : bet
-                )
-            );
-        } catch (err) {
-            console.error(err);
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    if (loading) return <p className="text-center mt-5">⏳ Loading...</p>;
-    if (error) return <p className="text-center text-danger mt-5">{error}</p>;
-    if (!playground) return <p className="text-center text-muted mt-5">Playground not found</p>;
-
-    return (
-        <div className="container mt-5">
-            <div className="card shadow p-4 mb-4">
-                <h1 className="text-primary">{playground.name}</h1>
-                <p><strong>Slug:</strong> {playground.slug}</p>
-
-                {playground.url_image || playground.image ? (
-                    <img 
-                        src={playground.url_image || playground.image} 
-                        alt="Playground" 
-                        className="img-fluid rounded mb-3"
-                        style={{ maxHeight: "300px", objectFit: "cover" }}
-                    />
-                ) : (
-                    <div className="text-center text-muted bg-light rounded py-5 mb-3">
-                        No image available
-                    </div>
-                )}
-
-                <p className="fs-5">{playground.description}</p>
-
-                {successMessage && (
-                    <div className="alert alert-success w-100 mt-3" role="alert">
-                        {successMessage}
-                    </div>
-                )}
-
-                <button
-                    className="btn btn-primary my-3"
-                    onClick={() => navigate(`/playground/${id}/bet`)}
-                >
-                    ➕ Create New Bet
-                </button>
-
-
-                <div className="my-3">
-                    <button
-                        className="btn btn-outline-info"
-                        onClick={() => {
-                            setShowInvite(!showInvite);
-                            fetchUsers();
-                        }}
-                    >
-                        👥 Invitar Usuario
-                    </button>
-
-                    {showInvite && (
-                        <div className="card p-3 mt-2">
-                            <input
-                                type="text"
-                                placeholder="Buscar usuario..."
-                                className="form-control mb-2"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                            />
-                            <ul className="list-group">
-                                {usersList
-                                    .filter((u) =>
-                                        u.username.toLowerCase().includes(search.toLowerCase()) ||
-                                        u.email.toLowerCase().includes(search.toLowerCase())
-                                    )
-                                    .map((u) => (
-                                        <li
-                                            key={u.id}
-                                            className="list-group-item d-flex justify-content-between align-items-center"
-                                        >
-                                            <span>{u.username} ({u.email})</span>
-                                            <button
-                                                className="btn btn-sm btn-success"
-                                                onClick={() => handleInvite(u.id)}
-                                            >
-                                                Invitar
-                                            </button>
-                                        </li>
-                                    ))}
-                            </ul>
-                            {inviteMsg && <p className="mt-2">{inviteMsg}</p>}
-                        </div>
-                    )}
-                </div>
-
-
-                <div className="mt-4">
-                    <h3>💬 Mensajes</h3>
-                    <form onSubmit={handleSendMessage} className="mb-3 d-flex gap-2">
-                        <input
-                            className="form-control"
-                            placeholder="Escribe un mensaje..."
-                            value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
-                        />
-                        <button className="btn btn-success">Enviar</button>
-                    </form>
-
-                    <ul className="list-group">
-                        {messages.length === 0 ? (
-                            <li className="list-group-item text-muted">No hay mensajes aún.</li>
-                        ) : (
-                            messages.map(msg => (
-                                <li key={msg.id} className="list-group-item">
-                                    <strong>{msg.username}</strong>: {msg.content}
-                                </li>
-                            ))
-                        )}
-                    </ul>
-                </div>
-
-
-                <h3 className="mt-4">Bets</h3>
-                {bets.length === 0 ? (
-                    <p className="text-muted">No bets found.</p>
-                ) : (
-                    <ul className="list-group">
-                        {bets.map((bet) => (
-                            <li key={bet.id} className="list-group-item">
-                                <div className="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <h5 className="text-dark">{bet.name}</h5>
-                                        <p><strong>Event:</strong> {bet.event_description}</p>
-                                        <p><strong>Amount:</strong> {bet.amount}</p>
-                                        <p><strong>Status:</strong> {bet.status}</p>
-                                        <p><strong>Deadline:</strong> {bet.deadline ? new Date(bet.deadline).toLocaleString() : "No deadline"}</p>
-                                        <p><strong>Created by:</strong> {bet.user || "Unknown"}</p>
-
-                                        {bet.options && bet.options.length > 0 && (
-                                            <>
-                                                <strong>Options:</strong>
-                                                <ul className="list-group list-group-flush">
-                                                    {bet.options.map((option) => (
-                                                        <li
-                                                            key={option.id}
-                                                            className="list-group-item d-flex justify-content-between align-items-center px-0"
-                                                        >
-                                                            {option.label}
-                                                            <p
-                                                                className="text-danger m-auto"
-                                                                style={{ cursor: "pointer" }}
-                                                                onClick={() => handleDeleteOption(bet.id, option.id)}
-                                                            >
-                                                                ❌
-                                                            </p>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </>
-                                        )}
-                                    </div>
-
-                                    <div className="btn-group-vertical gap-2">
-                                        <button
-                                            className="btn btn-sm btn-outline-secondary"
-                                            onClick={() => navigate(`/playground/${id}/bet/${bet.id}/edit`)}
-                                        >
-                                            ✏️ Edit
-                                        </button>
-
-                                        <button
-                                            className="btn btn-sm btn-outline-info"
-                                            onClick={() => navigate(`/playground/${id}/bet/${bet.id}/options`)}
-                                        >
-                                            ➕ Add Option
-                                        </button>
-
-                                        <button
-                                            className="btn btn-sm btn-outline-danger"
-                                            onClick={() => handleDelete(bet.id)}
-                                        >
-                                            🗑️ Delete
-                                        </button>
-                                    </div>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                )}
-
-                <button
-                    className="btn btn-danger mt-4"
-                    onClick={() => navigate(`/playground/`)}
-                >
-                    ⬅ Go Back
-                </button>
+      <div className="row g-4">
+        {/* Mensajes */}
+        <div className="col-md-3">
+          <div className="bg-white shadow-sm rounded p-3 h-100">
+            <h4>💬 Mensajes</h4>
+            <form onSubmit={handleSendMessage} className="d-flex gap-2 mb-2">
+              <input
+                className="form-control"
+                placeholder="Escribe un mensaje..."
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+              />
+              <button className="btn btn-outline-primary">Enviar</button>
+            </form>
+            <div className="border rounded p-2" style={{ maxHeight: 300, overflowY: "auto" }}>
+              {messages.length === 0 ? (
+                <p className="text-muted">No hay mensajes aún.</p>
+              ) : (
+                messages.map((msg) => (
+                  <div key={msg.id}>
+                    <strong>{msg.username}</strong>: {msg.content}
+                  </div>
+                ))
+              )}
             </div>
+          </div>
         </div>
-    );
+
+        {/* Apuestas (diseño de tu compañero) */}
+        <div className="col-md-6">
+          <div className="bg-white shadow rounded p-3 h-100">
+            <h4>🎯 Apuestas</h4>
+            {bets.length === 0 ? (
+              <p className="text-muted">No bets found.</p>
+            ) : (
+              <ul className="list-group">
+                {bets.map((bet) => (
+                  <li
+                    key={bet.id}
+                    className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => navigate(`/playground/${id}/bet/${bet.id}`)}
+                  >
+                    <div className="d-flex flex-column">
+                      <strong>{bet.name}</strong>
+                      <div>
+                        <span className="badge bg-success">{bet.status}</span>
+                      </div>
+                    </div>
+
+                    <div className="small text-muted d-flex align-items-center gap-1">
+                      <FaRegClock />
+                      {bet.deadline ? new Date(bet.deadline).toLocaleDateString() : "Sin fecha"}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <button
+              className="btn btn-primary w-100 mt-2"
+              onClick={() => navigate(`/playground/${id}/bet`)}
+            >
+              ➕ Crear nueva apuesta
+            </button>
+          </div>
+        </div>
+
+        {/* Invitaciones (TU flujo inline, restaurado) */}
+        <div className="col-md-3">
+          <div className="bg-white shadow-sm rounded p-3 h-100">
+            <h4>👥 Invitar usuario</h4>
+
+            <button
+              className="btn btn-outline-primary mb-2 w-100"
+              onClick={() => setShowInvite((v) => !v)}
+            >
+              {showInvite ? "Cerrar" : "Buscar usuarios"}
+            </button>
+
+            {showInvite && (
+              <>
+                <input
+                  type="text"
+                  placeholder="Buscar por usuario o email…"
+                  className="form-control mb-2"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+
+                <div className="list-group">
+                  {usersList.length === 0 ? (
+                    <div className="list-group-item text-muted">
+                      {search.trim().length < 2 ? "Escribe al menos 2 letras…" : "Sin resultados"}
+                    </div>
+                  ) : (
+                    usersList.map((u) => (
+                      <button
+                        key={u.id}
+                        className="list-group-item list-group-item-action d-flex justify-content-between"
+                        onClick={() => handleInvite(u.id)}
+                      >
+                        <span>
+                          <strong>{u.username}</strong>{" "}
+                          <small className="text-muted">({u.email})</small>
+                        </span>
+                        <span className="badge bg-success">Invitar</span>
+                      </button>
+                    ))
+                  )}
+                </div>
+
+                {inviteMsg && <p className="mt-2">{inviteMsg}</p>}
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Salir de la pantalla */}
+      <div className="mt-4">
+        <button className="btn btn-danger" onClick={() => navigate("/playground")}>
+          ⬅ Salir
+        </button>
+      </div>
+    </div>
+  );
 };
