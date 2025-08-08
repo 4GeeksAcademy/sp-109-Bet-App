@@ -233,6 +233,5 @@ export const PlaygroundSingle = () => {
                 </div>
             </div>
         </div>
-
     );
 };
