@@ -23,7 +23,7 @@ export const BetSingle = () => {
           `${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/bet/${betId}`,
           {
             headers: {
-              Authorization: token ? `Bearer ${token}` : undefined,
+              Authorization: `Bearer ${token}`
             },
           }
         );
@@ -34,7 +34,7 @@ export const BetSingle = () => {
         setBet(betData);
 
         if (betData.user_vote) {
-          setSelectedOption(betData.user_vote);
+          setSelectedOption(Number(betData.user_vote));
         } else {
           setSelectedOption(null);
         }
@@ -77,13 +77,17 @@ export const BetSingle = () => {
 
       const updatedBet = await response.json();
       setBet(updatedBet);
+      setSelectedOption(Number(updatedBet.user_vote));
       alert("Vote submitted successfully!");
+
+      navigate(`/playground/${id}`)
     } catch (err) {
       alert(err.message);
     } finally {
       setSubmitting(false);
     }
   };
+
 
   if (loading) return <p>Loading bet...</p>;
   if (error) return <p className="text-danger">Error: {error}</p>;
@@ -97,10 +101,10 @@ export const BetSingle = () => {
 
           <div className="mb-2"><strong>ID:</strong> {bet.id}</div>
           <div className="mb-2"><strong>Event:</strong> {bet.event_description || "No description"}</div>
-          <div className="mb-2"><strong>Amount:</strong> 💰 {bet.amount}</div>
+          <div className="mb-2"><strong>Amount:</strong> {bet.amount} €</div>
           <div className="mb-2"><strong>Type:</strong> {bet.type}</div>
           <div className="mb-2"><strong>Status:</strong> {bet.status}</div>
-          <div className="mb-2"><strong>Created by:</strong> 👤 {bet.user || "Unknown"}</div>
+          <div className="mb-2"><strong>Created by:</strong>  {bet.user || "Unknown"}</div>
           <div className="mb-2"><strong>Playground:</strong> {bet.playground || "N/A"}</div>
           <div className="mb-2">
             <strong>Created at:</strong>{" "}
@@ -116,33 +120,44 @@ export const BetSingle = () => {
           </div>
 
           {bet.options && bet.options.length > 0 && (
-            <div className="mt-3">
-              <h5>📌 Options</h5>
-              <ul className="list-group">
-                {bet.options.map((option) => (
-                  <li
-                    key={option.id}
-                    className={`list-group-item d-flex justify-content-between align-items-center ${selectedOption === option.id ? "active" : ""
-                      }`}
-                    style={{ cursor: "pointer" }}
-                    onClick={() => setSelectedOption(option.id)}
-                  >
-                    {option.label}
-                    {selectedOption === option.id && (
-                      <span className="badge bg-success">Selected</span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-              <button
-                className="btn btn-success mt-3"
-                onClick={handleVote}
-                disabled={submitting}
-              >
-                {submitting ? "Submitting..." : "✅ Submit Vote"}
-              </button>
-            </div>
-          )}
+  <div className="mt-3">
+    <h5>📌 Options</h5>
+    <ul className="list-group">
+  {bet.options.map((option) => (
+    <li
+      key={option.id}
+      className={`list-group-item ${selectedOption === option.id ? "active" : ""}`}
+      style={{ cursor: bet.user_vote ? "default" : "pointer" }}
+      onClick={() => {
+        if (!bet.user_vote) setSelectedOption(option.id);
+      }}
+    >
+      <div className="d-flex justify-content-between align-items-center">
+        <span>{option.label}</span>
+        {selectedOption === option.id && (
+          <span className="badge bg-success">Your choice</span>
+        )}
+      </div>
+    </li>
+  ))}
+</ul>
+
+    
+    {bet.user_vote ? (
+      <div className="alert alert-success mt-3">
+        You've already voted in this bet.
+      </div>
+    ) : (
+      <button
+        className="btn btn-success mt-3"
+        onClick={handleVote}
+        disabled={submitting || bet.user_vote}
+      >
+        {submitting ? "Submitting..." : "✅ Submit Vote"}
+      </button>
+    )}
+  </div>
+)}
 
 
           <div className="mt-4 d-flex justify-content-between align-items-center">
@@ -150,14 +165,9 @@ export const BetSingle = () => {
               <button
                 className="btn btn-outline-secondary me-2"
                 onClick={() => navigate(`/playground/${id}/bet/${betId}/edit`)}
+                disabled={!!bet.user_vote}
               >
                 ✏️ Edit
-              </button>
-              <button
-                className="btn btn-outline-primary"
-                onClick={() => navigate(`/playground/${id}/bet/${betId}/options`)}
-              >
-                ➕ Add Option
               </button>
             </div>
 

@@ -122,32 +122,19 @@ class Bet(db.Model):
         }
     
     def serialize_with_votes(self, user_id=None):
+        user_vote = None
+        if user_id:
+            user_vote_obj = UserBet.query.filter_by(
+                bet_id=self.id, 
+                user_id=user_id
+            ).first()
+            user_vote = user_vote_obj.option_id if user_vote_obj else None
+        
         return {
-            "id": self.id,
-            "name": self.name,
-            "amount": self.amount,
-            "status": self.status.value if self.status else None,
-            "deadline": self.deadline.isoformat() if self.deadline else None,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "resolved_at": self.resolved_at.isoformat() if self.resolved_at else None,
-            "user_id": self.user_id,
-            "playground_id": self.playground_id,
-            "user": self.user_bet_creator.username if self.user_bet_creator else None,
-            "playground": self.playground_link.name if self.playground_link else None,
-            "type": self.type.value if self.type else None,
-            "event_description": self.event_description,
-            "options": [
-                {
-                    **option.serialize(),
-                    "votes": UserBet.query.filter_by(option_id=option.id).count()
-                }
-                for option in self.options
-            ],
-            "user_vote": (
-                UserBet.query.filter_by(bet_id=self.id, user_id=user_id).first().option_id
-                if user_id else None
-            )
-    }
+            **self.serialize(),
+            "options": [option.serialize() for option in self.options],
+            "user_vote": user_vote
+        }
 
 
 class BetOption(db.Model):
