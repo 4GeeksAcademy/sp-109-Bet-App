@@ -916,7 +916,7 @@ def admin_login():
 @api.route('/playground/<int:pg_id>/invite', methods=['POST'])
 @jwt_required()
 def invite_user_to_playground(pg_id):
-    current_user_id = get_jwt_identity()
+    current_user_id = int(get_jwt_identity())
     body = request.get_json()
     user_id = body.get("user_id")
 
@@ -927,24 +927,30 @@ def invite_user_to_playground(pg_id):
     if not playground:
         raise APIException("Playground not found", 404)
 
-    
-    if playground.created_by != int(current_user_id):
+    if playground.created_by != current_user_id:
         raise APIException("You are not the owner of this playground", 403)
 
-    
-    existing = PlaygroundUser.query.filter_by(user_id=user_id, playground_id=pg_id).first()
-    if existing:
-        return jsonify({"msg": "User already invited"}), 200
+    # Ya miembro?
+    if PlaygroundUser.query.filter_by(user_id=user_id, playground_id=pg_id).first():
+        return jsonify({"msg": "El usuario ya es miembro"}), 200
 
-    invitation = PlaygroundUser(
+    # ¿Ya existe una invitación o solicitud pendiente?
+    existing = PlaygroundAccessRequest.query.filter_by(
+        user_id=user_id, playground_id=pg_id
+    ).filter(PlaygroundAccessRequest.status.in_(["pending", "invited"])).first()
+    if existing:
+        return jsonify({"msg": "Ya hay una solicitud/invitación pendiente"}), 200
+
+    # Creamos INVITACIÓN (owner -> user)
+    invitation = PlaygroundAccessRequest(
         user_id=user_id,
         playground_id=pg_id,
-        joined_at=datetime.utcnow()
+        status="invited"
     )
     db.session.add(invitation)
     db.session.commit()
 
-    return jsonify({"msg": "User invited successfully"}), 201   
+    return jsonify({"msg": "Invitación enviada"}), 201
 
 @api.route('/playground', methods=['POST'])
 @jwt_required()
@@ -1256,17 +1262,26 @@ def request_playground_access(pg_id):
 @api.route('/requests', methods=['GET'])
 @jwt_required()
 def get_requests():
-    current_user_id = get_jwt_identity()
+    current_user_id = int(get_jwt_identity())
 
-    received = PlaygroundAccessRequest.query.join(Playground).filter(
+    # Lo que recibe el OWNER (usuarios que pidieron acceso)
+    received_owner = PlaygroundAccessRequest.query.join(Playground).filter(
         Playground.created_by == current_user_id,
         PlaygroundAccessRequest.status == "pending"
     ).all()
 
-    sent = PlaygroundAccessRequest.query.filter_by(user_id=current_user_id).all()
+    # Invitaciones que el usuario HA RECIBIDO del owner
+    received_invites = PlaygroundAccessRequest.query.filter_by(
+        user_id=current_user_id, status="invited"
+    ).all()
+
+    # Solicitudes que yo ENVIÉ (no incluye invitaciones)
+    sent = PlaygroundAccessRequest.query.filter_by(
+        user_id=current_user_id
+    ).filter(PlaygroundAccessRequest.status != "invited").all()
 
     return jsonify({
-        "received": [r.serialize() for r in received],
+        "received": [r.serialize() for r in (received_owner + received_invites)],
         "sent": [r.serialize() for r in sent]
     }), 200
 
@@ -1299,3 +1314,64 @@ def create_access_request():
     db.session.commit()
 
     return jsonify({"msg": "Solicitud enviada"}), 201
+
+@api.route('/users/find', methods=['GET'])
+@jwt_required()
+def find_users():
+    q = (request.args.get("q") or "").strip()
+    if not q:
+        return jsonify([]), 200
+
+    users = User.query.filter(
+        (User.username.ilike(f"{q}%")) | (User.email.ilike(f"{q}%"))
+    ).order_by(User.username.asc()).limit(10).all()
+
+    return jsonify([
+        {"id": u.id, "username": u.username, "email": u.email}
+        for u in users
+    ]), 200
+
+@api.route('/requests/<int:req_id>/<string:action>', methods=['POST'])
+@jwt_required()
+def resolve_access_request(req_id, action):
+    if action not in ("accept", "reject"):
+        raise APIException("Invalid action", 400)
+
+    current_user_id = int(get_jwt_identity())
+    req = PlaygroundAccessRequest.query.get(req_id)
+    if not req:
+        raise APIException("Request not found", 404)
+
+    if req.status not in ("pending", "invited"):
+        return jsonify({"msg": "Request already processed"}), 200
+
+    playground = Playground.query.get(req.playground_id)
+    if not playground:
+        raise APIException("Playground not found", 404)
+
+    # pending  -> debe aceptar/rechazar el OWNER
+    # invited  -> debe aceptar/rechazar el USUARIO invitado
+    if req.status == "pending" and playground.created_by != current_user_id:
+        raise APIException("Only the playground owner can process this", 403)
+    if req.status == "invited" and req.user_id != current_user_id:
+        raise APIException("Only the invited user can process this", 403)
+
+    if action == "reject":
+        req.status = "rejected"
+        db.session.commit()
+        return jsonify({"msg": "Request rejected", "request": req.serialize()}), 200
+
+    # accept
+    already_member = PlaygroundUser.query.filter_by(
+        user_id=req.user_id, playground_id=req.playground_id
+    ).first()
+    if not already_member:
+        db.session.add(PlaygroundUser(
+            user_id=req.user_id,
+            playground_id=req.playground_id,
+            joined_at=datetime.utcnow()
+        ))
+    req.status = "accepted"
+    db.session.commit()
+
+    return jsonify({"msg": "Request accepted", "request": req.serialize()}), 200
