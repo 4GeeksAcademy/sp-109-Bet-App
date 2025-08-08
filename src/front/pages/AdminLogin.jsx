@@ -1,16 +1,33 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export const AdminLogin = () => {
     const [form, setForm] = useState({ email: "", password: "" });
     const [error, setError] = useState(null);
     const navigate = useNavigate();
+    const location = useLocation();
+
+    const loginMessage = location.state?.fromProtected ? "⚠️ Please log in first." : null;
+
 
     useEffect(() => {
+        const verifyToken = async () => {
         const token = localStorage.getItem("adminToken");
-        if (token) {
-            navigate("/admin-board"); 
+        if (!token) return;
+
+        try {
+        const res = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/adminuser/private", {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },});
+        
+        if (res.ok) {
+        navigate("/admin-board");
+        } } catch (err) {
+      console.error("Token verification failed:", err);
         }
+        }; 
+        verifyToken();
     }, [navigate]);
 
     const handleSubmit = async (e) => {
@@ -44,6 +61,11 @@ export const AdminLogin = () => {
         <div className="container mt-5">
             <h1 className="mb-4">ADMIN LOGIN</h1>
 
+             {loginMessage && (
+                <div className="alert alert-warning">
+                    {loginMessage}
+                </div>
+            )}
             
             <div className="alert alert-info">
                 <strong>ℹ️ Credenciales de prueba:</strong><br />
