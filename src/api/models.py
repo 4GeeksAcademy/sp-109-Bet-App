@@ -122,8 +122,8 @@ class Bet(db.Model):
         }
 
 class BetOption(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    label = db.Column(db.String(100), nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    label: Mapped[str] = mapped_column(String(100), nullable=False)
 
     bet_id: Mapped[int] = mapped_column(ForeignKey("bet.id"), nullable=False)
     bet: Mapped["Bet"] = relationship("Bet", back_populates="options")
@@ -136,6 +136,35 @@ class BetOption(db.Model):
         }
 
 
+class UserBet(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    bet_id = db.Column(db.Integer, db.ForeignKey('bet.id'), nullable=False)
+    option_id = db.Column(db.Integer, db.ForeignKey('bet_option.id'), nullable=False)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship("User", backref="user_bets")
+    bet = db.relationship("Bet", backref="user_bets")
+    option = db.relationship("BetOption", backref="user_bets")
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "bet_id": self.bet_id,
+            "option_id": self.option_id,
+            "bet_name": self.bet.name if self.bet else None,
+            "option_label": self.option.label if self.option else None,
+            "created_at": self.created_at.isoformat()
+        }
+    
+    __table_args__ = (
+    db.UniqueConstraint('user_id', 'bet_id', name='unique_user_bet_vote'),
+)
+
+    
     
 class PlaygroundChat(db.Model):
     __tablename__ = "playground_chat"
@@ -211,23 +240,7 @@ class MessageBoard(db.Model):
         }
     
 
-class UserBet(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, nullable=False)
-    bet_id = db.Column(db.Integer, nullable=True)
-    bet_name = db.Column(db.String(120), nullable=False)
-    bet_option_name = db.Column(db.String(120), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    def serialize(self):
-        return {
-            "id": self.id,
-            "user_id": self.user_id,
-            "bet_id": self.bet_id,
-            "bet_name": self.bet_name,
-            "bet_option_name": self.bet_option_name,
-            "created_at": self.created_at.isoformat()
-        }
     
 
 class Message(db.Model):
