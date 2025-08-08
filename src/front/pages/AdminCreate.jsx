@@ -8,17 +8,14 @@ export const AdminCreate = () => {
   });
 
   const [error, setError] = useState(null);
-  const [hasToken, setHasToken] = useState(true);
   const navigate = useNavigate();
-
   const token = localStorage.getItem("adminToken");
 
     useEffect(() => {
     if (!token) {
-      setHasToken(false);
-      setError("Access denied. You must be an Admin.");
+      navigate("/admin-login");
     }
-  }, [token]);
+  }, [token, navigate]);
 
   const handleChange = (e) => {
   const { name, value } = e.target;
@@ -46,16 +43,6 @@ export const AdminCreate = () => {
     }
   };
 
-   if (!hasToken) {
-    return (
-      <div className="container mt-5">
-        <p className="text-danger fw-bold">{error}</p>
-        <button className="btn btn-warning mt-3" onClick={() => navigate("/admin/login")}>
-        <i className="fas fa-sign-in-alt me-2"></i>Go back to login
-        </button>
-      </div>
-    );
-  }
 
   return (
     <div className="container mt-5">

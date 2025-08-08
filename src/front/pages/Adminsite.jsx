@@ -14,6 +14,7 @@ export const Adminsite = () => {
     if (!token) {
     setIsAuthorized(false);
     setError("You must be an admin to access this page.");
+    navigate("admin/login");
       return;
     }
 
@@ -28,7 +29,8 @@ export const Adminsite = () => {
         
         if (resp.status === 401 || resp.status === 403) {
           setIsAuthorized(false);
-          setError("Access denied. Admin token is invalid or expired.");
+          setError("Access denied. Admin access is invalid or expired.");
+          navigate("admin/login");
           return;
         }
         
@@ -37,12 +39,12 @@ export const Adminsite = () => {
         setAdminuser(data.adminuser || data || []);
         }catch (err) {
         console.error(err)
-        setError('Error get admins')
+        setError('Error loading admins')
       }
 
     };
     getAdmins()
-      }, [token])
+      }, [token, navigate])
 
 
 
@@ -76,19 +78,6 @@ export const Adminsite = () => {
     }
   };
 
-  if (!isAuthorized) {
-    return (
-      <div className="container mt-5">
-        <p className="text-danger fw-bold">{error || "Unauthorized access"}</p>
-         <button className="btn btn-warning mt-3" onClick={() => navigate("/admin/login")}>
-          <i className="fas fa-sign-in-alt me-2"></i>Go back to login
-        </button>
-      </div>
-    );
-  }
-
-  
-    
     return (
   
        <div className="container mt-5">
