@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FaRegClock } from "react-icons/fa";
 
@@ -21,6 +21,90 @@ export const PlaygroundSingle = () => {
   const [search, setSearch] = useState("");
   const [showInvite, setShowInvite] = useState(false);
   const [inviteMsg, setInviteMsg] = useState("");
+
+  // --- Subida de imagen (Cloudinary) ---
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
+  const openFilePicker = () => fileInputRef.current?.click();
+
+  const uploadToCloudinary = async (file) => {
+  const cloud = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+  const preset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+  if (!cloud || !preset) {
+    throw new Error(
+      `Cloudinary env no configurado. cloud=${cloud || "undefined"}, preset=${preset || "undefined"}`
+    );
+  }
+
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("upload_preset", preset);
+
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${cloud}/image/upload`, {
+    method: "POST",
+    body: fd,
+  });
+
+  const bodyText = await res.text();
+  if (!res.ok) {
+    throw new Error(`Cloudinary ${res.status}: ${bodyText}`);
+  }
+
+  const data = JSON.parse(bodyText);
+  return data.secure_url;
+};
+
+// NUEVO: hace el PUT incluyendo name y description
+const patchPlaygroundImage = async (pgId, imageUrl) => {
+  const token = localStorage.getItem("token"); // si no lo necesitas, puedes quitar el header Authorization
+
+  const payload = {
+    name: playground?.name ?? "",               // 👈 importante
+    description: playground?.description ?? "", // opcional
+    url_image: imageUrl,                        // la nueva imagen
+  };
+
+  const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playground/${pgId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}), // quítalo si tu ruta no lo requiere
+    },
+    body: JSON.stringify(payload),
+  });
+
+  // intenta leer respuesta útil
+  let text = "";
+  try { text = await res.text(); } catch {}
+  if (!res.ok) throw new Error(text || `PUT ${res.status}`);
+  try { return JSON.parse(text); } catch { return {}; }
+};
+
+// ACTUALIZA tu handleChangePhoto
+const handleChangePhoto = async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  setUploading(true);
+  try {
+    // 1) subir a Cloudinary
+    const url = await uploadToCloudinary(file);
+
+    // 2) actualizar en tu API incluyendo name/description
+    await patchPlaygroundImage(id, url);
+
+    // 3) refrescar estado local para que se vea ya la nueva imagen
+    setPlayground((prev) => prev ? { ...prev, url_image: url } : prev);
+  } catch (err) {
+    console.error("Error subiendo imagen:", err);
+    alert(err?.message || "No se pudo actualizar la imagen");
+  } finally {
+    setUploading(false);
+    // limpia input de archivo por si vuelves a subir la misma
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+};
 
   // Cargar datos principales (playground, apuestas, mensajes)
   useEffect(() => {
@@ -79,7 +163,7 @@ export const PlaygroundSingle = () => {
       }
     };
 
-    const t = setTimeout(run, 250); // debounce
+    const t = setTimeout(run, 250);
     return () => { aborted = true; clearTimeout(t); };
   }, [showInvite, search]);
 
@@ -144,13 +228,32 @@ export const PlaygroundSingle = () => {
 
         {/* Imagen del playground */}
         {(playground?.url_image || playground?.image) && (
-          <div className="d-flex justify-content-center my-3">
+          <div className="d-flex flex-column align-items-center my-3">
             <img
               src={playground.url_image || playground.image}
               alt={playground?.name || "Playground"}
               className="img-fluid rounded"
               style={{ maxHeight: 260, objectFit: "cover" }}
             />
+
+            {/* Cambiar foto (solo frontend) */}
+            <div className="mt-2">
+              <button
+                type="button"
+                className="btn btn-outline-secondary btn-sm"
+                onClick={openFilePicker}
+                disabled={uploading}
+              >
+                {uploading ? "Subiendo..." : "Cambiar foto"}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                onChange={handleChangePhoto}
+              />
+            </div>
           </div>
         )}
 
@@ -185,7 +288,7 @@ export const PlaygroundSingle = () => {
           </div>
         </div>
 
-        {/* Apuestas (diseño de tu compañero) */}
+        {/* Apuestas */}
         <div className="col-md-6">
           <div className="bg-white shadow rounded p-3 h-100">
             <h4>🎯 Apuestas</h4>
@@ -224,7 +327,7 @@ export const PlaygroundSingle = () => {
           </div>
         </div>
 
-        {/* Invitaciones (TU flujo inline, restaurado) */}
+        {/* Invitaciones */}
         <div className="col-md-3">
           <div className="bg-white shadow-sm rounded p-3 h-100">
             <h4>👥 Invitar usuario</h4>
