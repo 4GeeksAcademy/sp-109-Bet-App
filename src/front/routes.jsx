@@ -46,6 +46,7 @@ import { PlaygroundSearch } from "./pages/PlaygroundSearch";
 import { Requests } from "./pages/Requests";
 import { BetSingle } from "./pages/BetSingle";
 import { AdminMessageBoard } from "./pages/AdminMessageBoard.jsx";
+import { MyProfileEdit } from "./pages/MyProfileEdit.jsx";
 
 
 export const router = createBrowserRouter(
@@ -79,6 +80,13 @@ export const router = createBrowserRouter(
           <Private />
         </PrivateRoutes>
       } />
+
+      <Route path="/profile/edit" element={
+        <PrivateRoutes>
+          <MyProfileEdit />
+        </PrivateRoutes>
+      } />
+
       <Route path="/playground/:id/bet/:betId" element={
         <PrivateRoutes>
           <BetSingle />
