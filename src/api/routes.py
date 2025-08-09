@@ -87,10 +87,12 @@ def get_users():
     return jsonify([user.serialize() for user in User.query.all()]), 200
 
 
-@api.route('/user/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+@api.route('/user', methods=['GET', 'PUT', 'DELETE'])
 @jwt_required()
-def handle_user(id):
-    user = User.query.get(id)
+def handle_user():
+    current_user_id = int(get_jwt_identity())
+    user = User.query.get(current_user_id)
+
     if not user:
         raise APIException("User not found", 404)
 
@@ -105,9 +107,11 @@ def handle_user(id):
         db.session.commit()
         return jsonify({"msg": "User updated", "user": user.serialize()}), 200
 
-    db.session.delete(user)
-    db.session.commit()
-    return jsonify({"msg": "User deleted"}), 200
+    if request.method == 'DELETE':
+        db.session.delete(user)
+        db.session.commit()
+        return jsonify({"msg": "User deleted"}), 200
+
 
 # ----------- ADMIN USER -----------
 
