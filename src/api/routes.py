@@ -101,16 +101,27 @@ def handle_user():
 
     if request.method == 'PUT':
         data = request.get_json()
-        for field in ["username", "name", "last_name", "email", "password", "money", "is_active"]:
+        for field in ["username", "name", "last_name", "email", "password", "money", "is_active", "address", "latitude", "longitude"]:
             if field in data:
-                setattr(user, field, data[field])
+                if field in ["latitude", "longitude"]:
+                    if data[field] is None:
+                        setattr(user, field, None)
+                    else:
+                        try:
+                            setattr(user, field, float(data[field]))
+                        except (ValueError, TypeError):
+                            raise APIException(f"Invalid value for {field}", 400)
+                else:
+                    setattr(user, field, data[field])
         db.session.commit()
         return jsonify({"msg": "User updated", "user": user.serialize()}), 200
+
 
     if request.method == 'DELETE':
         db.session.delete(user)
         db.session.commit()
         return jsonify({"msg": "User deleted"}), 200
+
 
 
 # ----------- ADMIN USER -----------

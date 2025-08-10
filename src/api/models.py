@@ -16,6 +16,10 @@ class User(db.Model):
     money: Mapped[float] = mapped_column(Float, default=0.0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     is_active: Mapped[bool] = mapped_column(Boolean(), default=True)
+    address: Mapped[str] = mapped_column(String(200), nullable=True)
+    latitude: Mapped[float] = mapped_column(Float, nullable=True)
+    longitude: Mapped[float] = mapped_column(Float, nullable=True)
+
 
     playgrounds = relationship("Playground", back_populates="user_pg_creator", cascade="all, delete")
     bets = relationship("Bet", back_populates="user_bet_creator", cascade="all, delete")
@@ -31,7 +35,11 @@ class User(db.Model):
             "email": self.email,
             "money": self.money,
             "created_at": self.created_at.isoformat(),
-            "is_active": self.is_active
+            "is_active": self.is_active,
+            "address": self.address,
+            "latitude": self.latitude,
+            "longitude": self.longitude
+
         }
 
 class AdminUser(db.Model):
