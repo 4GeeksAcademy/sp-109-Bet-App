@@ -4,10 +4,12 @@ import { useNavigate } from "react-router-dom";
 export const MyProfileEdit = () => {
     const [user, setUser] = useState(null);
     const [formData, setFormData] = useState({});
+    const [error, setError] = useState(false)
     const token = localStorage.getItem("token");
     const navigate = useNavigate();
 
     useEffect(() => {
+        setError(false)
         const fetchUser = async () => {
             try {
                 const resp = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/private", {
@@ -31,18 +33,37 @@ export const MyProfileEdit = () => {
     }, [token, navigate]);
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value })
-    }
+        let value = e.target.value;
+
+        if (e.target.name === "latitude" || e.target.name === "longitude") {
+            if (value === "") {
+                value = "";
+            } else {
+                value = parseFloat(value);
+                if (isNaN(value)) value = "";
+            }
+        }
+
+        setFormData({ ...formData, [e.target.name]: value });
+    };
+
+
 
     const handleSave = async () => {
         try {
+            const dataToSend = {
+                ...formData,
+                latitude: formData.latitude === "" ? null : formData.latitude,
+                longitude: formData.longitude === "" ? null : formData.longitude,
+            };
+
             const resp = await fetch(import.meta.env.VITE_BACKEND_URL + `/api/user`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify(dataToSend),
             });
             if (!resp.ok) throw new Error("Error updating user")
 
@@ -50,12 +71,15 @@ export const MyProfileEdit = () => {
             navigate("/my-profile")
         } catch (err) {
             console.error(err)
+            setError(err.message)
         }
     }
     if (!user) return <p>Cargando...</p>;
 
     return (
         <div className="container mt-5">
+            {error && <div className="alert alert-danger">{error}</div>}
+
             <h2>Editar Perfil</h2>
             <label>Name</label>
             <input
@@ -93,6 +117,34 @@ export const MyProfileEdit = () => {
                 className="form-control mb-2"
                 placeholder="Email"
             />
+            <label>Address</label>
+            <input
+                type="text"
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                className="form-control mb-2"
+                placeholder="Address"
+            />
+            <label>Latitude</label>
+            <input
+                type="number"
+                name="latitude"
+                value={formData.latitude}
+                onChange={handleChange}
+                className="form-control mb-2"
+                placeholder="Latitude"
+            />
+            <label>Longitude</label>
+            <input
+                type="number"
+                name="longitude"
+                value={formData.longitude}
+                onChange={handleChange}
+                className="form-control mb-2"
+                placeholder="Longitude"
+            />
+
             <button onClick={handleSave} className="btn btn-success me-2">
                 Save
             </button>

@@ -57,6 +57,9 @@ export const MyProfile = () => {
       <p><strong>Last Name:</strong> {user.last_name}</p>
       <p><strong>Email:</strong> {user.email}</p>
       <p><strong>Dinero:</strong> {user.money}</p>
+      <p><strong>Address:</strong> {user.address}</p>
+      <p><strong>Latitude:</strong> {user.latitude}</p>
+      <p><strong>Longitude:</strong> {user.longitude}</p>
 
       <button onClick={() => navigate("/profile/edit")} className="btn btn-primary me-2">
         Editar
