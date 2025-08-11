@@ -1,11 +1,10 @@
-// src/front/pages/MyProfile.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-// Fix de iconos de Leaflet en bundlers
+
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -22,11 +21,11 @@ export const MyProfile = () => {
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
-  // Input “oculto” para subir la imagen
+  // File input oculto
   const fileInputRef = useRef(null);
   const openPicker = () => fileInputRef.current?.click();
 
-  // Helper: avatar (si el backend no trae url, generamos iniciales)
+  // Avatar helper
   const getAvatar = (u) => {
     const url = u?.url_image || u?.image || u?.avatar || u?.avatar_url;
     if (url) return url;
@@ -35,7 +34,7 @@ export const MyProfile = () => {
     )}&radius=50`;
   };
 
-  // Subida a Cloudinary (unsigned)
+  // Subida unsigned a Cloudinary
   const uploadToCloudinary = async (file) => {
     const cloud = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
     const preset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
@@ -58,10 +57,10 @@ export const MyProfile = () => {
     const text = await res.text();
     if (!res.ok) throw new Error(`Cloudinary ${res.status}: ${text}`);
     const data = JSON.parse(text);
-    return data.secure_url; // URL pública segura
+    return data.secure_url;
   };
 
-  // Cambio de foto: solo front (guarda en localStorage)
+  // Cambiar foto (solo front: guardamos en localStorage)
   const handleChangePhoto = async (e) => {
     const file = e.target.files?.[0];
     if (!file || !user?.id) return;
@@ -72,13 +71,8 @@ export const MyProfile = () => {
 
     try {
       const url = await uploadToCloudinary(file);
-
-      // Persistimos SOLO en el navegador actual
-      localStorage.setItem(`avatar-${user.id}`, url);
-
-      // Actualizamos el estado local para que se vea inmediatamente
-      setUser((prev) => (prev ? { ...prev, url_image: url, image: url } : prev));
-
+      localStorage.setItem(`avatar-${user.id}`, url); // persistencia local
+      setUser((prev) => (prev ? { ...prev, url_image: url, image: url } : prev)); // refresco
       setOkMsg("✅ Foto actualizada.");
     } catch (err) {
       console.error(err);
@@ -89,7 +83,7 @@ export const MyProfile = () => {
     }
   };
 
-  // Cargar usuario + reinyectar avatar desde localStorage si backend no manda url
+  // Cargar usuario + reinyectar avatar desde localStorage si el backend no envía url
   useEffect(() => {
     if (!token) {
       navigate("/login");
@@ -106,7 +100,6 @@ export const MyProfile = () => {
         const data = await resp.json();
         const u = data.user || null;
 
-        // Si no trae imagen desde backend, intenta localStorage
         if (u?.id) {
           const localAvatar = localStorage.getItem(`avatar-${u.id}`);
           if (localAvatar && !u.url_image && !u.image && !u.avatar && !u.avatar_url) {
@@ -148,7 +141,7 @@ export const MyProfile = () => {
     <div className="container mt-5 d-flex justify-content-center">
       <div className="card shadow-sm" style={{ maxWidth: 900, width: "100%" }}>
         <div className="card-body p-4">
-          {/* Cabecera con avatar */}
+          {/* Cabecera + avatar */}
           <div className="text-center mb-4">
             <h2 className="mb-3">Mi Perfil</h2>
 
@@ -188,18 +181,14 @@ export const MyProfile = () => {
                 />
               </div>
 
-              {okMsg && (
-                <div className="alert alert-success py-2 px-3 mt-3 mb-0">{okMsg}</div>
-              )}
-              {error && (
-                <div className="alert alert-danger py-2 px-3 mt-3 mb-0">{error}</div>
-              )}
+              {okMsg && <div className="alert alert-success py-2 px-3 mt-3 mb-0">{okMsg}</div>}
+              {error && <div className="alert alert-danger py-2 px-3 mt-3 mb-0">{error}</div>}
             </div>
           </div>
 
           <hr />
 
-          {/* Datos básicos */}
+          {/* Datos */}
           <div className="row g-3">
             <div className="col-sm-6">
               <small className="text-muted d-block">Username</small>
@@ -216,7 +205,7 @@ export const MyProfile = () => {
             </div>
             <div className="col-sm-6">
               <small className="text-muted d-block">Apellidos</small>
-              <div className="fw-semibold">{user.last_name || "-"}</div>
+              <div className="fw-semibold">{user.last_name || "-"} </div>
             </div>
 
             <div className="col-sm-6">
