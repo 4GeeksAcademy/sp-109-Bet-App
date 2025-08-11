@@ -28,85 +28,84 @@ export const PlaygroundSingle = () => {
   const openFilePicker = () => fileInputRef.current?.click();
 
   const uploadToCloudinary = async (file) => {
-  const cloud = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-  const preset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+    const cloud = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const preset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
-  if (!cloud || !preset) {
-    throw new Error(
-      `Cloudinary env no configurado. cloud=${cloud || "undefined"}, preset=${preset || "undefined"}`
-    );
-  }
+    if (!cloud || !preset) {
+      throw new Error(
+        `Cloudinary env no configurado. cloud=${cloud || "undefined"}, preset=${preset || "undefined"}`
+      );
+    }
 
-  const fd = new FormData();
-  fd.append("file", file);
-  fd.append("upload_preset", preset);
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("upload_preset", preset);
 
-  const res = await fetch(`https://api.cloudinary.com/v1_1/${cloud}/image/upload`, {
-    method: "POST",
-    body: fd,
-  });
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloud}/image/upload`, {
+      method: "POST",
+      body: fd,
+    });
 
-  const bodyText = await res.text();
-  if (!res.ok) {
-    throw new Error(`Cloudinary ${res.status}: ${bodyText}`);
-  }
+    const bodyText = await res.text();
+    if (!res.ok) {
+      throw new Error(`Cloudinary ${res.status}: ${bodyText}`);
+    }
 
-  const data = JSON.parse(bodyText);
-  return data.secure_url;
-};
-
-// NUEVO: hace el PUT incluyendo name y description
-const patchPlaygroundImage = async (pgId, imageUrl) => {
-  const token = localStorage.getItem("token"); // si no lo necesitas, puedes quitar el header Authorization
-
-  const payload = {
-    name: playground?.name ?? "",               // 👈 importante
-    description: playground?.description ?? "", // opcional
-    url_image: imageUrl,                        // la nueva imagen
+    const data = JSON.parse(bodyText);
+    return data.secure_url;
   };
 
-  const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playground/${pgId}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}), // quítalo si tu ruta no lo requiere
-    },
-    body: JSON.stringify(payload),
-  });
+  // PUT con nombre/descr para no romper tu backend
+  const patchPlaygroundImage = async (pgId, imageUrl) => {
+    const token = localStorage.getItem("token");
 
-  // intenta leer respuesta útil
-  let text = "";
-  try { text = await res.text(); } catch {}
-  if (!res.ok) throw new Error(text || `PUT ${res.status}`);
-  try { return JSON.parse(text); } catch { return {}; }
-};
+    const payload = {
+      name: playground?.name ?? "",
+      description: playground?.description ?? "",
+      url_image: imageUrl,
+    };
 
-// ACTUALIZA tu handleChangePhoto
-const handleChangePhoto = async (e) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playground/${pgId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(payload),
+    });
 
-  setUploading(true);
-  try {
-    // 1) subir a Cloudinary
-    const url = await uploadToCloudinary(file);
+    let text = "";
+    try {
+      text = await res.text();
+    } catch {}
+    if (!res.ok) throw new Error(text || `PUT ${res.status}`);
+    try {
+      return JSON.parse(text);
+    } catch {
+      return {};
+    }
+  };
 
-    // 2) actualizar en tu API incluyendo name/description
-    await patchPlaygroundImage(id, url);
+  // Cambiar foto
+  const handleChangePhoto = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    // 3) refrescar estado local para que se vea ya la nueva imagen
-    setPlayground((prev) => prev ? { ...prev, url_image: url } : prev);
-  } catch (err) {
-    console.error("Error subiendo imagen:", err);
-    alert(err?.message || "No se pudo actualizar la imagen");
-  } finally {
-    setUploading(false);
-    // limpia input de archivo por si vuelves a subir la misma
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  }
-};
+    setUploading(true);
+    try {
+      const url = await uploadToCloudinary(file);
+      await patchPlaygroundImage(id, url);
+      setPlayground((prev) => (prev ? { ...prev, url_image: url } : prev));
+    } catch (err) {
+      console.error("Error subiendo imagen:", err);
+      alert(err?.message || "No se pudo actualizar la imagen");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
-  // Cargar datos principales (playground, apuestas, mensajes)
+  // Cargar datos principales
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -141,14 +140,20 @@ const handleChangePhoto = async (e) => {
     fetchData();
   }, [id]);
 
-  // Buscar usuarios mientras escribes (cuando el panel está abierto)
+  // Buscar usuarios mientras escribes
   useEffect(() => {
     const token = localStorage.getItem("token");
     let aborted = false;
 
     const run = async () => {
-      if (!showInvite) { setUsersList([]); return; }
-      if (search.trim().length < 2) { setUsersList([]); return; }
+      if (!showInvite) {
+        setUsersList([]);
+        return;
+      }
+      if (search.trim().length < 2) {
+        setUsersList([]);
+        return;
+      }
 
       try {
         const res = await fetch(
@@ -164,7 +169,10 @@ const handleChangePhoto = async (e) => {
     };
 
     const t = setTimeout(run, 250);
-    return () => { aborted = true; clearTimeout(t); };
+    return () => {
+      aborted = true;
+      clearTimeout(t);
+    };
   }, [showInvite, search]);
 
   // Invitar usuario
@@ -172,17 +180,14 @@ const handleChangePhoto = async (e) => {
     setInviteMsg("");
     try {
       const token = localStorage.getItem("token");
-      const resp = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/invite`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ user_id: userId }),
-        }
-      );
+      const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/invite`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ user_id: userId }),
+      });
       const data = await resp.json();
       if (!resp.ok) throw new Error(data.msg || "Error al invitar");
       setInviteMsg(data.msg || "✅ Usuario invitado correctamente");
@@ -217,6 +222,24 @@ const handleChangePhoto = async (e) => {
     }
   };
 
+  // ✅ Avatar helper para la lista (incluye localStorage)
+  const getAvatar = (u) => {
+    // 1) si el API trae imagen, úsala
+    const direct = u?.url_image || u?.image || u?.avatar || u?.avatar_url;
+    if (direct) return direct;
+
+    // 2) revisa localStorage por si este navegador tiene una foto subida del usuario
+    if (u?.id) {
+      const local = localStorage.getItem(`avatar-${u.id}`);
+      if (local) return local;
+    }
+
+    // 3) fallback con iniciales
+    return `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(
+      u?.username || u?.email || "user"
+    )}&radius=50`;
+  };
+
   if (loading) return <p className="text-center mt-5">⏳ Loading...</p>;
   if (error) return <p className="text-center text-danger mt-5">{error}</p>;
 
@@ -236,7 +259,7 @@ const handleChangePhoto = async (e) => {
               style={{ maxHeight: 260, objectFit: "cover" }}
             />
 
-            {/* Cambiar foto (solo frontend) */}
+            {/* Cambiar foto */}
             <div className="mt-2">
               <button
                 type="button"
@@ -318,10 +341,7 @@ const handleChangePhoto = async (e) => {
                 ))}
               </ul>
             )}
-            <button
-              className="btn btn-primary w-100 mt-2"
-              onClick={() => navigate(`/playground/${id}/bet`)}
-            >
+            <button className="btn btn-primary w-100 mt-2" onClick={() => navigate(`/playground/${id}/bet`)}>
               ➕ Crear nueva apuesta
             </button>
           </div>
@@ -358,13 +378,22 @@ const handleChangePhoto = async (e) => {
                     usersList.map((u) => (
                       <button
                         key={u.id}
-                        className="list-group-item list-group-item-action d-flex justify-content-between"
+                        className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
                         onClick={() => handleInvite(u.id)}
                       >
-                        <span>
-                          <strong>{u.username}</strong>{" "}
-                          <small className="text-muted">({u.email})</small>
-                        </span>
+                        <div className="d-flex align-items-center gap-2">
+                          <img
+                            src={getAvatar(u)}
+                            alt={u.username}
+                            width={32}
+                            height={32}
+                            style={{ borderRadius: "50%", objectFit: "cover" }}
+                          />
+                          <span>
+                            <strong>{u.username}</strong>{" "}
+                            <small className="text-muted">({u.email})</small>
+                          </span>
+                        </div>
                         <span className="badge bg-success">Invitar</span>
                       </button>
                     ))
