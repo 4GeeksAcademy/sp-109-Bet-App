@@ -5,18 +5,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-
-// Fix de iconos de Leaflet en bundlers
+// Fix iconos Leaflet (necesario en Vite/Webpack)
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -33,11 +22,11 @@ export const MyProfile = () => {
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
-  // Input “oculto” para subir la imagen
+  // Input oculto para subir imagen
   const fileInputRef = useRef(null);
   const openPicker = () => fileInputRef.current?.click();
 
-  // Helper: avatar (si el backend no trae url, generamos iniciales)
+  // Avatar helper
   const getAvatar = (u) => {
     const url = u?.url_image || u?.image || u?.avatar || u?.avatar_url;
     if (url) return url;
@@ -46,7 +35,7 @@ export const MyProfile = () => {
     )}&radius=50`;
   };
 
-  // Subida a Cloudinary (unsigned)
+  // Subida unsigned a Cloudinary (solo front)
   const uploadToCloudinary = async (file) => {
     const cloud = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
     const preset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
@@ -69,10 +58,10 @@ export const MyProfile = () => {
     const text = await res.text();
     if (!res.ok) throw new Error(`Cloudinary ${res.status}: ${text}`);
     const data = JSON.parse(text);
-    return data.secure_url; // URL pública segura
+    return data.secure_url;
   };
 
-  // Cambio de foto: solo front (guarda en localStorage)
+  // Cambiar foto (persistencia solo en este navegador)
   const handleChangePhoto = async (e) => {
     const file = e.target.files?.[0];
     if (!file || !user?.id) return;
@@ -83,13 +72,8 @@ export const MyProfile = () => {
 
     try {
       const url = await uploadToCloudinary(file);
-
-      // Persistimos SOLO en el navegador actual
       localStorage.setItem(`avatar-${user.id}`, url);
-
-      // Actualizamos el estado local para que se vea inmediatamente
       setUser((prev) => (prev ? { ...prev, url_image: url, image: url } : prev));
-
       setOkMsg("✅ Foto actualizada.");
     } catch (err) {
       console.error(err);
@@ -100,7 +84,7 @@ export const MyProfile = () => {
     }
   };
 
-  // Cargar usuario + reinyectar avatar desde localStorage si backend no manda url
+  // Cargar usuario + reinyectar avatar local si el backend no manda url
   useEffect(() => {
     if (!token) {
       navigate("/login");
@@ -117,7 +101,6 @@ export const MyProfile = () => {
         const data = await resp.json();
         const u = data.user || null;
 
-        // Si no trae imagen desde backend, intenta localStorage
         if (u?.id) {
           const localAvatar = localStorage.getItem(`avatar-${u.id}`);
           if (localAvatar && !u.url_image && !u.image && !u.avatar && !u.avatar_url) {
@@ -156,48 +139,10 @@ export const MyProfile = () => {
   const avatarUrl = getAvatar(user);
 
   return (
-    <div className="container mt-5">
-      <h2>Mi Perfil</h2>
-      <p><strong>Username:</strong> {user.username}</p>
-      <p><strong>Name:</strong> {user.name}</p>
-      <p><strong>Last Name:</strong> {user.last_name}</p>
-      <p><strong>Email:</strong> {user.email}</p>
-      <p><strong>Dinero:</strong> {user.money}</p>
-      <p><strong>Address:</strong> {user.address}</p>
-      <p><strong>Latitude:</strong> {user.latitude}</p>
-      <p><strong>Longitude:</strong> {user.longitude}</p>
-
-
-      {user.latitude && user.longitude && (
-        <div style={{ height: "500px", width: "100%", marginBottom: "20px" }}>
-          <MapContainer
-            center={[user.latitude, user.longitude]}
-            zoom={13}
-            style={{ height: "100%", width: "100%" }}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <Marker position={[user.latitude, user.longitude]}>
-              <Popup>
-                {user.name || user.username} <br /> {user.address}
-              </Popup>
-            </Marker>
-          </MapContainer>
-        </div>
-      )}
-
-      <button onClick={() => navigate("/profile/edit")} className="btn btn-primary me-2">
-        Editar
-      </button>
-      <button onClick={handleDelete} className="btn btn-danger">
-        Eliminar cuenta
-      </button>
     <div className="container mt-5 d-flex justify-content-center">
       <div className="card shadow-sm" style={{ maxWidth: 900, width: "100%" }}>
         <div className="card-body p-4">
-          {/* Cabecera con avatar */}
+          {/* Cabecera + avatar */}
           <div className="text-center mb-4">
             <h2 className="mb-3">Mi Perfil</h2>
 
@@ -237,18 +182,14 @@ export const MyProfile = () => {
                 />
               </div>
 
-              {okMsg && (
-                <div className="alert alert-success py-2 px-3 mt-3 mb-0">{okMsg}</div>
-              )}
-              {error && (
-                <div className="alert alert-danger py-2 px-3 mt-3 mb-0">{error}</div>
-              )}
+              {okMsg && <div className="alert alert-success py-2 px-3 mt-3 mb-0">{okMsg}</div>}
+              {error && <div className="alert alert-danger py-2 px-3 mt-3 mb-0">{error}</div>}
             </div>
           </div>
 
           <hr />
 
-          {/* Datos básicos */}
+          {/* Datos */}
           <div className="row g-3">
             <div className="col-sm-6">
               <small className="text-muted d-block">Username</small>
