@@ -1,19 +1,32 @@
 // src/front/pages/MyProfile.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+
+// Fix de iconos de Leaflet en bundlers
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+});
 
 export const MyProfile = () => {
   const [user, setUser] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [okMsg, setOkMsg] = useState(null);
   const [error, setError] = useState(null);
+
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
+  // Input “oculto” para subir la imagen
   const fileInputRef = useRef(null);
   const openPicker = () => fileInputRef.current?.click();
 
-  // Helper: avatar a mostrar (prefiere lo que venga del user; si no, fallback de iniciales)
+  // Helper: avatar (si el backend no trae url, generamos iniciales)
   const getAvatar = (u) => {
     const url = u?.url_image || u?.image || u?.avatar || u?.avatar_url;
     if (url) return url;
@@ -45,10 +58,10 @@ export const MyProfile = () => {
     const text = await res.text();
     if (!res.ok) throw new Error(`Cloudinary ${res.status}: ${text}`);
     const data = JSON.parse(text);
-    return data.secure_url;
+    return data.secure_url; // URL pública segura
   };
 
-  // Cambio de foto (solo front): sube y guarda en localStorage
+  // Cambio de foto: solo front (guarda en localStorage)
   const handleChangePhoto = async (e) => {
     const file = e.target.files?.[0];
     if (!file || !user?.id) return;
@@ -60,13 +73,13 @@ export const MyProfile = () => {
     try {
       const url = await uploadToCloudinary(file);
 
-      // Persistimos SOLO en front
+      // Persistimos SOLO en el navegador actual
       localStorage.setItem(`avatar-${user.id}`, url);
 
-      // Refrescamos el estado local (preferimos ponerla en url_image)
+      // Actualizamos el estado local para que se vea inmediatamente
       setUser((prev) => (prev ? { ...prev, url_image: url, image: url } : prev));
 
-      setOkMsg("✅ Foto actualizada (guardada en este dispositivo).");
+      setOkMsg("✅ Foto actualizada.");
     } catch (err) {
       console.error(err);
       setError(err.message || "Error subiendo imagen");
@@ -76,7 +89,7 @@ export const MyProfile = () => {
     }
   };
 
-  // Cargar usuario y reinyectar avatar desde localStorage si el backend no lo trae
+  // Cargar usuario + reinyectar avatar desde localStorage si backend no manda url
   useEffect(() => {
     if (!token) {
       navigate("/login");
@@ -93,7 +106,7 @@ export const MyProfile = () => {
         const data = await resp.json();
         const u = data.user || null;
 
-        // Si no trae url, intenta recuperar la guardada en front
+        // Si no trae imagen desde backend, intenta localStorage
         if (u?.id) {
           const localAvatar = localStorage.getItem(`avatar-${u.id}`);
           if (localAvatar && !u.url_image && !u.image && !u.avatar && !u.avatar_url) {
@@ -118,7 +131,7 @@ export const MyProfile = () => {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (user?.id) localStorage.removeItem(`avatar-${user.id}`); // limpiamos el avatar local
+      if (user?.id) localStorage.removeItem(`avatar-${user.id}`);
       localStorage.removeItem("token");
       navigate("/login");
     } catch (err) {
@@ -133,8 +146,9 @@ export const MyProfile = () => {
 
   return (
     <div className="container mt-5 d-flex justify-content-center">
-      <div className="card shadow-sm" style={{ maxWidth: 720, width: "100%" }}>
+      <div className="card shadow-sm" style={{ maxWidth: 900, width: "100%" }}>
         <div className="card-body p-4">
+          {/* Cabecera con avatar */}
           <div className="text-center mb-4">
             <h2 className="mb-3">Mi Perfil</h2>
 
@@ -174,13 +188,18 @@ export const MyProfile = () => {
                 />
               </div>
 
-              {okMsg && <div className="alert alert-success py-2 px-3 mt-3 mb-0">{okMsg}</div>}
-              {error && <div className="alert alert-danger py-2 px-3 mt-3 mb-0">{error}</div>}
+              {okMsg && (
+                <div className="alert alert-success py-2 px-3 mt-3 mb-0">{okMsg}</div>
+              )}
+              {error && (
+                <div className="alert alert-danger py-2 px-3 mt-3 mb-0">{error}</div>
+              )}
             </div>
           </div>
 
           <hr />
 
+          {/* Datos básicos */}
           <div className="row g-3">
             <div className="col-sm-6">
               <small className="text-muted d-block">Username</small>
@@ -219,20 +238,43 @@ export const MyProfile = () => {
             </div>
           </div>
 
+          {/* Mapa */}
+          {user.latitude && user.longitude && (
+            <div className="mt-4" style={{ height: 420, width: "100%" }}>
+              <MapContainer
+                center={[user.latitude, user.longitude]}
+                zoom={13}
+                style={{ height: "100%", width: "100%" }}
+              >
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                <Marker position={[user.latitude, user.longitude]}>
+                  <Popup>
+                    {user.name || user.username} <br /> {user.address}
+                  </Popup>
+                </Marker>
+              </MapContainer>
+            </div>
+          )}
+
+          {/* Acciones */}
           <div className="mt-4 d-flex gap-2">
-            <button onClick={() => navigate("/profile/edit")} className="btn btn-primary" disabled={uploading}>
+            <button
+              onClick={() => navigate("/profile/edit")}
+              className="btn btn-primary"
+              disabled={uploading}
+            >
               Editar
             </button>
-            <button onClick={handleDelete} className="btn btn-danger" disabled={uploading}>
+            <button
+              onClick={handleDelete}
+              className="btn btn-danger"
+              disabled={uploading}
+            >
               Eliminar cuenta
             </button>
-          </div>
-
-          <div className="mt-3">
-            <small className="text-muted">
-              * La foto se guarda solo en este dispositivo (localStorage). Si inicias sesión en otro
-              navegador, podrás subirla de nuevo.
-            </small>
           </div>
         </div>
       </div>
