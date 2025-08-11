@@ -1,5 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+});
 
 export const MyProfile = () => {
   const [user, setUser] = useState(null);
@@ -46,7 +57,6 @@ export const MyProfile = () => {
     }
   };
 
-
   if (!user) return <p>Cargando...</p>;
 
   return (
@@ -60,6 +70,27 @@ export const MyProfile = () => {
       <p><strong>Address:</strong> {user.address}</p>
       <p><strong>Latitude:</strong> {user.latitude}</p>
       <p><strong>Longitude:</strong> {user.longitude}</p>
+
+
+      {user.latitude && user.longitude && (
+        <div style={{ height: "500px", width: "100%", marginBottom: "20px" }}>
+          <MapContainer
+            center={[user.latitude, user.longitude]}
+            zoom={13}
+            style={{ height: "100%", width: "100%" }}
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <Marker position={[user.latitude, user.longitude]}>
+              <Popup>
+                {user.name || user.username} <br /> {user.address}
+              </Popup>
+            </Marker>
+          </MapContainer>
+        </div>
+      )}
 
       <button onClick={() => navigate("/profile/edit")} className="btn btn-primary me-2">
         Editar
