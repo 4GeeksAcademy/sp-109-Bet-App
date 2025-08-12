@@ -1,0 +1,186 @@
+.sidenav-container {
+  width: 280px;
+  min-height: 60vh;      
+  max-height: 80vh;      
+  background: linear-gradient(310deg, #7928ca, #ff0080);
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  margin: auto 0; 
+  color: white;
+}
+
+
+/* Sección de usuario */
+.sidenav-user {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.sidenav-avatar {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+  margin-bottom: 1rem;
+}
+
+.sidenav-money-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 2rem;
+  padding: 0.25rem 1rem;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.sidenav-money-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.05);
+}
+
+/* Botones principales */
+.sidenav-section{
+  margin-top: 100px;
+}
+.sidenav-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.5rem;
+  color: white;
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  width: 100%;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  text-decoration: none;
+}
+
+
+.sidenav-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateX(5px);
+}
+
+
+.sidenav-btn-active {
+  background: rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.sidenav-btn-active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50%;
+  height: 3px;
+  background: white;
+  border-radius: 3px;
+}
+
+/* Lista de playgrounds */
+.sidenav-playgrounds-list {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.sidenav-playground-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.sidenav-playground-item:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.sidenav-badge {
+  background: white;
+  color: #7928ca;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+/* Botón de logout */
+.sidenav-logout-btn {
+  margin-top: 1rem;
+  background: rgba(255, 50, 50, 0.15);
+  border-color: rgba(255, 100, 100, 0.3);
+}
+
+.sidenav-logout-btn:hover {
+  background: rgba(255, 50, 50, 0.25) !important;
+}
+
+/* Responsive: pantallas menores a 1200px */
+@media (max-width: 1200px) {
+  .sidenav-container {
+    width: 80px; /* Sidebar más estrecho */
+  }
+  .sidenav-container .sidenav-btn span {
+    display: none; /* Oculta texto de los botones */
+  }
+  .sidenav-user h5 {
+    display: none; /* Oculta nombre usuario */
+  }
+  .sidenav-money-btn span {
+    display: none; /* Oculta texto dinero */
+  }
+}
+
+/* Pantallas muy pequeñas: menor a 768px, sidebar en top horizontal */
+@media (max-width: 768px) {
+  .sidenav-container {
+    position: relative; /* Quita fixed */
+    width: 100%; /* Ocupa todo el ancho */
+    height: auto; /* Ajusta altura */
+    display: flex;
+    flex-direction: row; /* Horizontal */
+    padding: 0.5rem;
+    border-radius: 0; /* Opcional: quitar border-radius para top bar */
+    box-shadow: none; /* Opcional: quitar sombra para top bar */
+  }
+  .sidenav-section {
+    flex-direction: row;
+    flex-wrap: wrap; /* Permite varias filas */
+  }
+  .sidenav-btn {
+    flex: 1 0 50%; /* Cada botón ocupa la mitad de ancho (2 columnas) */
+    justify-content: center; /* Centrar iconos */
+  }
+  /* Opcional: ajustar imagen y usuario para barra horizontal */
+  .sidenav-user {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .sidenav-user img {
+    width: 30px;
+    height: 30px;
+  }
+}
