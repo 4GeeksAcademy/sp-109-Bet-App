@@ -105,33 +105,44 @@ export const PlaygroundSingle = () => {
     }
   };
 
-  // Cargar datos principales
+  // Cargar datos principales (con Authorization en todas)
   useEffect(() => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
+        const auth = token ? { Authorization: `Bearer ${token}` } : {};
+
         const [pgResp, betsResp, msgResp] = await Promise.all([
-          fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}`),
-          fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/bet`),
+          fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}`, { headers: auth }),
+          fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/bet`, { headers: auth }),
           fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/messages`, {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: auth,
           }),
         ]);
 
         if (pgResp.ok) {
           const pgData = await pgResp.json();
           setPlayground(pgData.playground);
+        } else if (pgResp.status === 401) {
+          throw new Error("No autorizado para ver el playground");
         }
+
         if (betsResp.ok) {
           const betsData = await betsResp.json();
           setBets(betsData);
+        } else if (betsResp.status === 401) {
+          throw new Error("No autorizado para ver las apuestas");
         }
+
         if (msgResp.ok) {
           const msgData = await msgResp.json();
           setMessages(msgData);
+        } else if (msgResp.status === 401) {
+          // si 401 en mensajes, no rompemos la pantalla completa
+          setMessages([]);
         }
-      } catch {
-        setError("Error loading data");
+      } catch (e) {
+        setError(e.message || "Error loading data");
       } finally {
         setLoading(false);
       }
@@ -224,21 +235,20 @@ export const PlaygroundSingle = () => {
 
   // ✅ Avatar helper para la lista (incluye localStorage)
   const getAvatar = (u) => {
-    // 1) si el API trae imagen, úsala
     const direct = u?.url_image || u?.image || u?.avatar || u?.avatar_url;
     if (direct) return direct;
-
-    // 2) revisa localStorage por si este navegador tiene una foto subida del usuario
     if (u?.id) {
       const local = localStorage.getItem(`avatar-${u.id}`);
       if (local) return local;
     }
-
-    // 3) fallback con iniciales
     return `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(
       u?.username || u?.email || "user"
     )}&radius=50`;
   };
+
+  // ✅ Imagen de apuesta (backend o localStorage)
+  const getBetImage = (bet) =>
+    bet?.url_image || (bet?.id ? localStorage.getItem(`bet-image-${bet.id}`) : null);
 
   if (loading) return <p className="text-center mt-5">⏳ Loading...</p>;
   if (error) return <p className="text-center text-danger mt-5">{error}</p>;
@@ -326,10 +336,33 @@ export const PlaygroundSingle = () => {
                     style={{ cursor: "pointer" }}
                     onClick={() => navigate(`/playground/${id}/bet/${bet.id}`)}
                   >
-                    <div className="d-flex flex-column">
-                      <strong>{bet.name}</strong>
-                      <div>
-                        <span className="badge bg-success">{bet.status}</span>
+                    <div className="d-flex align-items-center gap-3">
+                      {/* Miniatura si existe */}
+                      {getBetImage(bet) && (
+                        <img
+                          src={getBetImage(bet)}
+                          alt={bet.name}
+                          width={64}
+                          height={64}
+                          style={{
+                            width: 64,
+                            height: 64,
+                            objectFit: "cover",
+                            borderRadius: 8,
+                            flexShrink: 0,
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation(); // no abrir la apuesta si se clickea la imagen
+                            window.open(getBetImage(bet), "_blank");
+                          }}
+                        />
+                      )}
+
+                      <div className="d-flex flex-column">
+                        <strong>{bet.name}</strong>
+                        <div>
+                          <span className="badge bg-success">{bet.status}</span>
+                        </div>
                       </div>
                     </div>
 
@@ -341,7 +374,10 @@ export const PlaygroundSingle = () => {
                 ))}
               </ul>
             )}
-            <button className="btn btn-primary w-100 mt-2" onClick={() => navigate(`/playground/${id}/bet`)}>
+            <button
+              className="btn btn-primary w-100 mt-2"
+              onClick={() => navigate(`/playground/${id}/bet`)}
+            >
               ➕ Crear nueva apuesta
             </button>
           </div>

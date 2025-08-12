@@ -11,7 +11,9 @@ export const BetSingle = () => {
   const [selectedOption, setSelectedOption] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const token = localStorage.getItem("token");
+  // Helper: imagen de la apuesta (backend o localStorage)
+  const getBetImage = (b) =>
+    b?.url_image || (b?.id ? localStorage.getItem(`bet-image-${b.id}`) : null);
 
   useEffect(() => {
     const fetchBet = async () => {
@@ -19,22 +21,25 @@ export const BetSingle = () => {
         setLoading(true);
         setError(null);
 
+        const token = localStorage.getItem("token");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
         const response = await fetch(
           `${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/bet/${betId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`
-            },
-          }
+          { headers }
         );
 
+        if (response.status === 401) {
+          throw new Error("No autorizado. Inicia sesión de nuevo.");
+        }
         if (!response.ok) throw new Error("Error loading bet");
 
-        const betData = await response.json();
-        setBet(betData);
+        const raw = await response.json();
+        const b = raw?.bet ?? raw; // admite {bet:{...}} o {...}
+        setBet(b);
 
-        if (betData.user_vote) {
-          setSelectedOption(Number(betData.user_vote));
+        if (b?.user_vote) {
+          setSelectedOption(Number(b.user_vote));
         } else {
           setSelectedOption(null);
         }
@@ -46,8 +51,7 @@ export const BetSingle = () => {
     };
 
     fetchBet();
-  }, [id, betId, token]);
-
+  }, [id, betId]);
 
   const handleVote = async () => {
     if (!selectedOption) {
@@ -58,36 +62,45 @@ export const BetSingle = () => {
     try {
       setSubmitting(true);
 
+      const token = localStorage.getItem("token");
+      const headers = {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      };
+
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/bet/${betId}/vote`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
-          },
+          headers,
           body: JSON.stringify({ option_id: selectedOption }),
         }
       );
 
+      if (response.status === 401) {
+        throw new Error("No autorizado. Inicia sesión de nuevo.");
+      }
       if (!response.ok) {
-        const errorData = await response.json();
+        let errorData = {};
+        try {
+          errorData = await response.json();
+        } catch {}
         throw new Error(errorData.message || "Error submitting vote");
       }
 
-      const updatedBet = await response.json();
-      setBet(updatedBet);
-      setSelectedOption(Number(updatedBet.user_vote));
+      const updated = await response.json();
+      const b = updated?.bet ?? updated;
+      setBet(b);
+      setSelectedOption(Number(b?.user_vote));
       alert("Vote submitted successfully!");
 
-      navigate(`/playground/${id}`)
+      navigate(`/playground/${id}`);
     } catch (err) {
       alert(err.message);
     } finally {
       setSubmitting(false);
     }
   };
-
 
   if (loading) return <p>Loading bet...</p>;
   if (error) return <p className="text-danger">Error: {error}</p>;
@@ -98,6 +111,18 @@ export const BetSingle = () => {
       <div className="card shadow-sm">
         <div className="card-body">
           <h3 className="card-title mb-3">🎯 {bet.name}</h3>
+
+          {/* Imagen si existe (del backend o guardada en localStorage) */}
+          {getBetImage(bet) && (
+            <div className="mb-3 text-center">
+              <img
+                src={getBetImage(bet)}
+                alt={bet.name}
+                className="img-fluid rounded"
+                style={{ maxHeight: 260, objectFit: "cover" }}
+              />
+            </div>
+          )}
 
           <div className="mb-2"><strong>ID:</strong> {bet.id}</div>
           <div className="mb-2"><strong>Event:</strong> {bet.event_description || "No description"}</div>
@@ -119,46 +144,44 @@ export const BetSingle = () => {
             {bet.resolved_at ? new Date(bet.resolved_at).toLocaleString() : "Not resolved"}
           </div>
 
-          {bet.options && bet.options.length > 0 && (
-  <div className="mt-3">
-    <h5>📌 Options</h5>
-    <ul className="list-group">
-  {bet.options.map((option) => (
-    <li
-      key={option.id}
-      className={`list-group-item ${selectedOption === option.id ? "active" : ""}`}
-      style={{ cursor: bet.user_vote ? "default" : "pointer" }}
-      onClick={() => {
-        if (!bet.user_vote) setSelectedOption(option.id);
-      }}
-    >
-      <div className="d-flex justify-content-between align-items-center">
-        <span>{option.label}</span>
-        {selectedOption === option.id && (
-          <span className="badge bg-success">Your choice</span>
-        )}
-      </div>
-    </li>
-  ))}
-</ul>
+          {Array.isArray(bet.options) && bet.options.length > 0 && (
+            <div className="mt-3">
+              <h5>📌 Options</h5>
+              <ul className="list-group">
+                {bet.options.map((option) => (
+                  <li
+                    key={option.id}
+                    className={`list-group-item ${selectedOption === option.id ? "active" : ""}`}
+                    style={{ cursor: bet.user_vote ? "default" : "pointer" }}
+                    onClick={() => {
+                      if (!bet.user_vote) setSelectedOption(option.id);
+                    }}
+                  >
+                    <div className="d-flex justify-content-between align-items-center">
+                      <span>{option.label}</span>
+                      {selectedOption === option.id && (
+                        <span className="badge bg-success">Your choice</span>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
 
-    
-    {bet.user_vote ? (
-      <div className="alert alert-success mt-3">
-        You've already voted in this bet.
-      </div>
-    ) : (
-      <button
-        className="btn btn-success mt-3"
-        onClick={handleVote}
-        disabled={submitting || bet.user_vote}
-      >
-        {submitting ? "Submitting..." : "✅ Submit Vote"}
-      </button>
-    )}
-  </div>
-)}
-
+              {bet.user_vote ? (
+                <div className="alert alert-success mt-3">
+                  You've already voted in this bet.
+                </div>
+              ) : (
+                <button
+                  className="btn btn-success mt-3"
+                  onClick={handleVote}
+                  disabled={submitting || bet.user_vote}
+                >
+                  {submitting ? "Submitting..." : "✅ Submit Vote"}
+                </button>
+              )}
+            </div>
+          )}
 
           <div className="mt-4 d-flex justify-content-between align-items-center">
             <div>
@@ -183,7 +206,3 @@ export const BetSingle = () => {
     </div>
   );
 };
-
-
-
-
