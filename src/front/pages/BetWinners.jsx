@@ -7,14 +7,30 @@ export default function BetWinners() {
   const [error, setError]   = useState(null);
   const [bets, setBets] = useState([]);
 
-  const token = localStorage.getItem("token");
-  const headers = useMemo(
-    () => ({ Authorization: token ? `Bearer ${token}` : undefined }),
-    [token]
-  );
+  const adminToken = localStorage.getItem("adminToken");
+  const userToken  = localStorage.getItem("token");
+
+  const isUnderAdminRoute =
+    typeof window !== "undefined" && window.location.pathname.startsWith("/admin");
+   
+  const isAdmin = !!adminToken;
+  const headers = useMemo(() => {
+    const activeToken = isAdmin ? adminToken : userToken;
+    return activeToken ? { Authorization: `Bearer ${activeToken}` } : {};
+  }, [adminToken, userToken, isAdmin]);
+
+  
 
   useEffect(() => {
+    if (!adminToken && !userToken) {
+      navigate(isUnderAdminRoute ? "/admin/login" : "/login", {
+        replace: true,
+        state: { msg: "Please log in" }
+      });
+      return;
+    }
     let aborted = false;
+    
     const load = async () => {
       setLoading(true); setError(null);
       try {
@@ -24,10 +40,15 @@ export default function BetWinners() {
         );
 
         if (resp.status === 401) {
+          if (isAdmin) {
+            localStorage.removeItem("adminToken");
+            navigate("/admin/login", { replace: true, state: { msg: "Session expired" } });
+        } else {
           localStorage.removeItem("token");
           navigate("/login", { replace: true, state: { msg: "Session expired" } });
-          return;
         }
+        return;
+      }
 
         const text = await resp.text();
         if (!resp.ok) {
@@ -46,7 +67,7 @@ export default function BetWinners() {
     };
     load();
     return () => { aborted = true; };
-  }, [headers, navigate]);
+  }, [adminToken, userToken,headers, isAdmin, isUnderAdminRoute, navigate]);
 
   if (loading) return <div className="container mt-4">⏳ Loading winners…</div>;
   if (error) return (

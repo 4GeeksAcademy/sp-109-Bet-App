@@ -1531,7 +1531,7 @@ def resolve_bet_manual(pg_id, bet_id):
 
 # *------- Resolución apuesta API + Manual por admin/creador apuesta --------*
 
-@api.route('/api/playground/<int:pg_id>/bet/<int:bet_id>/resolve-auto', methods=['PUT'])
+@api.route('/playground/<int:pg_id>/bet/<int:bet_id>/resolve-auto', methods=['PUT'])
 @jwt_required()
 def resolve_bet_auto(pg_id, bet_id):
     """
@@ -1592,6 +1592,12 @@ def resolve_bet_auto(pg_id, bet_id):
 @api.route('/bets/winners', methods=['GET'])
 @jwt_required()
 def all_bet_winners():
+    
+    claims = get_jwt() or {}
+    role = claims.get("role") or ("admin" if claims.get("is_admin") else "user")
+    if role not in ("user", "admin"):
+        return jsonify({"message": "Unauthorized role"}), 403
+    
     # Obtener todas las apuestas resueltas con ganador definido
     bets = Bet.query.filter(
         Bet.status == BetStatus.resolved,
@@ -1623,3 +1629,46 @@ def all_bet_winners():
         })
 
     return jsonify(data), 200
+
+
+# *-------Listar ganador o ganadores de una apuesta espeficifica ----------*
+
+@api.route('/playground/<int:pg_id>/bet/<int:bet_id>/winners', methods=['GET'])
+@jwt_required(optional=True) 
+def bet_winners(pg_id, bet_id):
+    """
+    Devuelve la lista de usuarios que acertaron la opción ganadora
+    de la apuesta indicada (debe estar RESUELTA).
+    """
+    # 1) Cargar la apuesta y validar que pertenece al playground
+    bet = db.session.get(Bet, bet_id)
+    if not bet or bet.playground_id != pg_id:
+        return jsonify({"message": "Bet not found"}), 404
+
+    # 2) Debe estar resuelta y con opción ganadora
+    if bet.status != BetStatus.resolved or not bet.winner_option_id:
+        return jsonify({"message": "Bet not resolved"}), 400
+
+    # 3) Cargar label de la opción ganadora (si existe)
+    winner_opt = db.session.get(BetOption, bet.winner_option_id)
+    winner_label = winner_opt.label if winner_opt else None
+
+    # 4) Usuarios que acertaron (votaron la opción ganadora)
+    winners = (
+        db.session.query(User.id, User.username)
+        .join(UserBet, UserBet.user_id == User.id)
+        .filter(
+            UserBet.bet_id == bet.id,
+            UserBet.option_id == bet.winner_option_id
+        )
+        .all()
+    )
+
+    return jsonify({
+        "bet_id": bet.id,
+        "playground_id": bet.playground_id,
+        "status": bet.status.value if bet.status else None,
+        "winner_option_id": bet.winner_option_id,
+        "winner_option_label": winner_label,
+        "winners": [{"id": uid, "username": uname} for uid, uname in winners]
+    }), 200
