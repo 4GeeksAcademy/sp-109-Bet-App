@@ -46,6 +46,9 @@ export const Login = () => {
 
             // ✅ Guardamos token y username para usar después en mensajes
             localStorage.setItem("token", data.token);
+            if (data.user_id) {
+            localStorage.setItem("user_id", data.user_id); // <-- guardar user_id para usar en Betsingle
+            }
             if (data.username) {
                 localStorage.setItem("username", data.username);
             }
