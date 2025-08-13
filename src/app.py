@@ -13,7 +13,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from sqlalchemy import select
 from datetime import datetime, timezone
 import requests
-
+from datetime import timedelta
 
 # Detectar entorno
 ENV = "development" if os.getenv("FLASK_DEBUG") == "1" else "production"
@@ -24,6 +24,7 @@ app = Flask(__name__)
 app.url_map.strict_slashes = False
 CORS(app)
 app.config["JWT_SECRET_KEY"] = "super-secret-key-final-proyect-que-te-apuestas-app"
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=10)
 jwt = JWTManager(app)
     
 
