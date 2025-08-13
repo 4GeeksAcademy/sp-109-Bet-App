@@ -3,51 +3,31 @@ import { Navbar } from "../components/Navbar";
 import { Footer } from "../components/Footer";
 import { SideNav } from "../components/SideNav";
 import { useLocation } from "react-router-dom";
+import "./Layout.css";
 
 export const Layout = () => {
   const location = useLocation();
-
   const hideSideNavRoutes = ["/login", "/register", "/"];
   const shouldShowSideNav = !hideSideNavRoutes.includes(location.pathname);
 
   return (
-    <>
+    <div className="app-container">
       <Navbar />
-
-      <div
-        className="d-flex"
-        style={{
-          minHeight: "calc(100vh - 140px)",
-          width: "100%",
-          paddingLeft: shouldShowSideNav ? "40px" : "0",
-          paddingTop: "70px", 
-          boxSizing: "border-box",
-        }}
-      >
+      
+      <div className="content-wrapper">
         {shouldShowSideNav && (
-          <div style={{ width: "280px", marginRight: "0px" }}>
+          <div className="sidenav-container">
             <SideNav />
           </div>
         )}
-
-        <main style={{ flex: 1 }}>
+        
+        <main className={`main-content ${shouldShowSideNav ? 'with-sidenav' : ''}`}>
           <Outlet />
         </main>
       </div>
 
-      {location.pathname === "/" && (
-        <div className="text-center mt-4">
-          <p>
-            Check the <a href="#">template documentation</a> for help.
-          </p>
-          <p>
-            Made with ❤️ by <a href="#">4Geeks Academy</a>
-          </p>
-        </div>
-      )}
-
       <Footer />
-    </>
+    </div>
   );
 };
 
