@@ -1,3 +1,4 @@
+from __future__ import annotations
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import String, Boolean, Float, DateTime, ForeignKey, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -103,13 +104,33 @@ class Bet(db.Model):
     deadline: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     resolved_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
 
-    user_id = mapped_column(ForeignKey("user.id"))
-    user_bet_creator = relationship("User", back_populates="bets")
+    winner_option_id: Mapped[int | None] = mapped_column(
+        ForeignKey("bet_option.id", ondelete="SET NULL", name="fk_bet_winner_option"),
+        nullable=True
+    )
+    
+    winner_option: Mapped["BetOption | None"] = relationship(
+        "BetOption",
+        foreign_keys=[winner_option_id],
+        uselist=False,
+        post_update=True,
+    )
 
-    playground_id = mapped_column(ForeignKey("playground.id"))
-    playground_link = relationship("Playground", back_populates="bets")
+    competition_code: Mapped[str | None] = mapped_column(nullable=True)
+    external_match_id: Mapped[int | None] = mapped_column(nullable=True)
 
-    options = relationship("BetOption", back_populates="bet", cascade="all, delete-orphan")
+    user_id = mapped_column(ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    user_bet_creator = relationship("User", back_populates="bets", passive_deletes=True)
+
+    playground_id = mapped_column(ForeignKey("playground.id", ondelete="CASCADE"), nullable=False)
+    playground_link = relationship("Playground", back_populates="bets", passive_deletes=True)
+
+    options: Mapped[list["BetOption"]] = relationship(
+        "BetOption",
+        back_populates="bet",
+        cascade="all, delete-orphan",
+        foreign_keys="BetOption.bet_id",
+    )
 
     def serialize(self):
         return {
@@ -127,6 +148,7 @@ class Bet(db.Model):
             "options": [option.serialize() for option in self.options],
             "type": self.type.value if self.type else None,
             "event_description": self.event_description,
+            "winner_option_id": self.winner_option_id,
         }
     
     def serialize_with_votes(self, user_id=None):
@@ -150,13 +172,16 @@ class BetOption(db.Model):
     label: Mapped[str] = mapped_column(String(100), nullable=False)
 
     bet_id: Mapped[int] = mapped_column(ForeignKey("bet.id"), nullable=False)
-    bet: Mapped["Bet"] = relationship("Bet", back_populates="options")
+    bet: Mapped["Bet"] = relationship("Bet", back_populates="options", foreign_keys=[bet_id],)
+
+    external_team_id: Mapped[int | None] = mapped_column(nullable=True)
 
     def serialize(self):
         return {
             "id": self.id,
             "label": self.label,
-            "bet_id": self.bet_id
+            "bet_id": self.bet_id,
+            "external_team_id": self.external_team_id,
         }
 
 

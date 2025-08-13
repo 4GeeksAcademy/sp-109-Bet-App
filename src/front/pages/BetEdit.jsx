@@ -1,359 +1,365 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import React, { useEffect, useState, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 
 export const BetEdit = () => {
+  const { id, betId } = useParams();
+  const navigate = useNavigate();
 
-    const { id, betId } = useParams();
-    const navigate = useNavigate()
+  const [form, setForm] = useState({
+    name: "",
+    amount: 0,
+    deadline: "",
+    type: "sports",
+    event_description: "",
+    sport: "football",
+    league: "",
+    options: []
+  });
 
-    const [form, setForm] = useState({
-        name: "",
-        amount: 0,
-        deadline: "",
-        type: "sports",
-        event_description: "",
-        sport: "football",
-        league: "",
-        options: []
-    });
-    const [leagues, setLeagues] = useState([]);
-    const [matches, setMatches] = useState([]);
-    const [newOption, setNewOption] = useState("");
-    const [loadingLeagues, setLoadingLeagues] = useState(false);
-    const [loadingMatches, setLoadingMatches] = useState(false);
-    const [otherBet, setOtherBet] = useState("");
-    const [error, setError] = useState(null);
-    const [loading, setLoading] = useState(false);
+  const [leagues, setLeagues] = useState([]);
+  const [matches, setMatches] = useState([]);
 
-    useEffect(() => {
-        const fetchBet = async () => {
-            const token = localStorage.getItem('token')
-            try {
-                const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/bet/${betId}`,{
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                if (!resp.ok) throw new Error("Failed to fetch bet");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-                const data = await resp.json();
+  // ---- Imagen (preview + subida) ----
+  const [existingImageUrl, setExistingImageUrl] = useState(""); // la que viene del backend o localStorage
+  const [imageFile, setImageFile] = useState(null);             // archivo nuevo (si el usuario lo cambia)
+  const [imagePreview, setImagePreview] = useState("");         // preview del archivo nuevo
+  const fileInputRef = useRef(null);
+  const openPicker = () => fileInputRef.current?.click();
 
-                // Extraer solo nombres de equipos si es apuesta deportiva
-                let eventDesc = data.event_description;
-                if (data.type === "sports" && data.event_description) {
-                    eventDesc = data.event_description.split(" on ")[0]; // Elimina la fecha
-                }
+  // helper: imagen de apuesta (backend o localStorage)
+  const getBetImage = (b) =>
+    b?.url_image || (b?.id ? localStorage.getItem(`bet-image-${b.id}`) : null);
 
-                setForm({
-                    name: data.name || "",
-                    amount: data.amount || 0,
-                    deadline: data.deadline ? new Date(data.deadline).toISOString().slice(0, 16) : "",
-                    event_description: eventDesc,
-                    type: data.type,
-                    sport: data.sport || "football",
-                    league: data.league || "",
-                    options: data.options?.map(opt => typeof opt === 'string' ? { label: opt } : opt) || []
-                });
-                console.log(data)
+  // --- Subida unsigned a Cloudinary (igual que en Create/Perfil/Playground) ---
+  const uploadToCloudinary = async (file) => {
+    const cloud = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const preset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
-                if (data.type === "others") setOtherBet(data.event_description);
-
-                // Si es apuesta deportiva y tiene league, cargar matches
-                if (data.type === "sports" && data.league) {
-                    fetchUpcomingMatches().then(() => {
-                        // Buscar y seleccionar automáticamente el partido
-                        const selectedMatch = matches.find(m =>
-                            `${m.homeTeam.shortName} vs ${m.awayTeam.shortName}` === eventDesc
-                        );
-                        if (selectedMatch) {
-                            setForm(prev => ({
-                                ...prev,
-                                event_description: `${selectedMatch.homeTeam.shortName} vs ${selectedMatch.awayTeam.shortName} on ${new Date(selectedMatch.utcDate).toLocaleDateString()}`
-                            }));
-                        }
-                    });
-                }
-            } catch (err) {
-                console.error(err);
-                setError(err.message);
-            }
-        };
-
-        fetchBet();
-    }, [id, betId]);
-
-    useEffect(() => {
-        if (form.sport === "football") fetchFootballLeagues()
-    }, [form.sport])
-
-    useEffect(() => {
-        if (form.league) fetchUpcomingMatches()
-    }, [form.league])
-
-    const fetchFootballLeagues = async () => {
-        setLoadingLeagues(true)
-        setError(false)
-        try {
-            const token = localStorage.getItem("token");
-            const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/football/competitions`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (!resp.ok) throw new Error("Error fetching leagues");
-            const data = await resp.json()
-            setLeagues(data.competitions)
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoadingLeagues(false);
-        }
-    };
-
-    const fetchUpcomingMatches = async () => {
-        setLoadingMatches(true)
-        setError(false)
-        try {
-            const token = localStorage.getItem("token");
-            const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/football/matches?competition=${form.league}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (!resp.ok) throw new Error("Error fetching matches");
-            const data = await resp.json()
-            setMatches(data.matches)
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoadingMatches(false);
-        }
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError(null);
-
-        if (isNaN(form.amount) || parseFloat(form.amount) <= 0) {
-            setError("Amount must be a positive number")
-            return;
-        }
-
-        if (form.type === "sports" && !form.event_description) {
-            setError("Please select a match.");
-            return;
-        }
-
-        if (form.type === "others" && !otherBet.trim()) {
-            setError("Please describe your bet");
-            return;
-        }
-
-        if (form.options.length < 2) {
-            setError("Please add at least two options for the bet.");
-            return;
-        }
-
-        const finalForm = { ...form }
-        if (form.type === "others") {
-            finalForm.event_description = otherBet
-        }
-        try {
-            const token = localStorage.getItem("token")
-            const resp = await fetch(import.meta.env.VITE_BACKEND_URL + `/api/playground/${id}/bet/${betId}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify(finalForm)
-            });
-            if (!resp.ok) {
-                const data = await resp.json()
-                throw new Error(data.msg || "Failed to edit bet")
-            }
-            navigate(`/playground/${id}`, { state: { successMessage: "Bet updated successfully!" } })
-        } catch (err) {
-            console.error(err)
-            setError(err.message)
-        } finally {
-            setLoading(false)
-        }
+    if (!cloud || !preset) {
+      throw new Error(
+        `Cloudinary no configurado: cloud=${cloud || "undefined"}, preset=${preset || "undefined"}`
+      );
     }
 
-    return (
-        <div className="container mt-5">
-            <h2 className="mb-4">Edit Bet</h2>
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("upload_preset", preset);
 
-            {error && <div className="alert alert-danger">{error}</div>}
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloud}/image/upload`, {
+      method: "POST",
+      body: fd
+    });
 
-            <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                    <label className="form-label">Name</label>
-                    <input type="text" className="form-control" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-                </div>
+    const text = await res.text();
+    if (!res.ok) throw new Error(`Cloudinary ${res.status}: ${text}`);
+    const data = JSON.parse(text);
+    return data.secure_url;
+  };
 
-                <div className="mb-3">
-                    <label className="form-label">Amount</label>
-                    <input
-                        type="number"
-                        className="form-control"
-                        value={form.amount}
-                        onChange={(e) => setForm({ ...form, amount: e.target.value === "" ? "" : parseFloat(e.target.value) })}
-                        required
-                    />
-                </div>
+  // ---- Cargar datos de la apuesta ----
+  useEffect(() => {
+    const fetchBet = async () => {
+      try {
+        setError(null);
+        setLoading(true);
 
-                <div className="mb-3">
-                    <label className="form-label">Deadline</label>
-                    <input
-                        type="datetime-local"
-                        className="form-control"
-                        value={form.deadline}
-                        onChange={(e) => setForm({ ...form, deadline: e.target.value })}
-                    />
-                </div>
+        const token = localStorage.getItem("token");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-                <div className="mb-3">
-                    <label className="form-label">Type</label>
-                    <select className="form-select" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
-                        <option value="sports">Sports</option>
-                        <option value="others">Others</option>
-                    </select>
-                </div>
+        const resp = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/bet/${betId}`,
+          { headers }
+        );
 
-                {form.type === "sports" && (
-                    <>
-                        <div className="mb-3">
-                            <label className="form-label">Sport</label>
-                            <select
-                                className="form-select"
-                                value={form.sport}
-                                onChange={(e) => setForm({ ...form, sport: e.target.value, league: "", event_description: "" })}
-                                disabled={loadingLeagues}
-                            >
-                                <option value="football">Football</option>
-                            </select>
-                        </div>
+        if (resp.status === 401) throw new Error("No autorizado. Vuelve a iniciar sesión.");
+        if (!resp.ok) throw new Error("Failed to fetch bet");
 
-                        <div className="mb-3">
-                            <label className="form-label">League</label>
-                            <select
-                                className="form-select"
-                                value={form.league}
-                                onChange={(e) => setForm({ ...form, league: e.target.value, event_description: "" })}
-                                disabled={loadingLeagues || leagues.length === 0}
-                            >
-                                <option value="">Select a league</option>
-                                {leagues.map((league) => (
-                                    <option key={league.id} value={league.code}>
-                                        {league.name} ({league.area.name})
-                                    </option>
-                                ))}
-                            </select>
-                            {loadingLeagues && <small className="text-muted">Loading leagues...</small>}
-                        </div>
+        const raw = await resp.json();
+        const bet = raw?.bet ?? raw;
 
-                        {form.league && (
-                            <div className="mb-3">
-                                <label className="form-label">Upcoming Matches</label>
-                                {loadingMatches ? (
-                                    <div className="text-center py-3">
-                                        <div className="spinner-border text-primary" role="status">
-                                            <span className="visually-hidden">Loading...</span>
-                                        </div>
-                                    </div>
-                                ) : matches.length > 0 ? (
-                                    <select
-                                        className="form-select"
-                                        value={form.event_description}
-                                        onChange={(e) => setForm({ ...form, event_description: e.target.value })}
-                                        required
-                                    >
-                                        <option value="">Select a match</option>
-                                        {matches.map((match) => {
-                                            const matchText = `${match.homeTeam.shortName} vs ${match.awayTeam.shortName} on ${new Date(match.utcDate).toLocaleDateString()}`;
-                                            return (
-                                                <option key={match.id} value={matchText}>
-                                                    {new Date(match.utcDate).toLocaleDateString()} - {match.homeTeam.shortName} vs {match.awayTeam.shortName}
-                                                </option>
-                                            );
-                                        })}
-                                    </select>
-                                ) : (
-                                    <div className="alert alert-info">No upcoming matches found for this league.</div>
-                                )}
-                            </div>
-                        )}
-                    </>
-                )}
+        setForm({
+          name: bet.name ?? "",
+          amount: bet.amount ?? 0,
+          deadline: bet.deadline ? bet.deadline.slice(0, 16) : "",
+          type: bet.type ?? "sports",
+          event_description: bet.event_description ?? "",
+          sport: bet.sport ?? "football",
+          league: bet.league ?? "",
+          options: Array.isArray(bet.options) ? bet.options.map(o => o.label ?? o) : [],
+        });
 
-                {form.type === "others" && (
-                    <div className="mb-3">
-                        <label className="form-label">What is your bet?</label>
-                        <input
-                            type="text"
-                            className="form-control"
-                            placeholder="Type your bet"
-                            value={otherBet}
-                            onChange={(e) => setOtherBet(e.target.value)}
-                            required
-                        />
-                    </div>
-                )}
+        const img = getBetImage(bet);
+        if (img) setExistingImageUrl(img);
 
-                {form.type === "others" || form.league ? (
-                    <div className="mb-3">
-                        <label className="form-label">Bet Options</label>
-                        <div className="d-flex mb-2">
-                            <input
-                                type="text"
-                                className="form-control me-2"
-                                value={newOption}
-                                onChange={(e) => setNewOption(e.target.value)}
-                                placeholder="Add an option"
-                            />
-                            <button
-                                type="button"
-                                className="btn btn-secondary"
-                                onClick={() => {
-                                    const trimmed = newOption.trim();
-                                    if (trimmed && !form.options.some(o => o.label === trimmed)) {
-                                        setForm({
-                                            ...form,
-                                            options: [...form.options, { label: trimmed }]
-                                        });
-                                        setNewOption("");
-                                    }
-                                }}
+        // si queréis precargar ligas/partidos como en create:
+        if ((bet.sport ?? "football") === "football") {
+          await fetchFootballLeagues();
+          if (bet.league) await fetchUpcomingMatches(bet.league);
+        }
+      } catch (e) {
+        setError(e.message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-                            >
-                                Add
-                            </button>
-                        </div>
+    fetchBet();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, betId]);
 
-                        <ul className="list-group">
-                            {form.options.map((opt, index) => (
-                                <li key={opt.id || index} className="list-group-item d-flex justify-content-between align-items-center">
-                                    {opt.label || opt}
-                                    <button
-                                        type="button"
-                                        className="btn btn-sm btn-outline-danger"
-                                        onClick={() => {
-                                            const newOptions = form.options.filter((_, i) => i !== index);
-                                            setForm({ ...form, options: newOptions });
-                                        }}
-                                    >
-                                        Remove
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                ) : null}
+  // ---- Aux: fetch ligas/partidos (mismo patrón que en create) ----
+  const fetchFootballLeagues = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/football/competitions`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      if (!resp.ok) throw new Error("Error fetching leagues");
+      const data = await resp.json();
+      setLeagues(data.competitions || []);
+    } catch (e) {
+      // no rompemos el edit por esto
+      console.warn(e);
+    }
+  };
 
-                <button type="submit" className="btn btn-primary" disabled={loading}>
-                    {loading ? "Saving..." : "Save changes"}
-                </button>
+  const fetchUpcomingMatches = async (leagueCode) => {
+    try {
+      const token = localStorage.getItem("token");
+      const resp = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/football/matches?competition=${leagueCode}`,
+        { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+      );
+      if (!resp.ok) throw new Error("Error fetching matches");
+      const data = await resp.json();
+      setMatches(data.matches || []);
+    } catch (e) {
+      console.warn(e);
+    }
+  };
 
-                <button type="button" className="btn btn-danger mx-2" onClick={() => navigate(`/playground/${id}/bet/${betId}`)} >
-                    Cancel
-                </button>
-            </form>
+  // ---- Guardar cambios ----
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Si el usuario eligió nueva imagen, primero súbela
+      let imageUrl = existingImageUrl;
+      if (imageFile) {
+        imageUrl = await uploadToCloudinary(imageFile);
+      }
+
+      const payload = {
+        ...form,
+        options: form.options.map(o => (typeof o === "string" ? { label: o } : o)),
+        url_image: imageUrl || undefined,
+      };
+
+      const token = localStorage.getItem("token");
+      const headers = {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      };
+
+      const resp = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/bet/${betId}`,
+        { method: "PUT", headers, body: JSON.stringify(payload) }
+      );
+
+      if (resp.status === 401) throw new Error("No autorizado. Vuelve a iniciar sesión.");
+      if (!resp.ok) {
+        let d = {};
+        try { d = await resp.json(); } catch {}
+        throw new Error(d.msg || "Failed to update bet");
+      }
+
+      // si hay imagen nueva, persistimos también en localStorage como en create
+      if (imageFile && imageUrl) {
+        localStorage.setItem(`bet-image-${betId}`, imageUrl);
+      }
+
+      navigate(`/playground/${id}`, { state: { successMessage: "Bet updated!" } });
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="container mt-5">
+      <h2>Edit Bet</h2>
+
+      {error && <div className="alert alert-danger">{error}</div>}
+
+      <form onSubmit={handleSave}>
+        {/* Nombre */}
+        <div className="mb-3">
+          <label className="form-label">Name</label>
+          <input
+            type="text"
+            className="form-control"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            required
+          />
         </div>
-    );
+
+        {/* Importe */}
+        <div className="mb-3">
+          <label className="form-label">Amount</label>
+          <input
+            type="number"
+            className="form-control"
+            value={form.amount}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                amount: e.target.value === "" ? "" : parseFloat(e.target.value),
+              })
+            }
+            required
+          />
+        </div>
+
+        {/* Deadline */}
+        <div className="mb-3">
+          <label className="form-label">Deadline</label>
+          <input
+            type="datetime-local"
+            className="form-control"
+            value={form.deadline}
+            onChange={(e) => setForm({ ...form, deadline: e.target.value })}
+          />
+        </div>
+
+        {/* Tipo */}
+        <div className="mb-3">
+          <label className="form-label">Type</label>
+          <select
+            className="form-select"
+            value={form.type}
+            onChange={(e) => setForm({ ...form, type: e.target.value })}
+          >
+            <option value="sports">Sports</option>
+            <option value="others">Others</option>
+          </select>
+        </div>
+
+        {/* Sport */}
+        <div className="mb-3">
+          <label className="form-label">Sport</label>
+          <select
+            className="form-select"
+            value={form.sport}
+            onChange={async (e) => {
+              const sport = e.target.value;
+              setForm({ ...form, sport, league: "", event_description: "" });
+              if (sport === "football") {
+                await fetchFootballLeagues();
+              } else {
+                setLeagues([]);
+                setMatches([]);
+              }
+            }}
+          >
+            <option value="football">Football</option>
+          </select>
+        </div>
+
+        {/* League */}
+        <div className="mb-3">
+          <label className="form-label">League</label>
+          <select
+            className="form-select"
+            value={form.league}
+            onChange={async (e) => {
+              const league = e.target.value;
+              setForm({ ...form, league, event_description: "" });
+              if (league) await fetchUpcomingMatches(league);
+              else setMatches([]);
+            }}
+          >
+            <option value="">Select a league</option>
+            {leagues.map((league) => (
+              <option key={league.id} value={league.code}>
+                {league.name} ({league.area.name})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Imagen */}
+        <div className="mb-3">
+          <label className="form-label">Photo (optional)</label>
+          <div className="d-flex align-items-center gap-3">
+            <div
+              className="border rounded"
+              style={{
+                width: 120,
+                height: 80,
+                display: "grid",
+                placeItems: "center",
+                overflow: "hidden",
+                background: "#f8f9fa",
+              }}
+            >
+              {imagePreview ? (
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              ) : existingImageUrl ? (
+                <img
+                  src={existingImageUrl}
+                  alt="Current"
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              ) : (
+                <span className="text-muted small">No image</span>
+              )}
+            </div>
+
+            <div>
+              <button type="button" className="btn btn-outline-secondary" onClick={openPicker}>
+                Choose file
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (!f) return;
+                  setImageFile(f);
+                  setImagePreview(URL.createObjectURL(f));
+                }}
+              />
+              <div className="form-text"></div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" className="btn btn-primary" disabled={loading}>
+          {loading ? "Saving..." : "Save changes"}
+        </button>
+
+        <button
+          type="button"
+          className="btn btn-danger mx-2"
+          onClick={() => navigate(`/playground/${id}`)}
+          disabled={loading}
+        >
+          Cancel
+        </button>
+      </form>
+    </div>
+  );
 };
