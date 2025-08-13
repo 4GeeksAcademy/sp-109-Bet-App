@@ -47,6 +47,7 @@ import { Requests } from "./pages/Requests";
 import { BetSingle } from "./pages/BetSingle";
 import { AdminMessageBoard } from "./pages/AdminMessageBoard.jsx";
 import { MyProfileEdit } from "./pages/MyProfileEdit.jsx";
+import BetWinners from "./pages/BetWinners.jsx";
 
 
 export const router = createBrowserRouter(
@@ -182,6 +183,13 @@ export const router = createBrowserRouter(
           <UserBetsBoard />
         </PrivateRoutes>
       } />
+      
+      {/* ✅ Ganadores bets protegidos */}
+      <Route path="/betwinners" element={
+        <PrivateRoutes>
+        <BetWinners />
+        </PrivateRoutes>
+      } />
 
       {/* ✅ Ruta de invitación abierta */}
       <Route path="/playground/:id/invite" element={<PlaygroundInvite />} />
@@ -201,5 +209,7 @@ export const router = createBrowserRouter(
       } />
 
     </Route>
+
+    
   )
 );

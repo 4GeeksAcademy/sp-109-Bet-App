@@ -4,6 +4,7 @@ from api.utils import generate_sitemap, APIException, generate_unique_slug
 from flask_cors import CORS
 from sqlalchemy import select
 from datetime import datetime, timezone 
+from apscheduler.schedulers.background import BackgroundScheduler
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt
 from werkzeug.security import check_password_hash, generate_password_hash
 import requests
@@ -63,6 +64,7 @@ def login_user():
     
     return jsonify({
         "token": token,
+        "user_id": user.id,
         "user": user.serialize()
     }), 200
 
@@ -300,13 +302,28 @@ def get_football_competitions():
 @api.route('/football/matches', methods=['GET'])
 def get_football_matches():
     competition_code = request.args.get('competition')
+    status = request.args.get('status', 'SCHEDULED')
+    
     if not competition_code:
         raise APIException("Missing competition parameter", 400)
     
     try:
         headers = {'X-Auth-Token': FOOTBALL_DATA_API_KEY}
+        params = {'status': status}
         url = f"{FOOTBALL_DATA_BASE_URL}/competitions/{competition_code}/matches?status=SCHEDULED"
         resp = requests.get(url, headers=headers)
+        resp.raise_for_status()
+        return jsonify(resp.json()), 200
+    except requests.RequestException as e:
+        return jsonify({"error": str(e)}), 500
+    
+# Lectura del resultado final del partido concreto 
+@api.route('/football/matches/<int:match_id>', methods=['GET'])
+def get_football_match_by_id(match_id):
+    try:
+        headers = {'X-Auth-Token': FOOTBALL_DATA_API_KEY}
+        url = f"{FOOTBALL_DATA_BASE_URL}/matches/{match_id}"
+        resp = requests.get(url, headers=headers, timeout=15)
         resp.raise_for_status()
         return jsonify(resp.json()), 200
     except requests.RequestException as e:
@@ -513,8 +530,12 @@ def update_bet(pg_id, bet_id):
 def vote_bet_option(pg_id, bet_id):
 
     user_id = int(get_jwt_identity())
-    body = request.get_json()
+    body = request.get_json(silent=True) or {}
     option_id = body.get("option_id")
+    try:
+        option_id = int(option_id) if option_id is not None else None
+    except (TypeError, ValueError):
+        option_id = None
 
     if not option_id:
         raise APIException("Option ID is required", 400)
@@ -523,6 +544,14 @@ def vote_bet_option(pg_id, bet_id):
     bet = Bet.query.filter_by(id=bet_id, playground_id=pg_id).first()
     if not bet:
         raise APIException("Bet not found in this playground", 404)
+    
+    #Bloqueo por estado/tiempo
+    if bet.status in (BetStatus.locked, BetStatus.resolved, BetStatus.cancelled):
+        return jsonify({"message": "Bet is not open for voting"}), 400
+
+    if bet.deadline and bet.deadline <= datetime.utcnow():
+        # Opcional: aquí también se podria marcar cómo locked. 
+        return jsonify({"message": "Bet deadline passed"}), 400
 
     # Validar que la opción pertenece a la apuesta
     option = BetOption.query.filter_by(id=option_id, bet_id=bet_id).first()
@@ -1426,3 +1455,171 @@ def get_all_messages_byadmin():
     return jsonify({
         "messages": [msg.serialize() for msg in messages]
     }), 200
+
+
+# *------- Resolución apuesta Manual --------*
+
+# TODO
+def is_admin(user_id: int) -> bool:
+    """Comprueba si el usuario es administrador."""
+    return AdminUser.query.filter_by(user_id=user_id).first() is not None
+
+def can_manual_resolve(bet: "Bet") -> bool:
+    """Se puede resolver si no está cerrada y (ya es locked o pasó el deadline)."""
+    if bet.status in (BetStatus.resolved, BetStatus.cancelled):
+        return False
+    if bet.status == BetStatus.locked:
+        return True
+    if bet.deadline and bet.deadline <= datetime.utcnow():
+        return True
+    return False
+
+@api.route('/playground/<int:pg_id>/bet/<int:bet_id>/resolve-manual', methods=['PUT'])
+@jwt_required()
+def resolve_bet_manual(pg_id, bet_id):
+    """Permite al creador o un admin resolver manualmente una apuesta NO ligada a API (sin external_match_id)."""
+    uid = int(get_jwt_identity())
+
+    bet = Bet.query.filter_by(id=bet_id, playground_id=pg_id).first()
+    if not bet:
+        return jsonify({"message": "Bet not found"}), 404
+
+    # Solo el creador puede resolver manualmente
+    if bet.user_id != uid and not is_admin(uid):
+        return jsonify({"message": "Not allowed"}), 403
+    
+    # Comprobamos si se puede resolver manualmente
+    if not can_manual_resolve(bet):
+        return jsonify({"message": "Bet cannot be resolved yet"}), 400
+
+    # No permitir si ya está cerrada
+    if bet.status in (BetStatus.resolved, BetStatus.cancelled):
+        return jsonify({"message": "Bet already finished"}), 400
+    
+    if not can_manual_resolve(bet):
+        return jsonify({"message": "Bet is not ready to resolve"}), 400
+
+    # Esta ruta es para NO-API (o cuando no se configuró partido externo)
+    if getattr(bet, "external_match_id", None) and not is_admin(uid):
+        return jsonify({"message": "This bet is linked to an external match; use auto resolution"}), 400
+    
+    data = request.get_json(silent=True) or {}
+    winner_option_id = data.get("winner_option_id")
+    try:
+        winner_option_id = int(winner_option_id) if winner_option_id is not None else None
+    except (TypeError, ValueError):
+        winner_option_id = None
+
+    if not winner_option_id:
+        return jsonify({"message": "winner_option_id is required"}), 400
+
+    # Verifica que la opción pertenece a esta bet
+    winner = BetOption.query.filter_by(id=winner_option_id, bet_id=bet.id).first()
+    if not winner:
+        return jsonify({"message": "Winner option invalid for this bet"}), 400
+
+    if bet.deadline and bet.deadline > datetime.utcnow():
+        return jsonify({"message": "Bet cannot be resolved before the deadline"}), 400
+
+    bet.winner_option_id = winner.id
+    bet.status = BetStatus.resolved
+    bet.resolved_at = datetime.utcnow()
+    db.session.commit()
+
+    return jsonify(bet.serialize_with_votes(user_id=uid)), 200
+
+
+# *------- Resolución apuesta API + Manual por admin/creador apuesta --------*
+
+@api.route('/api/playground/<int:pg_id>/bet/<int:bet_id>/resolve-auto', methods=['PUT'])
+@jwt_required()
+def resolve_bet_auto(pg_id, bet_id):
+    """
+    Resuelve automáticamente una apuesta vinculada a la API integrada (usando external_match_id).
+    Solo admins o el creador de la apuesta pueden ejecutarlo manualmente.
+    """
+    uid = int(get_jwt_identity())
+
+    bet = Bet.query.filter_by(id=bet_id, playground_id=pg_id).first()
+    if not bet:
+        return jsonify({"message": "Bet not found"}), 404
+
+    if not bet.external_match_id:
+        return jsonify({"message": "This bet is not linked to an external match"}), 400
+
+    # Solo permitir si es admin o creador
+    if bet.user_id != uid and not is_admin(uid):
+        return jsonify({"message": "Not allowed"}), 403
+
+    if bet.status in (BetStatus.resolved, BetStatus.cancelled):
+        return jsonify({"message": "Bet already finished"}), 400
+
+    # Verificamos si ya pasó el deadline
+    if bet.deadline and bet.deadline > datetime.utcnow():
+        return jsonify({"message": "Bet cannot be resolved before the deadline"}), 400
+
+    # --- Aquí llamamos a la API externa ---
+    try:
+        import requests
+        api_url = f"https://tu-api-externa.com/match/{bet.external_match_id}"
+        r = requests.get(api_url, timeout=5)
+        r.raise_for_status()
+        match_data = r.json()
+    except Exception as e:
+        return jsonify({"message": f"Error fetching external result: {e}"}), 500
+
+    # Supongamos que la API devuelve {"winner_code": "home"} o "away" o "draw"
+    winner_code = match_data.get("winner_code")
+    if not winner_code:
+        return jsonify({"message": "No winner info in external API"}), 400
+
+    # Buscar en bet.options la que coincida con ese código
+    winner_option = next((opt for opt in bet.options if opt.label.lower() == winner_code.lower()), None)
+    if not winner_option:
+        return jsonify({"message": f"No matching option for code {winner_code}"}), 400
+
+    # Guardar como ganadora
+    bet.winner_option_id = winner_option.id
+    bet.status = BetStatus.resolved
+    bet.resolved_at = datetime.utcnow()
+    db.session.commit()
+
+    return jsonify(bet.serialize_with_votes(user_id=uid)), 200
+
+
+# *-------Listar ganadores apuestas ----------*
+
+@api.route('/bets/winners', methods=['GET'])
+@jwt_required()
+def all_bet_winners():
+    # Obtener todas las apuestas resueltas con ganador definido
+    bets = Bet.query.filter(
+        Bet.status == BetStatus.resolved,
+        Bet.winner_option_id.isnot(None)
+    ).order_by(Bet.resolved_at.desc()).all()
+
+    data = []
+    for bet in bets:
+        winners = (
+            db.session.query(User.id, User.username)
+            .join(UserBet, UserBet.user_id == User.id)
+            .filter(
+                UserBet.bet_id == bet.id,
+                UserBet.option_id == bet.winner_option_id
+            )
+            .all()
+        )
+        data.append({
+            "bet_id": bet.id,
+            "bet_name": bet.name,
+            "playground_id": bet.playground_id,
+            "winner_option_id": bet.winner_option_id,
+            "winner_option_label": next(
+                (opt.label for opt in bet.options if opt.id == bet.winner_option_id), 
+                None
+            ),
+            "winners": [{"id": uid, "username": uname} for uid, uname in winners],
+            "resolved_at": bet.resolved_at.isoformat() if bet.resolved_at else None
+        })
+
+    return jsonify(data), 200
