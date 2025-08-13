@@ -18,6 +18,12 @@ export const BetSingle = () => {
   const [winnerOption, setWinnerOption] = useState(null);
   const [resolving, setResolving] = useState(false);
 
+  // --- Winners modal state ---
+const [showWinners, setShowWinners] = useState(false);
+const [winners, setWinners] = useState([]);
+const [loadingWinners, setLoadingWinners] = useState(false);
+const [winnersError, setWinnersError] = useState(null);
+
   // --- Helpers ---
   const token = localStorage.getItem("token");
 
@@ -87,6 +93,50 @@ export const BetSingle = () => {
     }, 15000);
     return () => clearInterval(interval);
   }, [bet]);
+
+// Modal de ganadores de la apuesta en la que estamos
+
+  const openWinnersModal = async () => {
+    setShowWinners(true);
+    setLoadingWinners(true);
+    setWinnersError(null);
+      try {
+    const resp = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/bet/${betId}/winners`,
+      {
+        headers: {
+          ...(localStorage.getItem("token")
+            ? { Authorization: `Bearer ${localStorage.getItem("token")}` }
+            : {}),
+        },
+      }
+    );
+     if (resp.status === 401) {
+      localStorage.removeItem("token");
+      navigate("/login", { replace: true, state: { msg: "Session expired" } });
+      return;
+    }
+
+    const text = await resp.text();
+    if (!resp.ok) {
+      let msg = "";
+      try { msg = JSON.parse(text).message; } catch { msg = text; }
+      throw new Error(msg || `Failed to load winners (HTTP ${resp.status})`);
+    }
+    const data = JSON.parse(text); 
+      setWinners(Array.isArray(data.winners) ? data.winners : []);
+    } catch (e) {
+      setWinnersError(e.message || "Error loading winners");
+    } finally {
+      setLoadingWinners(false);
+    }
+  };
+
+  const closeWinnersModal = () => {
+    setShowWinners(false);
+    setWinners([]);
+    setWinnersError(null);
+  };
 
   // --- Votar ---
   const votingDisabled =
@@ -345,14 +395,14 @@ return (
                 </button>
               )}
 
-            {bet.status === "resolved" && (
+              {bet.status === "resolved" && (
               <button
                 className="btn btn-outline-primary"
-                onClick={() => navigate(`/playground/${id}/bet/${betId}/winners`)}
+                onClick={openWinnersModal}
               >
                 🏆 See winners
               </button>
-            )}
+              )}
             </div>
 
             <button
@@ -365,7 +415,7 @@ return (
           </div>
         </div>
         
-  {/* solución manual de apuestas que no son de la api  */}
+        {/* solución manual de apuestas que no son de la api  */}
         {showResolve && (
             <div className="modal fade show d-block" tabIndex="-1">
               <div className="modal-dialog">
@@ -399,6 +449,63 @@ return (
               </div>
             </div>
           )}
+
+        {/* Winners modal muestra lista de ganadores de la apuesta en la que está*/}
+        {showWinners && (
+          <div className="modal fade show d-block" tabIndex="-1">
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">🏆 Winners</h5>
+                  <button className="btn-close" onClick={closeWinnersModal} />
+                </div>
+
+                <div className="modal-body">
+                  {loadingWinners && <div>Loading winners…</div>}
+                  {!loadingWinners && winnersError && (
+                    <div className="alert alert-warning mb-0">
+                      {winnersError}
+                    </div>
+                  )}
+
+                  {!loadingWinners && !winnersError && (
+                    <>
+                      {bet.winner_option_id && (
+                        <p className="text-muted mb-2">
+                          Winner option: <strong>
+                            {bet.options?.find(o => o.id === bet.winner_option_id)?.label
+                              || `#${bet.winner_option_id}`}
+                          </strong>
+                        </p>
+                      )}
+
+                      {winners.length === 0 ? (
+                        <div className="alert alert-secondary mb-0">
+                          No winners recorded.
+                        </div>
+                      ) : (
+                        <ul className="list-group">
+                          {winners.map(w => (
+                            <li key={w.id} className="list-group-item d-flex justify-content-between">
+                              <span>👤 {w.username}</span>
+                              <span className="text-muted">id: {w.id}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                <div className="modal-footer">
+                  <button className="btn btn-secondary" onClick={closeWinnersModal}>
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       
       </div>
     </div>
