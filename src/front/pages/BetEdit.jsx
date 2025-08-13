@@ -27,8 +27,11 @@ export const BetEdit = () => {
 
     useEffect(() => {
         const fetchBet = async () => {
+            const token = localStorage.getItem('token')
             try {
-                const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/bet/${betId}`);
+                const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/bet/${betId}`,{
+                    headers: { Authorization: `Bearer ${token}` }
+                });
                 if (!resp.ok) throw new Error("Failed to fetch bet");
 
                 const data = await resp.json();
@@ -49,6 +52,7 @@ export const BetEdit = () => {
                     league: data.league || "",
                     options: data.options?.map(opt => typeof opt === 'string' ? { label: opt } : opt) || []
                 });
+                console.log(data)
 
                 if (data.type === "others") setOtherBet(data.event_description);
 

@@ -1,78 +1,39 @@
-/* Estructura principal */
-.app-container {
+.sidebar {
+  height: 100vh;
+  width: 19rem;               
+}
+
+.sidenav-btn {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.sidenav-btn:hover,
+.sidenav-btn-active {
+  background-color: #e9ecef;
+  color: #000;
+}
+
+.sidenav-user {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  align-items: center;
+  margin-bottom: 1rem;
 }
 
-/* Contenedor del contenido */
-.content-wrapper {
-  display: flex;
-  flex: 1;
-  padding-top: 30px; 
+.sidenav-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  margin-bottom: 0.5rem;
 }
 
-/* SideNav fijo */
-.sidenav-container {
-  position: fixed;
-  left: 80px;
-  top: 30px;
-  bottom: 0;
-  width: 280px;
-  z-index: 100;
+.sidenav-money-btn {
+  background: none;
+  border: none;
+  color: #ffc107;
+  cursor: default;
 }
-
-/* Contenido principal centrado */
-.main-content {
-  flex: 1;
-  padding: 2rem;
-  display: flex;
-  justify-content: center;
-}
-
-
-.main-content > * {
-  width: 100%;
-  max-width: 1200px; 
-
-
-@media (max-width: 2000px) and (min-width: 1200px) {
-  .sidenav-container {
-    left: 30px; 
-    width: 240px; 
-  }
-  .main-content > * {
-    max-width: 800px; 
-  }
-  .main-content.with-sidenav {
-    margin-left: 150px; 
-  }
-}
-
-
-@media (max-width: 1200px) {
-  .sidenav-container {
-    left: 20px;
-    width: 200px;
-  }
-  .main-content > * {
-    max-width: 800px;
-  }
-  .main-content.with-sidenav {
-    margin-left: 200px;
-  }
-}
-
-@media (max-width: 768px) {
-  .content-wrapper {
-    flex-direction: column;
-  }
-  .sidenav-container {
-    position: static;
-    width: 100%;
-    margin-bottom: 20px;
-  }
-  .main-content.with-sidenav {
-    margin-left: 0;
-  }
-};

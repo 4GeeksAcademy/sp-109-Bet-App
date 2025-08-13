@@ -9,6 +9,7 @@ from api.admin import setup_admin
 from api.commands import setup_commands
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
+from datetime import timedelta
 
 
 # Detectar entorno
@@ -20,6 +21,7 @@ app = Flask(__name__)
 app.url_map.strict_slashes = False
 CORS(app)
 app.config["JWT_SECRET_KEY"] = "super-secret-key-final-proyect-que-te-apuestas-app"
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=10)
 jwt = JWTManager(app)
     
 

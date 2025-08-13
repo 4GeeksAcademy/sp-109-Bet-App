@@ -3,7 +3,7 @@ from api.models import MessageBoard, db, User, Playground, AdminUser, Bet, Playg
 from api.utils import generate_sitemap, APIException, generate_unique_slug
 from flask_cors import CORS
 from sqlalchemy import select
-from datetime import datetime, timezone 
+from datetime import datetime, timezone
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt
 from werkzeug.security import check_password_hash, generate_password_hash
 import requests
