@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-// import { Modal, Button } from "react-bootstrap";
+
 
 export const BetSingle = () => {
   const { id, betId } = useParams();
@@ -11,29 +11,38 @@ export const BetSingle = () => {
   const [error, setError] = useState(null);
   const [selectedOption, setSelectedOption] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-
-  // --- manejo de resolución ---- //
+  
+  // --- resolución manual bet ---- //
 
   const [showResolve, setShowResolve] = useState(false);
   const [winnerOption, setWinnerOption] = useState(null);
   const [resolving, setResolving] = useState(false);
 
+  // --- Helpers ---
+  const token = localStorage.getItem("token");
+
+  const headers = useMemo(
+    () => ({
+      Authorization: token ? `Bearer ${token}` : undefined,
+      "Content-Type": "application/json",
+    }),
+    [token]
+  );
+
   const isCreator = bet?.user_id === Number(localStorage.getItem("user_id"));
 
-  const handleResolve = async () => {
-    if (!winnerOption) {
-      alert("Select a winner option");
-      return;
-    }
+  const getBetImage = (b) =>
+    b?.url_image || (b?.id ? localStorage.getItem(`bet-image-${b.id}`) : null);
+
+    // --- Fetch apuesta ---
+  const fetchBet = async () => {
     try {
-      setResolving(true);
+      setLoading(true);
+      setError(null);
+
       const resp = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/bet/${betId}/resolve-manual`,
-        {
-          method: "PUT",
-          headers, // usa los memorizados
-          body: JSON.stringify({ winner_option_id: Number(winnerOption) }),
-        }
+        `${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/bet/${betId}`,
+        { headers: token ? { Authorization: `Bearer ${token}` } : {} }
       );
 
       if (resp.status === 401) {
@@ -41,90 +50,33 @@ export const BetSingle = () => {
         navigate("/login", { replace: true, state: { msg: "Session expired" } });
         return;
       }
+      if (!resp.ok) throw new Error(await resp.text() || `HTTP ${resp.status}`);
 
-      const text = await resp.text();
-      if (!resp.ok) {
-        let msg = "";
-        try { msg = JSON.parse(text).message; } catch { msg = text; }
-        throw new Error(msg || `Resolve failed (HTTP ${resp.status})`);
-      }
+      const raw = await resp.json();
+      const b = raw?.bet ?? raw;
+      setBet(b);
 
-      
-      let updated = null;
-      try { updated = JSON.parse(text); } catch {}
-      if (updated) setBet(updated); else await fetchBet();
-
-      setWinnerOption(null);
-      setShowResolve(false);
-      alert("Bet resolved successfully!");
-    } catch (err) {
-      alert(err.message || "Error resolving bet");
-    } finally {
-      setResolving(false);
-    }
-  };
-
-  const token = localStorage.getItem("token");
-
-  const headers = useMemo(
-    () => ({
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    }),
-    [token]
-  );
-
-  // useEffect(() => {
-    const fetchBet = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const resp = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/bet/${betId}`,
-          { headers: { Authorization: token ? `Bearer ${token}`: undefined } }
-        );
-
-        if (resp.status === 401) {
-          localStorage.removeItem("token");
-          navigate("/login", {
-            replace: true,
-            state: { msg: "Session expired. Please log in again." },
-        });
-        return;
-      }
-
-      const text = await resp.text();
-      if (!resp.ok) throw new Error(text || `HTTP ${resp.status}`);
-
-      const betData = JSON.parse(text);
-      setBet(betData);
-
-      // if (betData.user_vote) {
-      //   setSelectedOption(Number(betData.user_vote));
-      // } else {
-      //   setSelectedOption(userVoteId ? Number(userVoteId) : null);
-      // }
-      // } 
       const userVoteId =
-        (typeof betData.user_vote === "number" && betData.user_vote) ||
-        betData.user_vote?.id ||
-        betData.user_vote?.option_id ||
+        (typeof b.user_vote === "number" && b.user_vote) ||
+        b.user_vote?.id ||
+        b.user_vote?.option_id ||
         null;
 
       setSelectedOption(userVoteId ? Number(userVoteId) : null);
-      } catch (e) {
-        setError(e.message || "Error loading bet");
-      } finally {
-        setLoading(false);
-      }
-    };
-  
-    useEffect(() => {
-      fetchBet();
-    }, [id, betId, token]);
+    } catch (e) {
+      setError(e.message || "Error loading bet");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-   useEffect(() => { 
+  useEffect(() => {
+    fetchBet();
+  }, [id, betId, token]);
+
+
+// Polling si la apuesta no está resuelta
+  useEffect(() => {
     if (!bet) return;
     const interval = setInterval(() => {
       const deadlinePassed =
@@ -134,10 +86,9 @@ export const BetSingle = () => {
       if (needsPolling) fetchBet();
     }, 15000);
     return () => clearInterval(interval);
-    }, [bet]);
-  
-  // }, [id, betId, token]);
+  }, [bet]);
 
+  // --- Votar ---
   const votingDisabled =
     !bet ||
     bet.status === "locked" ||
@@ -146,17 +97,15 @@ export const BetSingle = () => {
     (bet.deadline && new Date(bet.deadline).getTime() <= Date.now());
 
 
-    // Manejo de votaciones //
+  // Manejo de votaciones //
 
   const handleVote = async () => {
     if (!selectedOption) {
       alert("Please select an option before voting.");
       return;
-    }
-
-    try {
+    } try {
       setSubmitting(true);
-
+      
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/bet/${betId}/vote`,
         {
@@ -176,18 +125,19 @@ export const BetSingle = () => {
       }
       
       const text = await response.text();
-      if (!response.ok) {
+      if (!response.ok) { 
         let msg = "";
-      try { msg = JSON.parse(text).message;} catch {msg = text;}
+        try { msg = JSON.parse(text).message;
+        } catch {
+        msg = text;
+        }
       throw new Error(msg || `Vote failed (HTTP ${response.status})`);
       }
 
       let updated = null;
       try { updated = JSON.parse(text);
       } catch { }
-      if (!updated) {
-        await fetchBet();
-      } else {
+      if (updated) {
         setBet(updated);
         const uv =
           (typeof updated.user_vote === "number" && updated.user_vote) ||
@@ -195,10 +145,12 @@ export const BetSingle = () => {
           updated.user_vote?.option_id ||
           null;
         setSelectedOption(uv ? Number(uv) : null);
+      } else {
+        await fetchBet();
       }
 
-      alert("Vote submitted successfully!");
-      navigate(`/playground/${id}`);
+    alert("Vote submitted successfully!");
+    navigate(`/playground/${id}`);
     } catch (err) {
       alert(err.message);
     } finally {
@@ -206,6 +158,55 @@ export const BetSingle = () => {
     }
   };
 
+// --- Resolver manual ---
+
+const handleResolve = async () => {
+    if (!winnerOption) {
+      alert("Select a winner option");
+      return;
+    }
+    try {
+      setResolving(true);
+      const resp = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/bet/${betId}/resolve-manual`,
+        {
+          method: "PUT",
+          headers, 
+          body: JSON.stringify({ winner_option_id: Number(winnerOption) }),
+        }
+      );
+
+      if (resp.status === 401) {
+        localStorage.removeItem("token");
+        navigate("/login", { replace: true, state: { msg: "Session expired" } });
+        return;
+      }
+
+      const text = await resp.text();
+      if (!resp.ok) {
+        let msg = "";
+        try { msg = JSON.parse(text).message; 
+        } catch { msg = text; }
+        throw new Error(msg || `Resolve failed (HTTP ${resp.status})`);
+      }
+  
+      let updated = null;
+      try { updated = JSON.parse(text);         
+      } catch {}
+      if (updated) setBet(updated); 
+      else await fetchBet();
+
+      setWinnerOption(null);
+      setShowResolve(false);
+      alert("Bet resolved successfully!");
+    } catch (err) {
+      alert(err.message || "Error resolving bet");
+    } finally {
+      setResolving(false);
+    }
+  };
+
+// --- Render ---
 
   if (loading) return <p>Loading bet...</p>;
   if (error) return <p className="text-danger">Error: {error}</p>;
@@ -219,11 +220,23 @@ export const BetSingle = () => {
   bet.deadline && new Date(bet.deadline).getTime() <= Date.now();
   
 
-  return (
+return (
     <div className="container mt-4">
       <div className="card shadow-sm">
         <div className="card-body">
-            <h3 className="card-title mb-3">🎯 {bet.name}</h3>
+          <h3 className="card-title mb-3">🎯 {bet.name}</h3>
+
+          {/* Imagen si existe (del backend o guardada en localStorage) */}
+          {getBetImage(bet) && (
+            <div className="mb-3 text-center">
+              <img
+                src={getBetImage(bet)}
+                alt={bet.name}
+                className="img-fluid rounded"
+                style={{ maxHeight: 260, objectFit: "cover" }}
+              />
+            </div>
+          )}
 
             <div className="mb-2"><strong>ID:</strong> {bet.id}</div>
             <div className="mb-2"><strong>Event:</strong> {bet.event_description || "No description"}</div>
@@ -352,7 +365,7 @@ export const BetSingle = () => {
           </div>
         </div>
         
-{/* solución manual de apuestas que no son de la api  */}
+  {/* solución manual de apuestas que no son de la api  */}
         {showResolve && (
             <div className="modal fade show d-block" tabIndex="-1">
               <div className="modal-dialog">
@@ -390,8 +403,4 @@ export const BetSingle = () => {
       </div>
     </div>
   );
-};
-
-
-
-
+}

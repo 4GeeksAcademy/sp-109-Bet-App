@@ -1,0 +1,78 @@
+/* Estructura principal */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Contenedor del contenido */
+.content-wrapper {
+  display: flex;
+  flex: 1;
+  padding-top: 30px; 
+}
+
+/* SideNav fijo */
+.sidenav-container {
+  position: fixed;
+  left: 80px;
+  top: 30px;
+  bottom: 0;
+  width: 280px;
+  z-index: 100;
+}
+
+/* Contenido principal centrado */
+.main-content {
+  flex: 1;
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+
+.main-content > * {
+  width: 100%;
+  max-width: 1200px; 
+
+
+@media (max-width: 2000px) and (min-width: 1200px) {
+  .sidenav-container {
+    left: 30px; 
+    width: 240px; 
+  }
+  .main-content > * {
+    max-width: 800px; 
+  }
+  .main-content.with-sidenav {
+    margin-left: 150px; 
+  }
+}
+
+
+@media (max-width: 1200px) {
+  .sidenav-container {
+    left: 20px;
+    width: 200px;
+  }
+  .main-content > * {
+    max-width: 800px;
+  }
+  .main-content.with-sidenav {
+    margin-left: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .content-wrapper {
+    flex-direction: column;
+  }
+  .sidenav-container {
+    position: static;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  .main-content.with-sidenav {
+    margin-left: 0;
+  }
+};

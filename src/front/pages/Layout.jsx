@@ -1,26 +1,33 @@
-import { Outlet } from "react-router-dom/dist"
-import ScrollToTop from "../components/ScrollToTop"
-import { Navbar } from "../components/Navbar"
-import { Footer } from "../components/Footer"
+import { Outlet } from "react-router-dom";
+import { Navbar } from "../components/Navbar";
+import { Footer } from "../components/Footer";
+import { SideNav } from "../components/SideNav";
 import { useLocation } from "react-router-dom";
-
-// Base component that maintains the navbar and footer throughout the page and the scroll to top functionality.
-
+import "./Layout.css";
 
 export const Layout = () => {
   const location = useLocation();
+  const hideSideNavRoutes = ["/login", "/register", "/"];
+  const shouldShowSideNav = !hideSideNavRoutes.includes(location.pathname);
 
   return (
-    <>
+    <div className="app-container">
       <Navbar />
-      <Outlet />
       
-      {location.pathname === "/" && (
-        <div className="text-center mt-4">
-          <p>Check the <a href="#">template documentation</a> for help.</p>
-          <p>Made with ❤️ by <a href="#">4Geeks Academy</a></p>
-        </div>
-      )}
-    </>
+      <div className="content-wrapper">
+        {shouldShowSideNav && (
+          <div className="sidenav-container">
+            <SideNav />
+          </div>
+        )}
+        
+        <main className={`main-content ${shouldShowSideNav ? 'with-sidenav' : ''}`}>
+          <Outlet />
+        </main>
+      </div>
+
+      <Footer />
+    </div>
   );
 };
+
