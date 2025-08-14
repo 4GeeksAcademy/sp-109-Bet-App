@@ -47,6 +47,18 @@ import { Requests } from "./pages/Requests";
 import { BetSingle } from "./pages/BetSingle";
 import { AdminMessageBoard } from "./pages/AdminMessageBoard.jsx";
 import { MyProfileEdit } from "./pages/MyProfileEdit.jsx";
+import { LandingPreview } from "./pages/LandingPreview.jsx";
+import { CompanyTeam } from "./pages/CompanyTeam";
+import { WorkWithUs } from "./pages/WorkWithUs";
+import { Contact } from "./pages/Contact";
+import  LegalTerms  from "./pages/LegalTerms"
+import LegalPrivacy from "./pages/LegalPrivacy";
+import LegalCookies from "./pages/LegalCookies";
+import LegalResponsible from "./pages/LegalResponsible";
+import ResourceGuides from "./pages/ResourceGuides";
+import ResourceChangelog from "./pages/ResourceChangelog.jsx";
+import ResourceRoadmap from "./pages/ResourceRoadmap.jsx";
+import ResourceStatus from "./pages/ResourceStatus.jsx";
 import BetWinners from "./pages/BetWinners.jsx";
 
 
@@ -66,8 +78,18 @@ export const router = createBrowserRouter(
       <Route path="/adminusers" element={<AdminUsers />} />
       <Route path="/adminplaygrounds" element={<AdminPlaygrounds />} />
       <Route path="/adminbets" element={<AdminBets />} />
-
-
+      <Route path="/preview" element={<LandingPreview />} />
+      <Route path="/company/team" element={<CompanyTeam />} />
+      <Route path="/company/jobs" element={<WorkWithUs />} />
+      <Route path="/company/contact" element={<Contact />} />
+      <Route path="/legal/terms" element={<LegalTerms />} />
+      <Route path="/legal/privacy" element={<LegalPrivacy />} />
+      <Route path="/legal/cookies" element={<LegalCookies />} />
+      <Route path="/legal/responsible" element={<LegalResponsible />} />
+      <Route path="/guides" element={<ResourceGuides />} />
+      <Route path="/changelog" element={<ResourceChangelog />} />
+      <Route path="/roadmap" element={<ResourceRoadmap />} />
+      <Route path="/status" element={<ResourceStatus />} />
 
       {/* ✅ Admin visible y accesible */}
       <Route path="/adminsite" element={<Adminsite />} />

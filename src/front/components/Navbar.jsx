@@ -129,7 +129,11 @@ export const Navbar = () => {
                 <Link to="/playground/search" className="btn btn-outline-info mx-2">
                      Buscar Playground
                 </Link>
-                
+
+                <Link to="/preview" className="btn btn-primary mx-2">
+                      Vista nueva
+                </Link>
+                                
 			</div>
 		</nav>
 	);
