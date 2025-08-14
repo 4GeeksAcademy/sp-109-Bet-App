@@ -60,12 +60,16 @@ def login_user():
     if not check_password_hash(user.password, password):
         raise APIException("Incorrect password", 401)
     
-    token = create_access_token(identity=str(user.id))
+    token = create_access_token(identity=str(user.id), additional_claims={
+        "email": user.email,
+        "role": "user" 
+    })
     
     return jsonify({
         "token": token,
         "user_id": user.id,
-        "user": user.serialize()
+        "user": user.serialize(),
+        "role": "user"
     }), 200
 
 
@@ -128,39 +132,39 @@ def handle_user():
 
 # ----------- ADMIN USER -----------
 
-@api.route('/adminuser', methods=['GET', 'POST'])
-def handle_adminuser():
-    if request.method == 'GET':
-        return jsonify([admin.serialize() for admin in AdminUser.query.all()]), 200
+# @api.route('/adminuser', methods=['GET', 'POST'])
+# def handle_adminuser():
+#     if request.method == 'GET':
+#         return jsonify([admin.serialize() for admin in AdminUser.query.all()]), 200
 
-    data = request.get_json()
-    if 'email' not in data or 'password' not in data:
-        raise APIException('Fields "email" and "password" are required', 400)
+#     data = request.get_json()
+#     if 'email' not in data or 'password' not in data:
+#         raise APIException('Fields "email" and "password" are required', 400)
 
-    admin = AdminUser(email=data['email'], password=data['password'])
-    db.session.add(admin)
-    db.session.commit()
-    return jsonify({"msg": "Admin created", "admin": admin.serialize()}), 201
+#     admin = AdminUser(email=data['email'], password=data['password'])
+#     db.session.add(admin)
+#     db.session.commit()
+#     return jsonify({"msg": "Admin created", "admin": admin.serialize()}), 201
 
-@api.route('/adminuser/<int:id>', methods=['GET', 'PUT', 'DELETE'])
-def handle_single_admin(id):
-    admin = AdminUser.query.get(id)
-    if not admin:
-        raise APIException('Admin not found', 404)
+# @api.route('/adminuser/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+# def handle_single_admin(id):
+#     admin = AdminUser.query.get(id)
+#     if not admin:
+#         raise APIException('Admin not found', 404)
 
-    if request.method == 'GET':
-        return jsonify(admin.serialize()), 200
+#     if request.method == 'GET':
+#         return jsonify(admin.serialize()), 200
 
-    if request.method == 'PUT':
-        data = request.get_json()
-        admin.email = data.get('email', admin.email)
-        admin.password = data.get('password', admin.password)
-        db.session.commit()
-        return jsonify({"msg": "Admin updated"}), 200
+#     if request.method == 'PUT':
+#         data = request.get_json()
+#         admin.email = data.get('email', admin.email)
+#         admin.password = data.get('password', admin.password)
+#         db.session.commit()
+#         return jsonify({"msg": "Admin updated"}), 200
 
-    db.session.delete(admin)
-    db.session.commit()
-    return jsonify({"msg": "Admin deleted"}), 200
+#     db.session.delete(admin)
+#     db.session.commit()
+#     return jsonify({"msg": "Admin deleted"}), 200
 
 
 @api.route('/playground/<int:id>', methods=['GET'])
@@ -893,6 +897,7 @@ def delete_user_bet(id):
 
 
 @api.route('/admin_users', methods=['GET'])
+@jwt_required()
 def get_admin_users():
     admins = AdminUser.query.all()
     return jsonify([a.serialize() for a in admins]), 200
@@ -915,10 +920,12 @@ def create_admin_user():
     
     if AdminUser.query.filter_by(email=data["email"]).first():
         raise APIException("Email already exists", 400)
+    
+    hashed_password =  generate_password_hash(data["password"])
 
     new_admin = AdminUser(
         email=data["email"],
-        password=data["password"]   
+        password=hashed_password  
     )
 
     db.session.add(new_admin)
@@ -958,26 +965,37 @@ def admin_login():
     email = data.get("email")
     password = data.get("password")
 
-    
     admin = AdminUser.query.filter_by(email=email).first()
- 
+
     if not admin:
         if email == "contrasena@gmail.com" and password == "contrasena":
-            token = create_access_token(identity="superadmin")
+            token = create_access_token(
+                identity="superadmin",
+                additional_claims={
+                    "email": email,
+                    "role": "admin"
+                }
+            )
             return jsonify({"msg": "Admin login exitoso", "token": token}), 200
         return jsonify({"msg": "Invalid credentials"}), 401
-    
-    if admin.password != password:
+
+    if not check_password_hash(admin.password, password):
         return jsonify({"msg": "Invalid credentials"}), 401
-    
+
     token = create_access_token(
-    identity=str(admin.id),
-    additional_claims={
-        "email": admin.email,
+        identity=str(admin.id),
+        additional_claims={
+            "email": admin.email,
+            "role": "admin"
+        }
+    )
+    return jsonify({
+        "msg": "Admin login exitoso",
+        "token": token,
+        "admin": admin.serialize(),
         "role": "admin"
-    }
-)
-    return jsonify({"msg": "Admin login exitoso", "token": token}), 200
+    }), 200
+
     
 @api.route('/playground/<int:pg_id>/invite', methods=['POST'])
 @jwt_required()

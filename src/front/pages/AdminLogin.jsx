@@ -1,34 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../hooks/AuthContext";
+
 
 export const AdminLogin = () => {
     const [form, setForm] = useState({ email: "", password: "" });
     const [error, setError] = useState(null);
+
     const navigate = useNavigate();
     const location = useLocation();
 
     const loginMessage = location.state?.fromProtected ? "⚠️ Please log in first." : null;
 
-
-    useEffect(() => {
-        const verifyToken = async () => {
-        const token = localStorage.getItem("adminToken");
-        if (!token) return;
-
-        try {
-        const res = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/adminuser/private", {
-        headers: {
-          "Authorization": `Bearer ${token}`,
-        },});
-        
-        if (res.ok) {
-        navigate("/admin-board");
-        } } catch (err) {
-      console.error("Token verification failed:", err);
-        }
-        }; 
-        verifyToken();
-    }, [navigate]);
+    const { login } = useAuth();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -42,14 +26,11 @@ export const AdminLogin = () => {
             });
 
             const data = await resp.json();
-
             if (!resp.ok) {
                 throw new Error(data.msg || "Invalid credentials");
             }
 
-            localStorage.setItem("adminToken", data.token);
-            localStorage.setItem("adminEmail", form.email);
-
+            login(data.token, data.admin, data.role)
             navigate('/admin-board');
         } catch (err) {
             console.error(err);
