@@ -59,6 +59,8 @@ import ResourceGuides from "./pages/ResourceGuides";
 import ResourceChangelog from "./pages/ResourceChangelog.jsx";
 import ResourceRoadmap from "./pages/ResourceRoadmap.jsx";
 import ResourceStatus from "./pages/ResourceStatus.jsx";
+import BetWinners from "./pages/BetWinners.jsx";
+
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -203,6 +205,13 @@ export const router = createBrowserRouter(
           <UserBetsBoard />
         </PrivateRoutes>
       } />
+      
+      {/* ✅ Ganadores bets protegidos */}
+      <Route path="/betwinners" element={
+        <PrivateRoutes>
+        <BetWinners />
+        </PrivateRoutes>
+      } />
 
       {/* ✅ Ruta de invitación abierta */}
       <Route path="/playground/:id/invite" element={<PlaygroundInvite />} />
@@ -222,5 +231,7 @@ export const router = createBrowserRouter(
       } />
 
     </Route>
+
+    
   )
 );

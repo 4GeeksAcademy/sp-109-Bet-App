@@ -1,35 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/AuthContext";
+
 
 export const Login = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState(null);
-    const [usersList, setUsersList] = useState([]);
 
     const navigate = useNavigate();
+    const { login } = useAuth();
+    
 
-    // ✅ Cargar lista de usuarios para mostrar en pantalla
-    useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                const token = localStorage.getItem("token"); // ⬅️ añadido
-                const resp = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/users", {
-                    headers: {
-                        "User-Token": token, // ⬅️ cambiado
-                    },
-                });
-                if (!resp.ok) throw new Error("Error al obtener usuarios");
-                const data = await resp.json();
-                setUsersList(data);
-            } catch (err) {
-                console.error(err);
-            }
-        };
-        fetchUsers();
-    }, []);
 
-    // ✅ Login
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(null);
@@ -44,12 +27,9 @@ export const Login = () => {
             const data = await resp.json();
             if (!resp.ok) throw new Error(data.msg || "Login failed");
 
-            // ✅ Guardamos token y username para usar después en mensajes
-            localStorage.setItem("token", data.token);
-            if (data.username) {
-                localStorage.setItem("username", data.username);
-            }
 
+
+            login(data.token, data.user, data.role)
             navigate("/playground");
         } catch (err) {
             console.error(err);
@@ -90,21 +70,6 @@ export const Login = () => {
                 <button type="submit" className="btn btn-primary">Login</button>
             </form>
 
-            {/* ✅ Panel con usuarios disponibles para pruebas */}
-            {usersList.length > 0 && (
-                <div className="mt-4 p-3 bg-light border rounded" style={{ maxWidth: "400px" }}>
-                    <h6 className="text-muted">
-                        🔹 Usuarios de prueba (password: <b>prueba</b>)
-                    </h6>
-                    <ul className="list-group small">
-                        {usersList.map((user) => (
-                            <li key={user.id} className="list-group-item py-1">
-                                <strong>{user.username}</strong> – {user.email}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            )}
         </div>
     );
 };

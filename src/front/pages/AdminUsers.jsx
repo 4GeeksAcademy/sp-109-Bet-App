@@ -1,112 +1,144 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/AuthContext";
+import { FaTrash, FaEdit, FaEye } from "react-icons/fa";
 
 export const AdminUsers = () => {
     const [users, setUsers] = useState([]);
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    
+
+    const { token, role, logout } = useAuth()
+
+    useEffect(() => {
+        if (!token || role !== "admin") {
+            navigate("/admin/login", { state: { fromProtected: true } });
+        }
+    }, [navigate, token, role]);
+
+    const handleUnauthorized = () => {
+        logout();
+        navigate("/admin/login");
+    };
 
     const getUsers = async () => {
-        const token = localStorage.getItem("adminToken");
-        if (!token) {
-            navigate("admin/login", { state: { fromProtected: true } });
-            return;
-        }
-
+        setLoading(true)
         try {
             const resp = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/users", {
                 method: 'GET',
-                headers: { 
+                headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
                 }
             });
-
-        const data = await resp.json();
-        if (resp.ok){
-        setUsers(data);
-        } else {
-        setError(data.msg || "Failed to load users.");
-        console.error("Error in the request:", data);
-        }
+            if (resp.status === 401) return handleUnauthorized()
+            if (!resp.ok) throw new Error("Error fetching users");
+            const data = await resp.json();
+            setUsers(data);
         } catch (err) {
             setError("Error, it's impossible to obtein users.");
             console.error("Error fetching users:", err);
+        } finally {
+            setLoading(false)
         }
     };
 
     const handleDelete = async (id) => {
-    const token = localStorage.getItem("adminToken");
-    if (!token) {
-        navigate("admin/login");
-        return;
-    }
+        if (!confirm("Are you sure you want to delete this user?")) return;
 
-    if (!confirm("Are you sure you want to delete this user?")) return;
-
-    try {
-        const resp = await fetch(import.meta.env.VITE_BACKEND_URL + `/api/user/${id}`, {
-            method: "DELETE",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            }
-        });
-
-        if (!resp.ok) {
+        try {
+            const resp = await fetch(import.meta.env.VITE_BACKEND_URL + `/api/user/${id}`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+            if (resp.status === 401) return handleUnauthorized()
+            if (!resp.ok) throw new Error("Error fetching users");
             const data = await resp.json();
-            setError(data.msg || "Failed to delete user.");
-            console.error("Error deleting user:", data);
-            return;
-        } getUsers()
-        ;} 
-    catch (err) {
-    console.error("Network/server error:", err);
-    setError("Error deleting user.");
+
+            setUsers(prev => prev.filter(user => user.id !== id))   
+        }
+        catch (err) {
+            console.error("Network/server error:", err);
+            setError("Error deleting user.");
+        } finally {
+            setLoading(false)
         }
     };
 
-        
+
     useEffect(() => {
         getUsers();
     }, []);
 
 
     return (
-        <div className="container mt-5">
-            <h2>Users</h2>
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-            <table className="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>Email</th>
-                        <th>Money</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {users.map((user) => (
-                        <tr key={user.id}>
-                            <td>{user.username}</td>
-                            <td>{user.email}</td>
-                            <td>{user.money}</td>
-                            <td>
-                                <a href={`/view/${user.id}`} className="btn btn-sm btn-info me-2">View</a>
-                                <a href={`/edit/${user.id}`} className="btn btn-sm btn-primary me-2">Edit</a>
-                                <button onClick={() => handleDelete(user.id)} className="btn btn-sm btn-danger">Delete</button>
-                            </td>
-                        </tr>
-                    ))}
-                    {users.length === 0 && (
-                        <tr>
-                            <td colSpan={4}>No users found.</td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
-            <a href="/create" className="btn btn-success">Create New User</a>
-        </div>
-    );
+    <div className="container mt-5">
+      <h2>Users</h2>
+      {error && <p className="text-danger">{error}</p>}
+
+      {loading ? (
+        <p>Loading users...</p>
+      ) : (
+        <table className="table table-bordered">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Money</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.length > 0 ? (
+              users.map((user) => (
+                <tr key={user.id}>
+                  <td>{user.username}</td>
+                  <td>{user.email}</td>
+                  <td>{user.money}</td>
+                  <td>
+                    <button
+                      onClick={() => navigate(`/view/${user.id}`)}
+                      className="btn btn-sm btn-info me-2"
+                      title="View"
+                    >
+                      <FaEye />
+                    </button>
+                    <button
+                      onClick={() => navigate(`/edit/${user.id}`)}
+                      className="btn btn-sm btn-primary me-2"
+                      title="Edit"
+                    >
+                      <FaEdit />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(user.id)}
+                      className="btn btn-sm btn-danger"
+                      title="Delete"
+                    >
+                      <FaTrash />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={4}>No users found.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      )}
+
+      <button
+        onClick={() => navigate("/create")}
+        className="btn btn-success"
+      >
+        Create New User
+      </button>
+    </div>
+  );
 };

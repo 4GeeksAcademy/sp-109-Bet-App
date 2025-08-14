@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../hooks/AuthContext";
 
 export const Navbar = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
     const isAdminLoggedIn = !!localStorage.getItem("adminToken");
     const navigate = useNavigate();
     const location = useLocation();
+
+    const { logout } = useAuth()
 
     // ✅ Cada vez que cambie la ruta, comprobar token (login/logout)
     useEffect(() => {
@@ -21,10 +24,9 @@ export const Navbar = () => {
 
     const handleLogout = () => {
         if (confirm("¿Seguro que quieres cerrar sesión?")) {
-            localStorage.removeItem("token");
+            logout()
             setIsLoggedIn(false);
             navigate("/login");
-            window.location.reload(); // limpieza total
         }
     };
 
@@ -73,6 +75,10 @@ export const Navbar = () => {
 
                  <Link to="/admin-message-board" className="btn btn-outline-secondary mx-2">
                     Admin-Message Board
+                </Link>
+
+                <Link to="/betwinners" className="btn btn-outline-secondary mx-2">
+                    Bet-Winners
                 </Link>
 
                 {!isLoggedIn && (
