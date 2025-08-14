@@ -9,6 +9,7 @@ export const BetSingle = () => {
   const [bet, setBet] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
   const [selectedOption, setSelectedOption] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   
@@ -25,22 +26,30 @@ const [loadingWinners, setLoadingWinners] = useState(false);
 const [winnersError, setWinnersError] = useState(null);
 
   // --- Helpers ---
-  const token = localStorage.getItem("token");
 
-  const headers = useMemo(
-    () => ({
-      Authorization: token ? `Bearer ${token}` : undefined,
+  const userToken = localStorage.getItem("token");
+  const adminToken = localStorage.getItem("adminToken");
+  const activeToken = adminToken || userToken;
+  const isAdmin = localStorage.getItem("is_admin") === "true" || !!adminToken;
+  
+
+  const headers = useMemo(() => ({
       "Content-Type": "application/json",
+      ...(activeToken ? { Authorization: `Bearer ${activeToken}` } : {}),
     }),
-    [token]
+    [activeToken]
   );
 
+// --- Es creador de la bet? --- 
   const isCreator = bet?.user_id === Number(localStorage.getItem("user_id"));
+ 
+  
 
+// --- img helper ---    
   const getBetImage = (b) =>
     b?.url_image || (b?.id ? localStorage.getItem(`bet-image-${b.id}`) : null);
 
-    // --- Fetch apuesta ---
+    // --- cargar apuesta ---
   const fetchBet = async () => {
     try {
       setLoading(true);
@@ -48,15 +57,24 @@ const [winnersError, setWinnersError] = useState(null);
 
       const resp = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/bet/${betId}`,
-        { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+        { headers }
       );
 
       if (resp.status === 401) {
-        localStorage.removeItem("token");
-        navigate("/login", { replace: true, state: { msg: "Session expired" } });
-        return;
+        if (adminToken) {
+          localStorage.removeItem("adminToken");
+          navigate("/admin/login", { replace: true, state: { msg: "Session expired" } });
+        } else {
+          localStorage.removeItem("token");
+          navigate("/login", { replace: true, state: { msg: "Session expired" } });
+        }
+          return;
       }
-      if (!resp.ok) throw new Error(await resp.text() || `HTTP ${resp.status}`);
+      
+      if (!resp.ok) {
+        const txt = await resp.text();
+        throw new Error(txt || `HTTP ${resp.status}`);
+      }
 
       const raw = await resp.json();
       const b = raw?.bet ?? raw;
@@ -78,10 +96,10 @@ const [winnersError, setWinnersError] = useState(null);
 
   useEffect(() => {
     fetchBet();
-  }, [id, betId, token]);
+  }, [id, betId, activeToken]);
 
 
-// Polling si la apuesta no está resuelta
+// Polling/Votaciones - Si la apuesta no está resuelta 
   useEffect(() => {
     if (!bet) return;
     const interval = setInterval(() => {
@@ -101,36 +119,36 @@ const [winnersError, setWinnersError] = useState(null);
     setLoadingWinners(true);
     setWinnersError(null);
       try {
-    const resp = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/bet/${betId}/winners`,
-      {
-        headers: {
-          ...(localStorage.getItem("token")
-            ? { Authorization: `Bearer ${localStorage.getItem("token")}` }
-            : {}),
-        },
+      const resp = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/bet/${betId}/winners`,
+        { headers }
+      );
+    if (resp.status === 401) {
+      if (adminToken) {
+          localStorage.removeItem("adminToken");
+          navigate("/admin/login", { replace: true, state: { msg: "Session expired" } });
+      } else {
+        localStorage.removeItem("token");
+        navigate("/login", { replace: true, state: { msg: "Session expired" } });
+      }  
+        return;
       }
-    );
-     if (resp.status === 401) {
-      localStorage.removeItem("token");
-      navigate("/login", { replace: true, state: { msg: "Session expired" } });
-      return;
-    }
 
-    const text = await resp.text();
-    if (!resp.ok) {
-      let msg = "";
-      try { msg = JSON.parse(text).message; } catch { msg = text; }
-      throw new Error(msg || `Failed to load winners (HTTP ${resp.status})`);
-    }
-    const data = JSON.parse(text); 
+      const text = await resp.text();
+      if (!resp.ok) {
+        let msg = "";
+        try { msg = JSON.parse(text).message; } catch { msg = text; }
+        throw new Error(msg || `Failed to load winners (HTTP ${resp.status})`);
+      }
+
+      const data = JSON.parse(text); 
       setWinners(Array.isArray(data.winners) ? data.winners : []);
-    } catch (e) {
-      setWinnersError(e.message || "Error loading winners");
-    } finally {
-      setLoadingWinners(false);
-    }
-  };
+      } catch (e) {
+        setWinnersError(e.message || "Error loading winners");
+      } finally {
+        setLoadingWinners(false);
+      }
+    };
 
   const closeWinnersModal = () => {
     setShowWinners(false);
@@ -147,13 +165,14 @@ const [winnersError, setWinnersError] = useState(null);
     (bet.deadline && new Date(bet.deadline).getTime() <= Date.now());
 
 
-  // Manejo de votaciones //
+  //--- Manejo de votaciones --- //
 
   const handleVote = async () => {
     if (!selectedOption) {
       alert("Please select an option before voting.");
       return;
-    } try {
+    } 
+    try {
       setSubmitting(true);
       
       const response = await fetch(
@@ -162,15 +181,20 @@ const [winnersError, setWinnersError] = useState(null);
           method: "POST",
           headers,
           body: JSON.stringify({ option_id: Number(selectedOption) }),
-          }
+        }
       );
 
       if (!response.status === 401) {
+      if (adminToken) {
+        localStorage.removeItem("adminToken");
+        navigate("/admin/login", { replace: true, state: { msg: "Session expired" } });
+      } else {
         localStorage.removeItem("token");
         navigate("/login",{
         replace: true,
-        state: { msg: "Session expired. Please log in again." }
+        state: { msg: "Session expired" }
         });
+      }  
         return;
       }
       
@@ -187,6 +211,7 @@ const [winnersError, setWinnersError] = useState(null);
       let updated = null;
       try { updated = JSON.parse(text);
       } catch { }
+
       if (updated) {
         setBet(updated);
         const uv =
@@ -217,19 +242,32 @@ const handleResolve = async () => {
     }
     try {
       setResolving(true);
+
       const resp = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/bet/${betId}/resolve-manual`,
         {
           method: "PUT",
-          headers, 
+          headers,
           body: JSON.stringify({ winner_option_id: Number(winnerOption) }),
         }
       );
 
       if (resp.status === 401) {
+        if (adminToken) {
+        localStorage.removeItem("adminToken");
+        navigate("/admin/login", { replace: true, state: { msg: "Session expired" } });
+        } else {
         localStorage.removeItem("token");
         navigate("/login", { replace: true, state: { msg: "Session expired" } });
+        } 
         return;
+      }
+
+      if (resp.status === 403) {
+      const t = await resp.text();
+      let msg;
+      try { msg = JSON.parse(t).message; } catch { msg = t; }
+      throw new Error(msg || "Forbidden: you are not allowed to resolve this bet");
       }
 
       const text = await resp.text();
@@ -241,10 +279,8 @@ const handleResolve = async () => {
       }
   
       let updated = null;
-      try { updated = JSON.parse(text);         
-      } catch {}
-      if (updated) setBet(updated); 
-      else await fetchBet();
+      try { updated = JSON.parse(text);} catch {}
+      if (updated) setBet(updated); else await fetchBet();
 
       setWinnerOption(null);
       setShowResolve(false);
@@ -266,8 +302,14 @@ const handleResolve = async () => {
     bet.winner_option_id &&
     bet.options?.find((o) => o.id === bet.winner_option_id)?.label;
 
-  const deadlinePassed =
-  bet.deadline && new Date(bet.deadline).getTime() <= Date.now();
+  const deadlinePassed = bet?.deadline && new Date(bet.deadline).getTime() <= Date.now();
+  const isLocked = bet?.status === "locked";
+  const isResolved = bet?.status === "resolved";
+
+
+// --- Botón se muestra si es creador o admin, y no está resuelta la apuesta ---
+  const canManualResolveUI =
+    (isCreator || isAdmin) && !isResolved && (isLocked || deadlinePassed);
   
 
 return (
@@ -310,7 +352,7 @@ return (
             
             {bet.status === "resolved" && (
               <div className="alert alert-info">
-                🏆 Winner: <strong>{winnerLabel || `#${bet.winner_option_id}`}</strong>
+                🏆 Winner Option: <strong>{winnerLabel || `#${bet.winner_option_id}`}</strong>
               </div>
             )}
           
@@ -320,57 +362,54 @@ return (
               </div>
             )}
 
-            {bet.options && bet.options.length > 0 && (
-              <div className="mt-3">
+            {Array.isArray(bet.options) && bet.options.length > 0 && (   
+              <div className="mt-3">             
                 <h5>📌 Options</h5>
                 <ul className="list-group">
-                {bet.options.map((option) => {
-                  const isSelected = Number(selectedOption) === Number(option.id);
-                  const canSelect = !bet.user_vote && !votingDisabled;
-                  return (
-                    <li
-                      key={option.id}
-                      className={`list-group-item ${isSelected ? "active" : ""}`}
-                      style={{ 
-                        cursor: canSelect ? "pointer" : "not-allowed",
-                        opacity: canSelect ? 1 : 0.8,
-                      }}
-                        onClick={() => {
-                        if (canSelect) setSelectedOption(Number(option.id));
-                      }}
-                    >
-                    <div className="d-flex justify-content-between align-items-center">
-                        <span>{option.label}</span>
-                        {isSelected &&(
-                          <span className="badge bg-success">Your choice</span>
-                        )}
-                    </div>
-                  </li>
-                  );
-                })}
-            </ul>
+                  {bet.options.map((option) => {
+                    const isSelected = Number(selectedOption) === Number(option.id);
+                    const canSelect = !bet.user_vote && !votingDisabled;
+                    return (
+                      <li
+                        key={option.id}
+                        className={`list-group-item ${isSelected ? "active" : ""}`}
+                        style={{ 
+                          cursor: canSelect ? "pointer" : "not-allowed",
+                          opacity: canSelect ? 1 : 0.8,
+                        }}
+                          onClick={() => {
+                          if (canSelect) setSelectedOption(Number(option.id));
+                        }}
+                      >
+                      <div className="d-flex justify-content-between align-items-center">
+                          <span>{option.label}</span>
+                          {isSelected && <span className="badge bg-success">Your choice</span>}
+                      </div>
+                    </li>
+                    );
+                  })}
+                </ul>
+              
+                {bet.user_vote ? (
+                  <div className="alert alert-success mt-3">
+                      You've already voted in this bet.
+                    </div>  
+                  ) : votingDisabled ? (
+                      <div className="alert alert-warning mt-3">
+                        Voting is closed for this bet.
+                      </div>
+                  ) : (
 
-                
-            {bet.user_vote ? (
-              <div className="alert alert-success mt-3">
-                  You've already voted in this bet.
-                </div>  
-              ) : votingDisabled ? (
-                  <div className="alert alert-warning mt-3">
-                    Voting is closed for this bet.
-                  </div>
-              ) : (
-
-                  <button
-                    className="btn btn-success mt-3"
-                    onClick={handleVote}
-                    disabled={submitting || !selectedOption}
-                  >
-                    {submitting ? "Submitting..." : "✅ Submit Vote"}
-                  </button>
-                )}
+                      <button
+                        className="btn btn-success mt-3"
+                        onClick={handleVote}
+                        disabled={submitting || !selectedOption}
+                      >
+                        {submitting ? "Submitting..." : "✅ Submit Vote"}
+                      </button>
+                  )}
               </div>
-            )}
+          )}
 
 
           <div className="mt-4 d-flex justify-content-between align-items-center">
@@ -386,14 +425,14 @@ return (
                   ✏️ Edit
               </button>
 
-              {isCreator && bet.status !== "resolved" && (
+                {canManualResolveUI && (
                 <button
-                  className="btn btn-outline-warning"
-                  onClick={() => setShowResolve(true)}
+                className="btn btn-outline-warning"
+                onClick={() => setShowResolve(true)}
                 >
-                  🛠 Finalizar apuesta
+                🛠 Finalizar apuesta
                 </button>
-              )}
+                )}
 
               {bet.status === "resolved" && (
               <button

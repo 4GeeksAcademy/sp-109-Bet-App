@@ -28,6 +28,8 @@ export const Login = () => {
 
 
             login(data.token, data.user)
+            localStorage.setItem("user_id", String(data.user_id ?? data.user?.id));
+            localStorage.setItem("token", data.token);
             navigate("/playground");
         } catch (err) {
             console.error(err);
