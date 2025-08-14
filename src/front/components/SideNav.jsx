@@ -10,7 +10,7 @@ import "./SideNav.css";
 
 export const SideNav = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, role } = useAuth();
 
   const handleLogout = () => {
     if (window.confirm("¿Seguro que quieres cerrar sesión?")) {
@@ -19,7 +19,7 @@ export const SideNav = () => {
     }
   };
 
-  if (!user) return null; // Si no hay usuario logueado, no muestra el menú
+  if (!user) return null; 
 
   return (
     <div className="sidenav-container">

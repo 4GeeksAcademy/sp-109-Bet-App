@@ -10,6 +10,7 @@ export const Login = () => {
 
     const navigate = useNavigate();
     const { login } = useAuth();
+    
 
 
     const handleSubmit = async (e) => {
@@ -27,9 +28,8 @@ export const Login = () => {
             if (!resp.ok) throw new Error(data.msg || "Login failed");
 
 
-            login(data.token, data.user)
-            localStorage.setItem("user_id", String(data.user_id ?? data.user?.id));
-            localStorage.setItem("token", data.token);
+
+            login(data.token, data.user, data.role)
             navigate("/playground");
         } catch (err) {
             console.error(err);
