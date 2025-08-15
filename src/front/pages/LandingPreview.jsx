@@ -27,9 +27,12 @@ export const LandingPreview = () => {
 a[href*="4geeks"], a[href*="4Geeks"], a[href*="template"], a[href*="docs"]{ display:none !important; }
 footer .made-with, .template-links, .footer-credit{ display:none !important; }
 
-/* Navbar clásica: si existiera, ocultamos sus botones aquí */
-.navbar .btn{ display:none !important; }
-.navbar .btn[href="/"]{ display:inline-block !important; }
+/* Oculta barra/menú de demo por completo */
+  .navbar, .navbar * { display:none !important; }
+
+  /* Si quedara algún botón suelto que apunte a "/" (Home),
+     lo ocultamos pero dejando visible el brand del ribbon */
+  a[href="/"]:not(.soft-brand) { display:none !important; }
 
 /* --------------------- HERO --------------------- */
 .hero-gradient{
@@ -73,23 +76,29 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
 /* --------------------- 3 PASOS --------------------- */
 .soft-card{ border:0; border-radius:1.25rem; box-shadow:0 12px 40px rgba(15,23,42,.08); }
 
-/* Tarjeta con foto (usada YA en las 3) */
+/* Tarjeta con foto — SIN borde y con sombra negra suave */
 .card-photo{
-  border-radius:18px; border:1px solid transparent;
-  background: linear-gradient(#fff,#fff) padding-box, var(--su-gradient) border-box;
-  box-shadow:0 18px 60px rgba(15,23,42,.12);
+  border-radius:18px;
+  border:0 !important;
+  background:#fff;
+  box-shadow:0 16px 40px rgba(0,0,0,.12); /* sombra negra sutil */
   overflow:hidden;
 }
+/* Imagen superior */
 .card-photo .top-photo{
   border-radius:16px;
   width:100%; height:200px; object-fit:cover; object-position:center 45%;
 }
+/* Badge flotante sin borde */
 .badge-floating{
   position:absolute; top:-14px; left:18px;
   background:#fff; padding:.35rem .8rem; border-radius:999px;
-  box-shadow:0 6px 20px rgba(15,23,42,.12);
-  font-weight:600; color:#8a2be2; border:1px solid #eee;
+  box-shadow:0 8px 20px rgba(0,0,0,.10);
+  font-weight:600; color:#8a2be2;
+  border:0;
 }
+/* Por si Bootstrap añade borde a .card */
+.card{ border: 0 !important; }
 
 /* --------------------- TESTIMONIOS --------------------- */
 .t-card{
@@ -118,6 +127,8 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
 .section{ padding-top:2.5rem; padding-bottom:3rem; }
 /* Más respiro ANTES del bloque “Más que apuestas” */
 .bullets-gap{ margin-top: 2.75rem; }
+
+
       `}</style>
 
       {/* ================= HERO ================= */}
@@ -143,9 +154,7 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
                 <button className="btn btn-outline-secondary btn-lg" onClick={() => navigate("/create")}>
                   Crear usuario
                 </button>
-                <button className="btn btn-outline-dark btn-lg" onClick={() => navigate("/admin/login")}>
-                  Admin
-                </button>
+                
               </div>
             </div>
 
@@ -172,7 +181,7 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
           <div className="row g-4 align-items-stretch">
             {/* Paso 1 — con foto */}
             <div className="col-lg-4">
-              <div className="card h-100 position-relative card-photo p-1">
+              <div className="card h-100 position-relative card-photo">
                 <img
                   className="top-photo"
                   src="https://images.unsplash.com/photo-1542751110-97427bbecf20?q=80&w=1200&auto=format&fit=crop"
@@ -189,7 +198,7 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
 
             {/* Paso 2 — con foto */}
             <div className="col-lg-4">
-              <div className="card h-100 position-relative card-photo p-1">
+              <div className="card h-100 position-relative card-photo">
                 <img
                   className="top-photo"
                   src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=80"
@@ -212,7 +221,7 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
 
             {/* Paso 3 — con foto (con badge) */}
             <div className="col-lg-4">
-              <div className="card h-100 position-relative card-photo p-1">
+              <div className="card h-100 position-relative card-photo">
                 <span className="badge-floating">¡También de todo un poco!</span>
                 <img
                   className="top-photo"
