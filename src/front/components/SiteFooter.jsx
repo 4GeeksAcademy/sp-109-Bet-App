@@ -110,8 +110,14 @@ export default function SiteFooter() {
             </p>
 
             <div className="socials">
-              {/* X / Twitter */}
-              <a className="social social--x" href="#" target="_blank" rel="noreferrer" aria-label="X (Twitter)" title="X (Twitter)">
+              <a
+                className="social social--x"
+                href="https://twitter.com/Hello_bettapp"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="X (Twitter): @Hello_bettapp"
+                title="X (Twitter): @Hello_bettapp"
+              >
                 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M3 2h4l5 6 5-6h4l-7 8 7 8h-4l-5-6-5 6H3l7-8L3 2z"/>
                 </svg>
@@ -119,7 +125,14 @@ export default function SiteFooter() {
               </a>
 
               {/* Instagram */}
-              <a className="social social--ig" href="#" target="_blank" rel="noreferrer" aria-label="Instagram" title="Instagram">
+             <a
+                className="social social--ig"
+                href="https://www.instagram.com/hello.betapp/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram: @hello.betapp"
+                title="Instagram: @hello.betapp"
+              >
                 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm5 3.5A5.5 5.5 0 1 1 6.5 13 5.5 5.5 0 0 1 12 7.5zm0 2A3.5 3.5 0 1 0 15.5 13 3.5 3.5 0 0 0 12 9.5zm5.75-3.25a1.25 1.25 0 1 1-1.25 1.25 1.25 1.25 0 0 1 1.25-1.25z"/>
                 </svg>
@@ -127,7 +140,14 @@ export default function SiteFooter() {
               </a>
 
               {/* Discord */}
-              <a className="social social--dc" href="#" target="_blank" rel="noreferrer" aria-label="Discord" title="Discord">
+              <a
+                className="social social--dc"
+                href="https://discord.com/users/1405858847951687690" // <-- ID numérico del usuario "betapp"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Discord (perfil)"
+                title="Ver perfil en Discord"
+              >
                 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M20 4a16 16 0 0 0-4-.9l-.4.8A13 13 0 0 1 12 4a13 13 0 0 1-3.6-.1l-.4-.8A16 16 0 0 0 4 4C2 7.1 1.4 10 1.5 12.9a15.7 15.7 0 0 0 5 2.6l.7-1.1a10.5 10.5 0 0 1-1.8-.9l.4-.3a10.9 10.9 0 0 0 9.4 0l.4.3a10.5 10.5 0 0 1-1.8.9l.7 1.1a15.7 15.7 0 0 0 5-2.6C22.6 10 22 7.1 20 4ZM9.2 13.3c-.9 0-1.6-.9-1.6-2s.7-2 1.6-2 1.7.9 1.7 2-.8 2-1.7 2Zm5.6 0c-.9 0-1.7-.9-1.7-2s.8-2 1.7-2 1.6.9 1.6 2-.7 2-1.6 2Z"/>
                 </svg>
