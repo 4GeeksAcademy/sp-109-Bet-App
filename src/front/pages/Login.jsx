@@ -30,7 +30,7 @@ export const Login = () => {
 
 
             login(data.token, data.user, data.role)
-            navigate("/playground");
+            navigate("/", { replace: true });
         } catch (err) {
             console.error(err);
             setError(err.message);
