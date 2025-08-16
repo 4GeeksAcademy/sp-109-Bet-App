@@ -1,0 +1,71 @@
+
+.adminlogin-page { background: #fff; }
+.admin-row { min-height: 100vh; }
+
+.admin-title { font-size: 44px; line-height: 1.1; font-weight: 800; margin: 0; }
+.admin-subtitle { color: #6b7280; font-size: 18px; }
+
+.admin-left {
+  padding: 56px 40px;
+  max-width: 700px; 
+  margin: 0 auto; 
+}
+
+.text-gradient-lilac {
+  background: linear-gradient(90deg, #ff007a 0%, #7a2bff 100%);
+  background-clip: text; -webkit-background-clip: text;
+  color: transparent; -webkit-text-fill-color: transparent;
+}
+
+/* Input */
+.adminlogin-page .form-control {
+  border-radius: 12px;
+  height: 52px;
+  font-size: 16px;
+  border: 1px solid #e5e7eb;
+  background-clip: padding-box;
+}
+.adminlogin-page .form-control:focus {
+  outline: 0;
+  box-shadow: 0 0 0 6px rgba(194,61,179,.18) !important;
+  border-color: #c23db3;
+  background-image: none;
+}
+
+/* Botón degradado */
+.btn-gradient-lilac {
+  border: none; 
+  color: #fff !important; 
+  font-weight: 700;
+  padding: 14px 18px; border-radius: 12px;
+  background-image: linear-gradient(90deg, #ff007a 0%, #7a2bff 100%);
+  box-shadow: 0 10px 24px rgba(122,43,255,.28);
+  transition: transform .06s ease, box-shadow .2s ease;
+  
+}
+.btn-gradient-lilac:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(122,43,255,.34);
+  color: #fff !important;
+}
+
+
+
+/* Panel derecho: imagen con corte diagonal */
+
+.admin-art {
+  min-height: 60vh;
+  width: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+@media (min-width: 992px) {
+  .admin-art {
+    min-height: 100vh;
+    clip-path: polygon(58% 0, 100% 0, 100% 100%, 42% 100%);
+  }
+}
+
+
