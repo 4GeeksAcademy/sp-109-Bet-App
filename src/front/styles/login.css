@@ -22,17 +22,17 @@
   font-size: 44px;
   line-height: 1.1;
   font-weight: 800;
-  color: #e600a4; /* magenta como en la referencia */
+  color: #e600a4; 
   margin: 0;
 }
 
 .login-subtitle {
-  color: #6b7280; /* gris suave */
+  color: #6b7280; 
   font-size: 18px;
   margin-bottom: 24px;
 }
 
-/* Inputs grandes y redondeados como la referencia */
+/* Inputs */
 .login-page .form-control {
   border-radius: 12px;
   height: 52px;
@@ -95,7 +95,6 @@ button.btn-gradient {
   height: 100%;
   background-size: cover;
   background-position: center;
-  /* Crea el ángulo similar a la captura */
   clip-path: polygon(20% 0, 100% 0, 100% 100%, 10% 100%);
 }
 

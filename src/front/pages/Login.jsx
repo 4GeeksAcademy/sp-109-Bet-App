@@ -94,7 +94,7 @@ export const Login = () => {
                                         </div>
                                     </div>
                                     
-                                    <button type="submit" className="btn btn-gradient w-100">LOG IN</button>
+                                    <button type="submit" className="btn btn-gradient px-5 d-block mx-auto">LOG IN</button>
                                 </form>
 
                                 <p className="login-bottom mt-4">
@@ -106,7 +106,7 @@ export const Login = () => {
                             </div>
                         </div>
                     </div>
-                {/* Columna derecha: imagen decorativa */}
+                {/* Columna derecha: imagen */}
                 <div className="col-12 col-lg-6 p-0 order-1 order-lg-2 d-none d-lg-block">
                     <div
                     className="login-art"
