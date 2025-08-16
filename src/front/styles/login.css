@@ -1,0 +1,115 @@
+.login-page {
+  background: #ffffff;
+}
+
+.login-left {
+  padding: 56px 40px;
+}
+
+
+@media (min-width: 992px) {
+  .auth-left {
+    padding-left: 72px;
+    padding-right: 72px;
+    margin-left: 50px;
+  }
+}
+
+.login-box { max-width: 700px; margin: 0 auto; }
+
+/* Títulos y textos */
+.login-title {
+  font-size: 44px;
+  line-height: 1.1;
+  font-weight: 800;
+  color: #e600a4; /* magenta como en la referencia */
+  margin: 0;
+}
+
+.login-subtitle {
+  color: #6b7280; /* gris suave */
+  font-size: 18px;
+  margin-bottom: 24px;
+}
+
+/* Inputs grandes y redondeados como la referencia */
+.login-page .form-control {
+  border-radius: 12px;
+  height: 52px;
+  font-size: 16px;
+}
+
+/* Checkbox alineado */
+.login-page .form-check-input {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+}
+
+/* Botón con degradado */
+.btn-gradient {
+  display: inline-block;
+  border: none;
+  color: #fff;
+  letter-spacing: .3px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  background-image: linear-gradient(90deg, #ff007a 0%, #7a2bff 100%);
+  box-shadow: 0 10px 24px rgba(122, 43, 255, 0.28);
+  transition: transform .06s ease-in-out, box-shadow .2s ease;
+}
+
+.btn-gradient:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(122, 43, 255, 0.34);
+  color: #fff;
+}
+
+button.btn-gradient {
+  color: #fff !important;
+  font-weight: 700 !important;;
+}
+
+.btn-gradient:active {
+  transform: translateY(0);
+}
+
+/* Texto inferior y links */
+.login-bottom {
+  color: #142548;
+  text-align: center;
+}
+
+.login-link {
+  color: #7a2bff;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.login-link:hover {
+  text-decoration: underline;
+}
+
+/* Panel derecho con imagen y corte diagonal */
+.login-art {
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  /* Crea el ángulo similar a la captura */
+  clip-path: polygon(20% 0, 100% 0, 100% 100%, 10% 100%);
+}
+
+.login-link.gradient {
+  background: linear-gradient(90deg, #ff007a 0%, #7a2bff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.login-link.gradient:hover {
+  text-decoration: underline;
+}
+
+
+/* En pantallas pequeñas ocultamos la imagen (ya lo hace la clase d-none d-lg-block) */
