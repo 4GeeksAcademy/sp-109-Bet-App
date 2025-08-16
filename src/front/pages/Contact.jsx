@@ -1,5 +1,11 @@
+// src/front/pages/Contact.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import SoftRibbonNav from "../components/SoftRibbonNav";
+import SiteFooter from "../components/SiteFooter";
+import heroArt from "../../../docs/assets/img/curved11.jpg";
+
+
 
 export const Contact = () => {
   const navigate = useNavigate();
@@ -14,8 +20,6 @@ export const Contact = () => {
 
   const openMailClient = (e) => {
     e.preventDefault();
-
-    // Montamos el cuerpo del correo
     const bodyLines = [
       `Nombre: ${name || "-"}`,
       `Email: ${fromEmail || "-"}`,
@@ -29,7 +33,6 @@ export const Contact = () => {
     params.set("body", bodyLines);
     if (ccSelf && fromEmail) params.set("cc", fromEmail);
 
-    // Abre el cliente de correo por defecto
     window.location.href = `mailto:${TO_EMAIL}?${params.toString()}`;
   };
 
@@ -37,90 +40,124 @@ export const Contact = () => {
     try {
       await navigator.clipboard.writeText(TO_EMAIL);
       setCopied(true);
-      setTimeout(() => setCopied(false), 1600);
-    } catch {
-      // noop
-    }
+      setTimeout(() => setCopied(false), 1400);
+    } catch {}
   };
 
   return (
-    <div className="contact-scope">
+    <div className="contact-new-scope">
+      {/* Cabecera Bet APP */}
+      <SoftRibbonNav />
+
       <style>{`
-        /* ====== HERO azul ====== */
-        .contact-hero{
-          position:relative;
-          color:#eaf2ff;
-          padding:80px 0 140px;
+        :root{
+          --su-primary:#cb0c9f;
+          --su-info:#17c1e8;
+          --su-dark:#0f1b33;
+          --su-muted:#6b7c90;
+          --su-grad: linear-gradient(310deg,#7928CA,#FF0080);
+        }
+        .contact-new-scope{
           background:
-            radial-gradient(1400px 600px at 50% -280px, #20314d 0%, #0f1b33 62%);
-          overflow:hidden;
+            radial-gradient(1200px 600px at 8% -10%, #eef0ff 0%, transparent 60%),
+            radial-gradient(900px 520px at 98% 0%, #e6f9ff 0%, transparent 55%),
+            #fff;
         }
-        .contact-hero h1{ font-weight:800; letter-spacing:.2px; }
-        .contact-hero p{ color:#a9b8cc; max-width:780px; }
-        .wave{ position:absolute; left:0; right:0; bottom:-1px; height:120px; width:100%; }
+        .container-neo{ max-width: 1180px; margin: 0 auto; padding: 0 16px; }
 
-        /* ====== CARD ====== */
+        /* HERO split con imagen a la derecha */
+        .contact-hero{ padding: 38px 0 64px; }
+        .contact-wrap{
+          display:grid; grid-template-columns: 1.05fr .95fr; gap: 26px;
+          align-items: stretch; position: relative;
+        }
+        @media (max-width: 991.98px){ .contact-wrap{ grid-template-columns: 1fr; } }
+
+        /* Tarjeta/form más ancha y translucida, sobre la imagen */
         .card-soft{
-          background:#fff;
-          border-radius:22px;
-          box-shadow:0 22px 70px rgba(15,23,42,.16);
-          padding:24px;
+          position: relative; z-index: 2;
+          /* se "mete" en la columna de la derecha */
+          margin-right: -50px;
+          width: calc(100% + 70px);
+          background: rgba(255,255,255,.82);
+          backdrop-filter: blur(8px) saturate(1.05);
+          -webkit-backdrop-filter: blur(8px) saturate(1.05);
+          border: 1px solid rgba(255,255,255,.55);
+          border-radius: 26px;
+          box-shadow: 0 40px 120px rgba(15,23,42,.25);
+          padding: 22px 22px;
         }
-        .label{ font-weight:600; color:#20314d; }
-        .muted{ color:#6b7c90; }
+        @media (max-width: 991.98px){
+          .card-soft{
+            margin-right: 0; width: 100%;
+            background:#fff; backdrop-filter:none; -webkit-backdrop-filter:none;
+          }
+        }
 
-        .btn-brand{
-          background-image: linear-gradient(310deg, #7928CA, #FF0080);
-          border:0; color:#fff;
-          padding:.9rem 1.3rem;
-          border-radius:12px;
-          box-shadow:0 10px 26px rgba(203,12,159,.35);
+        .title{ font-weight:900; letter-spacing:.2px; margin:0 0 6px; color:#20314d; }
+        .lead{ color:var(--su-muted); margin:0 0 16px; }
+
+        /* Imagen derecha (misma que la landing) */
+        .hero-art{
+          position:relative; z-index:1; border-radius:26px; overflow:hidden;
+          box-shadow:0 34px 120px rgba(15,23,42,.22);
+          min-height: 520px; background:#fff;
         }
-        .btn-brand:hover{ filter:brightness(1.05); transform:translateY(-1px); }
-        .btn-ghost{
-          border:1px solid #e9e9f3;
-          background:#fff; color:#20314d;
-          border-radius:12px; padding:.9rem 1.1rem;
+        .hero-art img{
+          position:absolute; inset:-18% -18%;
+          width:136%; height:136%;
+          object-fit:cover; object-position:center;
+          transform:skewX(14deg) translateX(-8%) scale(1.04);
+          filter:saturate(1.06) contrast(1.04);
         }
+        @media (max-width: 991.98px){ .hero-art{ min-height: 320px; } }
 
         .address-chip{
           display:inline-flex; align-items:center; gap:.5rem;
-          border:1px solid #e9e9f3; border-radius:999px; padding:.4rem .75rem;
-          background:#fff; color:#20314d; user-select:all;
+          border:1px solid #edf1f6; border-radius:999px;
+          padding:.45rem .75rem; background:#fff; color:#20314d;
+          box-shadow:0 8px 24px rgba(15,23,42,.06);
         }
-
         .ok-badge{
-          display:inline-block; margin-left:.5rem;
-          background:#eaffe9; color:#14823b;
-          border:1px solid #c8f1cf; border-radius:999px;
-          padding:.15rem .55rem; font-size:.8rem;
+          background:#eaffe9; color:#138a3b; border:1px solid #c8f1cf;
+          border-radius:999px; padding:.15rem .55rem; font-size:.8rem;
         }
+        .btn-brand{
+          background-image:var(--su-grad); color:#fff; border:0;
+          border-radius:12px; padding:.9rem 1.25rem; font-weight:800;
+          box-shadow:0 14px 34px rgba(203,12,159,.35);
+        }
+        .btn-brand:hover{ filter:brightness(1.05); transform:translateY(-1px); }
+        .btn-ghost{
+          border:1px solid #eaeef5; background:#fff; color:#20314d;
+          border-radius:12px; padding:.9rem 1.1rem; font-weight:700;
+          box-shadow:0 10px 26px rgba(15,23,42,.06);
+        }
+        label{ font-weight:700; color:#20314d; }
+        .form-actions{ margin-top: 6px; }
 
-        .form-actions{ margin-top: 2rem; padding-top: .75rem; }
+                
+          /* Oculta la tira de botones de demo */
+          .navbar .btn, .navbar .btn-group, .navbar { 
+            display: none !important;
+          }
+        
       `}</style>
 
-      {/* HERO */}
       <section className="contact-hero">
-        <div className="container">
-          <h1 className="mb-2">Contacto</h1>
-          <p className="mb-0">
-            ¿Tienes dudas, sugerencias o quieres saludarnos? Escribe tu mensaje y
-            abriremos tu cliente de correo para que lo envíes directamente.
-          </p>
-        </div>
-        <svg className="wave" viewBox="0 0 1440 120" preserveAspectRatio="none">
-          <path d="M0,64 C240,128 480,0 720,32 C960,64 1200,144 1440,80 L1440,120 L0,120 Z" fill="#ffffff"/>
-        </svg>
-      </section>
-
-      {/* FORM */}
-      <section className="py-4 py-md-5">
-        <div className="container">
+        <div className="container-neo contact-wrap">
+          {/* Tarjeta izquierda: más ancha y semitransparente */}
           <div className="card-soft">
+            <h1 className="title">Contacto</h1>
+            <p className="lead">
+              ¿Tienes dudas, sugerencias o quieres saludarnos? Completa el
+              formulario y abriremos tu cliente de correo para enviarlo.
+            </p>
+
             <form onSubmit={openMailClient}>
-              <div className="row g-4">
+              <div className="row g-3">
                 <div className="col-md-6">
-                  <label className="label mb-1">Tu nombre</label>
+                  <label className="form-label">Tu nombre</label>
                   <input
                     className="form-control"
                     value={name}
@@ -129,7 +166,7 @@ export const Contact = () => {
                   />
                 </div>
                 <div className="col-md-6">
-                  <label className="label mb-1">Tu email</label>
+                  <label className="form-label">Tu email</label>
                   <input
                     className="form-control"
                     type="email"
@@ -140,7 +177,7 @@ export const Contact = () => {
                 </div>
 
                 <div className="col-12">
-                  <label className="label mb-1">Asunto</label>
+                  <label className="form-label">Asunto</label>
                   <input
                     className="form-control"
                     value={subject}
@@ -151,7 +188,7 @@ export const Contact = () => {
                 </div>
 
                 <div className="col-12">
-                  <label className="label mb-1">Mensaje</label>
+                  <label className="form-label">Mensaje</label>
                   <textarea
                     className="form-control"
                     rows={6}
@@ -162,47 +199,43 @@ export const Contact = () => {
                   />
                 </div>
 
-                <div className="col-md-6">
+                <div className="col-md-6 d-flex align-items-center">
                   <div className="form-check mt-1">
                     <input
+                      id="ccSelf"
                       className="form-check-input"
                       type="checkbox"
-                      id="ccSelf"
                       checked={ccSelf}
                       onChange={(e) => setCcSelf(e.target.checked)}
                     />
-                    <label className="form-check-label" htmlFor="ccSelf">
+                    <label htmlFor="ccSelf" className="form-check-label">
                       Enviarme una copia (CC) a mi email
                     </label>
                   </div>
                 </div>
 
                 <div className="col-md-6 text-md-end">
-                  <div className="muted">
-                    También puedes escribirnos a:
-                    <span className="address-chip ms-2">
-                      {TO_EMAIL}
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-ghost py-1"
-                        onClick={copyAddress}
-                        title="Copiar dirección"
-                      >
-                        Copiar
-                      </button>
-                      {copied && <span className="ok-badge">Copiado</span>}
-                    </span>
+                  <div className="address-chip">
+                    {TO_EMAIL}
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-ghost py-1"
+                      onClick={copyAddress}
+                      title="Copiar dirección"
+                    >
+                      Copiar
+                    </button>
+                    {copied && <span className="ok-badge">Copiado</span>}
                   </div>
                 </div>
 
-                {/* Acciones separadas hacia abajo */}
-                <div className="col-12 d-flex flex-wrap gap-3 form-actions">
-                  <button className="btn btn-brand" type="submit">
+                <div className="col-12 d-flex flex-wrap gap-2 form-actions">
+                  <button type="submit" className="btn-brand">
                     Abrir cliente de correo
                   </button>
                   <button
                     type="button"
-                    className="btn btn-ghost"
+                    className="btn-ghost"
                     onClick={() => navigate(-1)}
                   >
                     ← Volver
@@ -211,8 +244,16 @@ export const Contact = () => {
               </div>
             </form>
           </div>
+
+          {/* Imagen derecha (misma que la landing) */}
+          <div className="hero-art" aria-hidden="true">
+            <img src={heroArt} alt="" />
+          </div>
         </div>
       </section>
+
+      {/* Footer */}
+      <SiteFooter />
     </div>
   );
 };

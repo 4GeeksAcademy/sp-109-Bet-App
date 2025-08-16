@@ -1,9 +1,13 @@
+// src/front/router.jsx  (o donde tengas definido el router)
 import {
   createBrowserRouter,
   createRoutesFromElements,
   Route,
 } from "react-router-dom";
+
 import { Layout } from "./pages/Layout";
+
+// Páginas
 import { Home } from "./pages/Home";
 import { Single } from "./pages/Single";
 import { Demo } from "./pages/Demo";
@@ -40,7 +44,7 @@ import { PlaygroundUserCreate } from "./pages/PlaygroundUserCreate.jsx";
 import { PlaygroundUserEdit } from "./pages/PlaygroundUserEdit.jsx";
 import { MyProfile } from "./pages/MyProfile.jsx";
 import { AdminUsers } from "./pages/AdminUsers.jsx";
-import { AdminPlaygrounds } from "./pages/AdminPlaygrounds.jsx"
+import { AdminPlaygrounds } from "./pages/AdminPlaygrounds.jsx";
 import { AdminBets } from "./pages/AdminBets.jsx";
 import { PlaygroundSearch } from "./pages/PlaygroundSearch";
 import { Requests } from "./pages/Requests";
@@ -51,7 +55,7 @@ import { LandingPreview } from "./pages/LandingPreview.jsx";
 import { CompanyTeam } from "./pages/CompanyTeam";
 import { WorkWithUs } from "./pages/WorkWithUs";
 import { Contact } from "./pages/Contact";
-import  LegalTerms  from "./pages/LegalTerms"
+import LegalTerms from "./pages/LegalTerms";
 import LegalPrivacy from "./pages/LegalPrivacy";
 import LegalCookies from "./pages/LegalCookies";
 import LegalResponsible from "./pages/LegalResponsible";
@@ -61,13 +65,27 @@ import ResourceRoadmap from "./pages/ResourceRoadmap.jsx";
 import ResourceStatus from "./pages/ResourceStatus.jsx";
 import BetWinners from "./pages/BetWinners.jsx";
 
+// Hook de auth para decidir qué mostrar en "/"
+import { useAuth } from "./hooks/AuthContext";
+
+/**
+ * RootIndex:
+ * - Si hay usuario logueado -> Home
+ * - Si no hay sesión -> LandingPreview
+ */
+function RootIndex() {
+  const { user } = useAuth();
+  return user ? <Home /> : <LandingPreview />;
+}
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route path="/" element={<Layout />} errorElement={<h1>Not found!</h1>} >
+    <Route path="/" element={<Layout />} errorElement={<h1>Not found!</h1>}>
 
-      {/* ✅ Rutas públicas */}
-      <Route path="/" element={<Home />} />
+      {/* ===== RUTA ÍNDICE INTELIGENTE (Opción A) ===== */}
+      <Route index element={<RootIndex />} />
+
+      {/* ===== Rutas públicas ===== */}
       <Route path="/single/:theId" element={<Single />} />
       <Route path="/demo" element={<Demo />} />
       <Route path="/register" element={<Register />} />
@@ -78,160 +96,239 @@ export const router = createBrowserRouter(
       <Route path="/adminusers" element={<AdminUsers />} />
       <Route path="/adminplaygrounds" element={<AdminPlaygrounds />} />
       <Route path="/adminbets" element={<AdminBets />} />
+
+      {/* Landing accesible explícitamente si la quieres ver estando logueado */}
       <Route path="/preview" element={<LandingPreview />} />
+
+      {/* Información compañía / legal / recursos */}
       <Route path="/company/team" element={<CompanyTeam />} />
       <Route path="/company/jobs" element={<WorkWithUs />} />
       <Route path="/company/contact" element={<Contact />} />
+
       <Route path="/legal/terms" element={<LegalTerms />} />
       <Route path="/legal/privacy" element={<LegalPrivacy />} />
       <Route path="/legal/cookies" element={<LegalCookies />} />
       <Route path="/legal/responsible" element={<LegalResponsible />} />
+
       <Route path="/guides" element={<ResourceGuides />} />
       <Route path="/changelog" element={<ResourceChangelog />} />
       <Route path="/roadmap" element={<ResourceRoadmap />} />
       <Route path="/status" element={<ResourceStatus />} />
 
-      {/* ✅ Admin visible y accesible */}
+      {/* Admin visible y accesible */}
       <Route path="/adminsite" element={<Adminsite />} />
       <Route path="/admincreate" element={<AdminCreate />} />
       <Route path="/admin/adminsite/:id" element={<AdminEdit />} />
-        <Route path="/admin-message-board" element={<AdminMessageBoard/>} />
+      <Route path="/admin-message-board" element={<AdminMessageBoard />} />
 
-      {/* ✅ Rutas privadas de usuario */}
-      <Route path="/private" element={
-        <PrivateRoutes>
-          <Private />
-        </PrivateRoutes>
-      } />
+      {/* ===== Rutas privadas de usuario ===== */}
+      <Route
+        path="/private"
+        element={
+          <PrivateRoutes>
+            <Private />
+          </PrivateRoutes>
+        }
+      />
 
-      <Route path="/profile/edit" element={
-        <PrivateRoutes>
-          <MyProfileEdit />
-        </PrivateRoutes>
-      } />
+      {/* Home directo (por si alguien entra a /home); protegido */}
+      <Route
+        path="/home"
+        element={
+          <PrivateRoutes>
+            <Home />
+          </PrivateRoutes>
+        }
+      />
 
-      <Route path="/playground/:id/bet/:betId" element={
-        <PrivateRoutes>
-          <BetSingle />
-        </PrivateRoutes>
-      } />
+      <Route
+        path="/profile/edit"
+        element={
+          <PrivateRoutes>
+            <MyProfileEdit />
+          </PrivateRoutes>
+        }
+      />
 
-      <Route path="/users" element={
-        <PrivateRoutes>
-          <Users />
-        </PrivateRoutes>
-      } />
+      <Route
+        path="/playground/:id/bet/:betId"
+        element={
+          <PrivateRoutes>
+            <BetSingle />
+          </PrivateRoutes>
+        }
+      />
+
+      <Route
+        path="/users"
+        element={
+          <PrivateRoutes>
+            <Users />
+          </PrivateRoutes>
+        }
+      />
+
       <Route path="/create" element={<UserCreate />} />
 
-      <Route path="/edit/:id" element={
-        <PrivateRoutes>
-          <UserEdit />
-        </PrivateRoutes>
-      } />
-      <Route path="/view/:id" element={
-        <PrivateRoutes>
-          <UserView />
-        </PrivateRoutes>
-      } />
+      <Route
+        path="/edit/:id"
+        element={
+          <PrivateRoutes>
+            <UserEdit />
+          </PrivateRoutes>
+        }
+      />
+      <Route
+        path="/view/:id"
+        element={
+          <PrivateRoutes>
+            <UserView />
+          </PrivateRoutes>
+        }
+      />
 
-      {/* ✅ Todas las rutas de Playground protegidas */}
-      <Route path="/playground" element={
-        <PrivateRoutes>
-          <Playgrounds />
-        </PrivateRoutes>
-      } />
-      <Route path="/playground/create" element={
-        <PrivateRoutes>
-          <PlaygroundCreate />
-        </PrivateRoutes>
-      } />
-      <Route path="/playground/edit/:id" element={
-        <PrivateRoutes>
-          <PlaygroundEdit />
-        </PrivateRoutes>
-      } />
-      <Route path="/playground/:id" element={
-        <PrivateRoutes>
-          <PlaygroundSingle />
-        </PrivateRoutes>
-      } />
-      <Route path="/playground/:id/bet" element={
-        <PrivateRoutes>
-          <BetCreate />
-        </PrivateRoutes>
-      } />
-      <Route path="/playground/:id/bet/:betId/edit" element={
-        <PrivateRoutes>
-          <BetEdit />
-        </PrivateRoutes>
-      } />
-      <Route path="/playground/:id/bet/:betId/options" element={
-        <PrivateRoutes>
-          <BetOptions />
-        </PrivateRoutes>
-      } />
-      <Route path="/playground/:id/chats" element={
-        <PrivateRoutes>
-          <ChatListForPlayground />
-        </PrivateRoutes>
-      } />
-      <Route path="/playground/:id/chat" element={
-        <PrivateRoutes>
-          <PlaygroundChat />
-        </PrivateRoutes>
-      } />
+      {/* ===== Todas las rutas de Playground protegidas ===== */}
+      <Route
+        path="/playground"
+        element={
+          <PrivateRoutes>
+            <Playgrounds />
+          </PrivateRoutes>
+        }
+      />
+      <Route
+        path="/playground/create"
+        element={
+          <PrivateRoutes>
+            <PlaygroundCreate />
+          </PrivateRoutes>
+        }
+      />
+      <Route
+        path="/playground/edit/:id"
+        element={
+          <PrivateRoutes>
+            <PlaygroundEdit />
+          </PrivateRoutes>
+        }
+      />
+      <Route
+        path="/playground/:id"
+        element={
+          <PrivateRoutes>
+            <PlaygroundSingle />
+          </PrivateRoutes>
+        }
+      />
+      <Route
+        path="/playground/:id/bet"
+        element={
+          <PrivateRoutes>
+            <BetCreate />
+          </PrivateRoutes>
+        }
+      />
+      <Route
+        path="/playground/:id/bet/:betId/edit"
+        element={
+          <PrivateRoutes>
+            <BetEdit />
+          </PrivateRoutes>
+        }
+      />
+      <Route
+        path="/playground/:id/bet/:betId/options"
+        element={
+          <PrivateRoutes>
+            <BetOptions />
+          </PrivateRoutes>
+        }
+      />
+      <Route
+        path="/playground/:id/chats"
+        element={
+          <PrivateRoutes>
+            <ChatListForPlayground />
+          </PrivateRoutes>
+        }
+      />
+      <Route
+        path="/playground/:id/chat"
+        element={
+          <PrivateRoutes>
+            <PlaygroundChat />
+          </PrivateRoutes>
+        }
+      />
 
+      {/* ===== Chats protegidos ===== */}
+      <Route
+        path="/chats"
+        element={
+          <PrivateRoutes>
+            <ChatList />
+          </PrivateRoutes>
+        }
+      />
+      <Route
+        path="/chat/create"
+        element={
+          <PrivateRoutes>
+            <ChatCreate />
+          </PrivateRoutes>
+        }
+      />
+      <Route
+        path="/chat/edit/:id"
+        element={
+          <PrivateRoutes>
+            <ChatEdit />
+          </PrivateRoutes>
+        }
+      />
 
-      {/* ✅ Chats protegidos */}
-      <Route path="/chats" element={
-        <PrivateRoutes>
-          <ChatList />
-        </PrivateRoutes>
-      } />
-      <Route path="/chat/create" element={
-        <PrivateRoutes>
-          <ChatCreate />
-        </PrivateRoutes>
-      } />
-      <Route path="/chat/edit/:id" element={
-        <PrivateRoutes>
-          <ChatEdit />
-        </PrivateRoutes>
-      } />
+      {/* ===== User bets protegidas ===== */}
+      <Route
+        path="/userbets"
+        element={
+          <PrivateRoutes>
+            <UserBetsBoard />
+          </PrivateRoutes>
+        }
+      />
 
-      {/* ✅ User bets protegidas */}
-      <Route path="/userbets" element={
-        <PrivateRoutes>
-          <UserBetsBoard />
-        </PrivateRoutes>
-      } />
-      
-      {/* ✅ Ganadores bets protegidos */}
-      <Route path="/betwinners" element={
-        <PrivateRoutes>
-        <BetWinners />
-        </PrivateRoutes>
-      } />
+      {/* ===== Ganadores bets protegidos ===== */}
+      <Route
+        path="/betwinners"
+        element={
+          <PrivateRoutes>
+            <BetWinners />
+          </PrivateRoutes>
+        }
+      />
 
-      {/* ✅ Ruta de invitación abierta */}
+      {/* ===== Ruta de invitación abierta ===== */}
       <Route path="/playground/:id/invite" element={<PlaygroundInvite />} />
 
       <Route path="/my-profile" element={<MyProfile />} />
 
-      <Route path="/playground/search" element={
-        <PrivateRoutes>
-          <PlaygroundSearch />
-        </PrivateRoutes>
-      } />
+      <Route
+        path="/playground/search"
+        element={
+          <PrivateRoutes>
+            <PlaygroundSearch />
+          </PrivateRoutes>
+        }
+      />
 
-      <Route path="/solicitudes" element={
-        <PrivateRoutes>
-          <Requests />
-        </PrivateRoutes>
-      } />
-
+      <Route
+        path="/solicitudes"
+        element={
+          <PrivateRoutes>
+            <Requests />
+          </PrivateRoutes>
+        }
+      />
     </Route>
-
-    
   )
 );
