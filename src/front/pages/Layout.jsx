@@ -9,7 +9,7 @@ export const Layout = () => {
   const location = useLocation();
   const { user } = useAuth();
 
-  const hideSideNavRoutes = ["/login", "/register", "/"];
+  const hideSideNavRoutes = ["/login", "/register", "/preview"];
   const shouldShowSideNav = user && !hideSideNavRoutes.includes(location.pathname);
 
   return (
