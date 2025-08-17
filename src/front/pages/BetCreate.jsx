@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../hooks/AuthContext";
 
 export const BetCreate = () => {
   const [form, setForm] = useState({
@@ -28,6 +29,7 @@ export const BetCreate = () => {
   const openPicker = () => fileInputRef.current?.click();
 
   const { id } = useParams();
+  const { token } = useAuth()
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -42,7 +44,6 @@ export const BetCreate = () => {
     setLoadingLeagues(true);
     setError(null);
     try {
-      const token = localStorage.getItem("token");
       const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/football/competitions`, {
         headers: { Authorization: `Bearer ${token}` }
       });
