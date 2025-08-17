@@ -1,0 +1,83 @@
+.profileedit-page { background: #fff; }
+
+.pe-hero {
+  height: 200px;
+  background: linear-gradient(90deg, #ff007a 0%, #7a2bff 100%);
+  border-bottom-left-radius: 24px;
+  border-bottom-right-radius: 24px;
+}
+
+/* Card */
+.pe-overlap { margin-top: -80px; }
+@media (min-width: 768px) { .pe-overlap { margin-top: -100px; } }
+@media (min-width: 992px) { .pe-overlap { margin-top: -120px; } }
+
+.pe-card { border: 0; border-radius: 24px; color: #344767; }
+.pe-card h1, .pe-card h2, .pe-card h3, .pe-card h4, .pe-card h5, .pe-card h6,
+.pe-card p, .pe-card div, .pe-card small, .pe-card label { color: inherit; }
+
+/* Título */
+.text-gradient-lilac {
+  background: linear-gradient(90deg, #ff007a 0%, #7a2bff 100%);
+  background-clip: text; -webkit-background-clip: text;
+  color: transparent; -webkit-text-fill-color: transparent;
+  font-weight: 800;
+}
+
+/* Inputs  */
+.profileedit-page .form-control {
+  height: 56px;
+  font-size: 16px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background-clip: padding-box;
+}
+.profileedit-page .form-floating > .form-control {
+  padding-top: 1.25rem;
+  padding-bottom: 0.55rem;
+}
+.profileedit-page .form-control:focus {
+  outline: 0;
+  box-shadow: 0 0 0 6px rgba(194,61,179,.18) !important;
+  border-color: #c23db3;
+  background-image: none;
+}
+.profileedit-page .form-control::placeholder { color: #9ca3af; }
+
+/* Input-group de búsqueda */
+.pe-search .btn { height: 56px; border-radius: 12px; }
+
+/* Botones */
+.btn-gradient-lilac {
+  border: none; color: #fff !important; font-weight: 700;
+  padding: 12px 18px; border-radius: 12px;
+  background-image: linear-gradient(90deg, #ff007a 0%, #7a2bff 100%);
+  box-shadow: 0 10px 24px rgba(122,43,255,.28);
+  transition: transform .06s ease, box-shadow .2s ease;
+}
+.btn-gradient-lilac:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(122,43,255,.34);
+  color: #fff !important;
+}
+.btn-outline-lilac {
+  border: 1px solid #c23db3; color: #c23db3; font-weight: 600;
+  border-radius: 12px;
+}
+.btn-outline-lilac:hover { background: #c23db3; color: #fff; }
+
+/* go back */
+.btn-secondary-soft {
+  background: #eef2f7; color: #344767; border: 1px solid #e2e8f0;
+  border-radius: 12px; font-weight: 600;
+}
+.btn-secondary-soft:hover { background: #e2e8f0; }
+
+/* Mapa */
+.pe-map {
+  height: 420px;
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+}
