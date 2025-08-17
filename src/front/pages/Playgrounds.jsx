@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import SoftRibbonNav from "../components/SoftRibbonNav";
 import SiteFooter from "../components/SiteFooter";
+import { useAuth } from "../hooks/AuthContext";
 
 /* ===== Miniatura con fallback SVG embebido (sin red) y sin parpadeo ===== */
 function PgThumb({ src, name, alt }) {
@@ -58,6 +59,7 @@ export const Playgrounds = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const { token } = useAuth()
   /* ====== Estilos Soft-UI locales ====== */
   const Styles = () => (
     <style>{`
@@ -153,7 +155,6 @@ export const Playgrounds = () => {
 
   // Comprobar usuario logueado
   useEffect(() => {
-    const token = localStorage.getItem("token");
     if (!token) {
       setUser(null);
       return;
@@ -186,7 +187,6 @@ export const Playgrounds = () => {
 
   // Cargar playgrounds
   useEffect(() => {
-    const token = localStorage.getItem("token");
     if (!token) return;
 
     const getPlaygrounds = async () => {
@@ -213,7 +213,6 @@ export const Playgrounds = () => {
     );
   }
 
-  const token = localStorage.getItem("token");
   if (!token || user === null) {
     return (
       <div className="container mt-5">
