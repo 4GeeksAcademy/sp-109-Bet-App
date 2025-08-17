@@ -13,7 +13,8 @@ export const AdminUsers = () => {
 
     useEffect(() => {
         if (!token || role !== "admin") {
-            navigate("/admin/login", { state: { fromProtected: true } });
+          logout()
+          navigate("/admin/login", { state: { fromProtected: true } });
         }
     }, [navigate, token, role]);
 
