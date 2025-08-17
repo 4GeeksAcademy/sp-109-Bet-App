@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/AuthContext";
 
 export const PlaygroundSearch = () => {
   const [searchText, setSearchText] = useState("");
   const [results, setResults] = useState([]);
   const [user, setUser] = useState(null);
-  const token = localStorage.getItem("token");
+  
+  const { token } = useAuth()
   const navigate = useNavigate();
 
   // ✅ Comprobar usuario logueado

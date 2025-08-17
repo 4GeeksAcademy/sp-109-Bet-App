@@ -385,6 +385,8 @@ def create_bet(pg_id):
     type_str = body.get("type", "sports")
     event_description = body.get("event_description")
     deadline_str = body.get("deadline")
+    league = body.get("league")
+    match = body.get("match")
 
     options = body.get('options', [])
     if not options or not isinstance(options, list):
@@ -421,6 +423,8 @@ def create_bet(pg_id):
         type=type_enum,
         user_id=user_id,
         playground_id=pg_id,
+        league=league,
+        match=match,
         event_description=event_description,
         options=bet_options
     )
@@ -470,6 +474,8 @@ def update_bet(pg_id, bet_id):
     bet.name = body.get('name', bet.name)
     bet.amount = body.get('amount', bet.amount)
     bet.event_description = body.get('event_description', bet.event_description)
+    bet.league = body.get("league", bet.league)
+    bet.match = body.get("match", bet.match)
 
 
 

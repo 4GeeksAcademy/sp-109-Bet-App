@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../hooks/AuthContext";
 
 export const BetCreate = () => {
   const [form, setForm] = useState({
@@ -10,6 +11,7 @@ export const BetCreate = () => {
     event_description: "",
     sport: "football",
     league: "",
+    match: "",
     options: []
   });
   const [leagues, setLeagues] = useState([]);
@@ -28,6 +30,7 @@ export const BetCreate = () => {
   const openPicker = () => fileInputRef.current?.click();
 
   const { id } = useParams();
+  const { token } = useAuth()
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -42,7 +45,6 @@ export const BetCreate = () => {
     setLoadingLeagues(true);
     setError(null);
     try {
-      const token = localStorage.getItem("token");
       const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/football/competitions`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -283,7 +285,7 @@ export const BetCreate = () => {
                   <select
                     className="form-select"
                     value={form.event_description}
-                    onChange={(e) => setForm({ ...form, event_description: e.target.value })}
+                    onChange={(e) => setForm({ ...form, match: e.target.value, event_description: e.target.value })}
                     required
                   >
                     <option value="">Select a match</option>
