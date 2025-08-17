@@ -1,8 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/AuthContext";
 
 export const BetEdit = () => {
   const { id, betId } = useParams();
+  const { token } = useAuth()
+
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
@@ -13,6 +16,7 @@ export const BetEdit = () => {
     event_description: "",
     sport: "football",
     league: "",
+    match: "",
     options: []
   });
 
@@ -66,7 +70,6 @@ export const BetEdit = () => {
         setError(null);
         setLoading(true);
 
-        const token = localStorage.getItem("token");
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
         const resp = await fetch(
@@ -88,6 +91,7 @@ export const BetEdit = () => {
           event_description: bet.event_description ?? "",
           sport: bet.sport ?? "football",
           league: bet.league ?? "",
+          match: bet.match ?? "",
           options: Array.isArray(bet.options) ? bet.options.map(o => o.label ?? o) : [],
         });
 
@@ -107,7 +111,6 @@ export const BetEdit = () => {
     };
 
     fetchBet();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, betId]);
 
   // ---- Aux: fetch ligas/partidos (mismo patrón que en create) ----
@@ -121,7 +124,6 @@ export const BetEdit = () => {
       const data = await resp.json();
       setLeagues(data.competitions || []);
     } catch (e) {
-      // no rompemos el edit por esto
       console.warn(e);
     }
   };
@@ -174,7 +176,7 @@ export const BetEdit = () => {
       if (resp.status === 401) throw new Error("No autorizado. Vuelve a iniciar sesión.");
       if (!resp.ok) {
         let d = {};
-        try { d = await resp.json(); } catch {}
+        try { d = await resp.json(); } catch { }
         throw new Error(d.msg || "Failed to update bet");
       }
 
@@ -282,7 +284,6 @@ export const BetEdit = () => {
               const league = e.target.value;
               setForm({ ...form, league, event_description: "" });
               if (league) await fetchUpcomingMatches(league);
-              else setMatches([]);
             }}
           >
             <option value="">Select a league</option>
@@ -293,6 +294,68 @@ export const BetEdit = () => {
             ))}
           </select>
         </div>
+
+        {/* Match */}
+        {matches.length > 0 && (
+          <div className="mb-3">
+            <label className="form-label">Match</label>
+            <select
+              className="form-select"
+              value={form.match || ""}
+              onChange={(e) => setForm({ ...form, match: e.target.value })}
+            >
+              <option value="">Select a match</option>
+              {matches.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.homeTeam.name} vs {m.awayTeam.name} ({m.utcDate.slice(0, 10)})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* Opciones */}
+        <div className="mb-3">
+          <label className="form-label">Options</label>
+          {form.options.map((opt, idx) => (
+            <div key={idx} className="d-flex gap-2 mb-2">
+              <input
+                type="text"
+                className="form-control"
+                value={opt.label ?? opt} // soporta tanto string como objeto {label: ...}
+                onChange={(e) => {
+                  const newOptions = [...form.options];
+                  if (typeof newOptions[idx] === "string") {
+                    newOptions[idx] = e.target.value;
+                  } else {
+                    newOptions[idx].label = e.target.value;
+                  }
+                  setForm({ ...form, options: newOptions });
+                }}
+              />
+              <button
+                type="button"
+                className="btn btn-outline-danger"
+                onClick={() => {
+                  const newOptions = form.options.filter((_, i) => i !== idx);
+                  setForm({ ...form, options: newOptions });
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          ))}
+
+          <button
+            type="button"
+            className="btn btn-outline-primary"
+            onClick={() => setForm({ ...form, options: [...form.options, ""] })}
+          >
+            Add Option
+          </button>
+        </div>
+
+
 
         {/* Imagen */}
         <div className="mb-3">
