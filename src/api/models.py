@@ -99,6 +99,8 @@ class Bet(db.Model):
     amount: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
     status: Mapped[BetStatus] = mapped_column(Enum(BetStatus), default=BetStatus.active, nullable=False)
     type: Mapped[BetType] = mapped_column(Enum(BetType), default=BetType.sports, nullable=False)
+    league: Mapped[str] = mapped_column(String(100), nullable=True)
+    match: Mapped[str] = mapped_column(String(100), nullable=True)
     event_description: Mapped[str] = mapped_column(String(100), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     deadline: Mapped[datetime] = mapped_column(DateTime, nullable=True)
@@ -148,6 +150,8 @@ class Bet(db.Model):
             "options": [option.serialize() for option in self.options],
             "type": self.type.value if self.type else None,
             "event_description": self.event_description,
+            "league": self.league,
+            "match": self.match,
             "winner_option_id": self.winner_option_id,
         }
     

@@ -11,6 +11,7 @@ export const BetCreate = () => {
     event_description: "",
     sport: "football",
     league: "",
+    match: "",
     options: []
   });
   const [leagues, setLeagues] = useState([]);
@@ -284,7 +285,7 @@ export const BetCreate = () => {
                   <select
                     className="form-select"
                     value={form.event_description}
-                    onChange={(e) => setForm({ ...form, event_description: e.target.value })}
+                    onChange={(e) => setForm({ ...form, match: e.target.value, event_description: e.target.value })}
                     required
                   >
                     <option value="">Select a match</option>
