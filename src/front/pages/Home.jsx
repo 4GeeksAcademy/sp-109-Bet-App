@@ -2,18 +2,21 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/AuthContext";
+import SoftRibbonNav from "../components/SoftRibbonNav";
 import SiteFooter from "../components/SiteFooter";
 import { FaFutbol, FaSearch, FaUser, FaBolt } from "react-icons/fa";
 
 export const Home = () => {
   const { user } = useAuth();
 
-  const displayName =
-    user?.username || user?.name || user?.first_name || "amigo";
+  const displayName = user?.username || user?.name || user?.first_name || "amigo";
   const avatar = user?.url_image || "https://i.pravatar.cc/240?img=4";
 
   return (
     <div className="home-neo-scope">
+      {/* NAV superior Bet APP */}
+      <SoftRibbonNav />
+
       <style>{`
         :root{
           --su-primary:#cb0c9f;
@@ -82,7 +85,7 @@ export const Home = () => {
         }
         .hero-card img{ width:100%; height:360px; object-fit:cover; display:block; }
 
-        /* Franja de texto bajo la imagen (antes badge flotante) */
+        /* Franja de texto bajo la imagen */
         .hero-caption{
           padding:.7rem .95rem;
           background:#fff;
@@ -190,61 +193,61 @@ export const Home = () => {
           <div className="hero-card">
             <img
               src="https://cdn.pixabay.com/photo/2022/07/10/16/57/boston-terrier-7313320_640.jpg"
-              alt="Hero deporte"
+              alt="Perrete sentado"
             />
             <div className="hero-caption">
               <FaBolt className="ico" />
-              ¿Cuánto tiempo durará sentado? Apuesta.
+              ¿Cuánto tiempo aguanta sentado? ¡Apuesta!
             </div>
           </div>
         </div>
       </section>
 
-      {/* ======= PROMOS (PUBLICIDAD) ======= */}
+      {/* ======= PROMOS (RETOS) ======= */}
       <section className="section">
         <div className="container-neo">
           <div className="section-title">
-            <h3>Promos del día</h3>
-            <span className="muted">Publicidad</span>
+            <h3>¿Quién se anima a superarlo?</h3>
+            <span className="muted">Retos</span>
           </div>
 
           <div className="grid-3">
             <div className="promo">
               <img
                 className="thumb"
-                src="https://cdn.pixabay.com/photo/2016/01/02/11/17/euro-1118082_640.jpg"
-                alt="Bienvenida"
+                src="https://cdn.pixabay.com/photo/2024/05/06/17/06/french-fries-8743802_640.jpg"
+                alt="Reto de comida"
               />
               <div>
-                <span className="tag-ads">BONO</span>
-                <h5>Bienvenida 20€</h5>
-                <p>Duplica tu primera apuesta.</p>
+                <span className="tag-ads">Récord</span>
+                <h5>40 hamburguesas en 10 minutos</h5>
+                <p>¿Os atrevéis con el récord del mundo?</p>
               </div>
             </div>
 
             <div className="promo">
               <img
                 className="thumb"
-                src="https://cdn.pixabay.com/photo/2012/11/28/10/33/rocket-launch-67641_640.jpg"
-                alt="Boost"
+                src="https://cdn.pixabay.com/photo/2020/04/19/18/46/company-5064997_1280.jpg"
+                alt="Oficina"
               />
               <div>
-                <span className="tag-ads">BOOST</span>
-                <h5>Cuotas mejoradas</h5>
-                <p>Subimos la cuota de tu combinada.</p>
+                <span className="tag-ads">Puntualidad</span>
+                <h5>¿Llegas a la oficina puntual?</h5>
+                <p>Una apuesta para ver quién es el primero que llega tarde a la ofi…</p>
               </div>
             </div>
 
             <div className="promo">
               <img
                 className="thumb"
-                src="https://cdn.pixabay.com/photo/2016/06/29/21/14/women-1487825_640.jpg"
-                alt="Amigos"
+                src="https://cdn.pixabay.com/photo/2015/10/03/21/58/sport-970443_640.jpg"
+                alt="Carrera popular"
               />
               <div>
-                <span className="tag-ads">AMIGOS</span>
-                <h5>Invita y gana</h5>
-                <p>Trae a 1 amigo y recibe monedas extra.</p>
+                <span className="tag-ads">10 K</span>
+                <h5>¿Nos hacemos una 10 K?</h5>
+                <p>¿Nos apostamos algo a quién hace mejor tiempo en la 10 K?</p>
               </div>
             </div>
           </div>
@@ -255,7 +258,7 @@ export const Home = () => {
       <section className="section">
         <div className="container-neo">
           <div className="section-title">
-            <h3>Tendencias hoy</h3>
+            <h3>¿Prefieres una apuesta clásica?</h3>
             <Link className="link" to="/playground/search">Ver más</Link>
           </div>
 
@@ -268,7 +271,7 @@ export const Home = () => {
               />
               <div className="body">
                 <h5>LaLiga – Madrid vs Barça</h5>
-                <div className="meta">Empieza a las 21:00h</div>
+                <div className="meta">Empieza a las 21:00 h</div>
                 <div className="odds">
                   <span className="odd is-hot">1 • 2.30</span>
                   <span className="odd">X • 3.20</span>
@@ -285,7 +288,7 @@ export const Home = () => {
               />
               <div className="body">
                 <h5>NBA – Celtics vs Lakers</h5>
-                <div className="meta">Madrugada 02:00h</div>
+                <div className="meta">02:00 h</div>
                 <div className="odds">
                   <span className="odd">Celtics • 1.85</span>
                   <span className="odd is-hot">Lakers • 2.05</span>
@@ -302,21 +305,21 @@ export const Home = () => {
         <div className="container-neo">
           <div className="section-title">
             <h3>Artículos y guías</h3>
-            <Link className="link" to="/resources/guides">Ver todas</Link>
+            <Link className="link" to="/guides">Ver todas</Link>
           </div>
 
           <div className="grid-3">
             <article className="article">
               <img
-                src="https://cdn.pixabay.com/photo/2019/02/18/22/39/money-4005690_640.jpg"
-                alt="Gestión banca"
+                src="https://cdn.pixabay.com/photo/2018/05/30/08/45/smilie-3441012_640.jpg"
+                alt="Felicidad"
               />
               <div className="pad">
                 <span className="pill">Consejos</span>
-                <h5>Cómo gestionar tu banca</h5>
-                <p>Reglas básicas para no perder la cabeza en una racha mala.</p>
+                <h5>Cómo ser feliz hoy en día</h5>
+                <p>10 reglas básicas para ser feliz en el día a día.</p>
                 <a
-                  href="https://www.apuestas-deportivas.es/guia-de-apuestas/como-sobrellevar-una-mala-racha/"
+                  href="https://www.cigna.com/es-us/knowledge-center/how-to-be-happy"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="link"
@@ -328,15 +331,15 @@ export const Home = () => {
 
             <article className="article">
               <img
-                src="https://cdn.pixabay.com/photo/2014/12/14/16/05/arm-wrestling-567950_1280.jpg"
-                alt="Valor cuota"
+                src="https://cdn.pixabay.com/photo/2017/06/28/18/45/fireworks-2451749_640.jpg"
+                alt="Fiestas populares"
               />
               <div className="pad">
-                <span className="pill">Estrategia</span>
-                <h5>¿Qué es el valor de una cuota?</h5>
-                <p>Aprende a identificar apuestas con valor y evitar trampas.</p>
+                <span className="pill">Fiestas</span>
+                <h5>Las mejores fiestas de España</h5>
+                <p>Vive las mejores fiestas de España y disfruta a lo grande.</p>
                 <a
-                  href="https://apuestas.marathonbet.es/glosario-apuestas/que-es-una-cuota-como-se-calcula/"
+                  href="https://www.holidayguru.es/revista-de-viajes/las-10-mejores-fiestas-populares-de-espaa/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="link"
@@ -354,7 +357,7 @@ export const Home = () => {
               <div className="pad">
                 <span className="pill">Guía</span>
                 <h5>NBA para principiantes</h5>
-                <p>Mercados típicos, ritmos, back-to-back y cómo empezar.</p>
+                <p>Mercados típicos, ritmo, back-to-back y cómo empezar.</p>
                 <a
                   href="https://spain.id.nba.com/noticias/nba-que-es-como-funciona"
                   target="_blank"
