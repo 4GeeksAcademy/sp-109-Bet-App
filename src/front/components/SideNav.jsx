@@ -2,7 +2,7 @@ import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   FaHome, FaComments, FaUserPlus, FaSearch, FaUser,
-  FaCoins, FaSignOutAlt, FaTicketAlt
+  FaCoins, FaSignOutAlt, FaTicketAlt, FaTrophy 
 } from "react-icons/fa";
 import { IoFootball } from "react-icons/io5";
 import { useAuth } from "../hooks/AuthContext";
@@ -75,6 +75,12 @@ export const SideNav = () => {
                 <span>Search Playground</span>
               </NavLink>
 
+              <NavLink to="/betwinners" className={({ isActive }) =>
+                `sidenav-btn ${isActive ? "sidenav-btn-active" : ""}`}>
+                <FaTrophy  className="me-3" />
+                <span>Bet Winners</span>
+              </NavLink>
+
               <NavLink to="/my-profile" className={({ isActive }) =>
                 `sidenav-btn ${isActive ? "sidenav-btn-active" : ""}`}>
                 <FaUser className="me-3" />
@@ -99,6 +105,12 @@ export const SideNav = () => {
                 `sidenav-btn ${isActive ? "sidenav-btn-active" : ""}`}>
                 <FaTicketAlt className="me-3" />
                 <span>Manage Bets</span>
+              </NavLink>
+
+              <NavLink to="/betwinners" className={({ isActive }) =>
+                `sidenav-btn ${isActive ? "sidenav-btn-active" : ""}`}>
+                <FaTrophy  className="me-3" />
+                <span>All Bet Winners</span>
               </NavLink>
 
               <NavLink to="/adminusers" className={({ isActive }) =>

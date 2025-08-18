@@ -6,7 +6,7 @@ import { useAuth } from "../hooks/AuthContext";
 export const BetSingle = () => {
   const { id, betId } = useParams();
   const navigate = useNavigate();
-  const { token, role, logout } = useAuth()
+  const { token, role, logout, user, login } = useAuth()
 
   const [bet, setBet] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -31,6 +31,8 @@ export const BetSingle = () => {
 
   const isAdmin = role === "admin";
   const isUser = role === "user";
+  const notEnoughMoney = user?.money < bet?.amount;
+
 
 
   const headers = useMemo(() => ({
@@ -112,8 +114,8 @@ export const BetSingle = () => {
     return () => clearInterval(interval);
   }, [bet]);
 
-  // Modal de ganadores de la apuesta en la que estamos
 
+  // Modal de ganadores de la apuesta en la que estamos
   const openWinnersModal = async () => {
     setShowWinners(true);
     setLoadingWinners(true);
@@ -168,72 +170,77 @@ export const BetSingle = () => {
   //--- Manejo de votaciones --- //
 
   const handleVote = async () => {
-    if (!selectedOption) {
-      alert("Please select an option before voting.");
+  if (!selectedOption) {
+    alert("Please select an option before voting.");
+    return;
+  }
+
+  try {
+    setSubmitting(true);
+
+    const response = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/bet/${betId}/vote`,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ option_id: Number(selectedOption) }),
+      }
+    );
+
+    // Manejo de sesión expirada
+    if (response.status === 401) {
+      logout();
+      navigate(isAdmin ? "/admin/login" : "/login", {
+        replace: true,
+        state: { msg: "Session expired" },
+      });
       return;
     }
-    try {
-      setSubmitting(true);
 
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/bet/${betId}/vote`,
-        {
-          method: "POST",
-          headers,
-          body: JSON.stringify({ option_id: Number(selectedOption) }),
-        }
-      );
+    const text = await response.text();
 
-      if (!response.status === 401) {
-        if (isAdmin) {
-          logout()
-          navigate("/admin/login", { replace: true, state: { msg: "Session expired" } });
-        } else {
-          logout()
-          navigate("/login", {
-            replace: true,
-            state: { msg: "Session expired" }
-          });
-        }
-        return;
-      }
-
-      const text = await response.text();
-      if (!response.ok) {
-        let msg = "";
-        try {
-          msg = JSON.parse(text).message;
-        } catch {
-          msg = text;
-        }
-        throw new Error(msg || `Vote failed (HTTP ${response.status})`);
-      }
-
-      let updated = null;
+    if (!response.ok) {
+      let msg = "";
       try {
-        updated = JSON.parse(text);
-      } catch { }
-
-      if (updated) {
-        setBet(updated);
-        const uv =
-          (typeof updated.user_vote === "number" && updated.user_vote) ||
-          updated.user_vote?.id ||
-          updated.user_vote?.option_id ||
-          null;
-        setSelectedOption(uv ? Number(uv) : null);
-      } else {
-        await fetchBet();
+        msg = JSON.parse(text).message;
+      } catch {
+        msg = text;
       }
-
-      alert("Vote submitted successfully!");
-      navigate(`/playground/${id}`);
-    } catch (err) {
-      alert(err.message);
-    } finally {
-      setSubmitting(false);
+      throw new Error(msg || `Vote failed (HTTP ${response.status})`);
     }
-  };
+
+    let updatedBet = null;
+    try {
+      updatedBet = JSON.parse(text);
+    } catch {}
+
+    if (updatedBet) {
+      setBet(updatedBet);
+
+      const uv =
+        (typeof updatedBet.user_vote === "number" && updatedBet.user_vote) ||
+        updatedBet.user_vote?.id ||
+        updatedBet.user_vote?.option_id ||
+        null;
+      setSelectedOption(uv ? Number(uv) : null);
+
+      // 🔹 Actualizar el saldo del usuario
+      if (user && updatedBet.amount) {
+        login(token, { ...user, money: user.money - updatedBet.amount }, role);
+      }
+    } else {
+      await fetchBet();
+    }
+
+    alert("Vote submitted successfully!");
+    navigate(`/playground/${id}`);
+  } catch (err) {
+    alert(err.message);
+  } finally {
+    setSubmitting(false);
+  }
+};
+
 
   // --- Resolver manual ---
 
@@ -401,8 +408,11 @@ export const BetSingle = () => {
                 <div className="alert alert-warning mt-3">
                   Voting is closed for this bet.
                 </div>
+              ) : notEnoughMoney ? (
+                <div className="alert alert-danger mt-3">
+                  ❌ You don’t have enough balance to participate. (Need {bet.amount} €)
+                </div>
               ) : (
-
                 <button
                   className="btn btn-success mt-3"
                   onClick={handleVote}
@@ -411,6 +421,7 @@ export const BetSingle = () => {
                   {submitting ? "Submitting..." : "✅ Submit Vote"}
                 </button>
               )}
+
             </div>
           )}
 
