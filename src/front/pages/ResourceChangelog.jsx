@@ -1,6 +1,6 @@
+// src/front/pages/ResourceChangelog.jsx
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-
 
 import SoftRibbonNav from "../components/SoftRibbonNav";
 import SiteFooter from "../components/SiteFooter";
@@ -21,6 +21,25 @@ export const ResourceChangelog = () => {
           --cl-muted:#6b7c90;
           --cl-grad: linear-gradient(310deg,#7928CA,#FF0080);
         }
+
+        /* ================== ARREGLA LA FRANJA BLANCA (solo en esta vista) ================== */
+        @supports selector(body:has(.cl-scope)) {
+          body:has(.cl-scope) .content-wrapper,
+          body:has(.cl-scope) .flex-grow-1.main-content.d-flex.flex-column{
+            padding-top:0 !important;           /* elimina empuje superior del layout */
+            background:transparent !important;  /* por si el wrapper pinta fondo */
+          }
+          body:has(.cl-scope) .navbar{
+            display:none !important;            /* oculta la navbar global solo aquí */
+          }
+        }
+        /* Fallback si :has() no aplica (ajusta 72/84 si tu layout empuja más) */
+        .cl-scope{ margin-top:-72px; }
+        @media (min-width:992px){ .cl-scope{ margin-top:-84px; } }
+
+        /* Un pelín de aire para la ribbon propia (sin mover nada más) */
+        .cl-scope nav.soft-ribbon{ margin-top:25px; }
+        /* =================================================================================== */
 
         /* ===== Fondo suave + arte difuminado (scopeado) ===== */
         .cl-scope{
@@ -85,6 +104,7 @@ export const ResourceChangelog = () => {
         .btn-brand:hover{ filter:brightness(1.05); transform:translateY(-1px); }
         .btn{ border-radius:12px; font-weight:800; }
 
+        /* Oculta la tira de botones del template de la demo (no la navbar propia) */
         .navbar .btn,
         .navbar .btn-group,
         nav.navbar + .container .btn,
@@ -97,7 +117,7 @@ export const ResourceChangelog = () => {
       <div className="bg-art" aria-hidden="true"></div>
 
       <div className="content">
-        
+        {/* HERO */}
         <section className="cl-hero">
           <div className="container-neo">
             <span className="chip">Recursos</span>
@@ -106,7 +126,7 @@ export const ResourceChangelog = () => {
           </div>
         </section>
 
-        
+        {/* TIMELINE */}
         <section className="pb-4">
           <div className="container-neo">
             <div className="row g-4">
@@ -169,7 +189,7 @@ export const ResourceChangelog = () => {
                   </div>
                 </div>
 
-                
+                {/* v1.3.0 */}
                 <div className="card-soft p-4 p-md-5 mt-3">
                   <div className="d-flex align-items-start gap-3">
                     <div className="dot"></div>
@@ -198,11 +218,10 @@ export const ResourceChangelog = () => {
                   </div>
                 </div>
 
-                
+                {/* CTA */}
                 <div className="d-flex gap-2 mt-4">
                   <button className="btn btn-outline-secondary" onClick={() => navigate(-1)}>← Volver</button>
                   <Link to="/" className="btn btn-outline-primary">Ir al inicio</Link>
-                  
                 </div>
               </div>
             </div>

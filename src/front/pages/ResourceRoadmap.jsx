@@ -1,7 +1,6 @@
-
+// src/front/pages/ResourceRoadmap.jsx
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-
 
 import SoftRibbonNav from "../components/SoftRibbonNav";
 import SiteFooter from "../components/SiteFooter";
@@ -22,6 +21,25 @@ export default function ResourceRoadmap() {
           --su-muted:#6b7c90;
           --su-grad: linear-gradient(310deg,#7928CA,#FF0080);
         }
+
+        /* ================== ARREGLA LA FRANJA BLANCA (solo en esta vista) ================== */
+        @supports selector(body:has(.roadmap-scope)) {
+          body:has(.roadmap-scope) .content-wrapper,
+          body:has(.roadmap-scope) .flex-grow-1.main-content.d-flex.flex-column{
+            padding-top:0 !important;           /* elimina empuje superior del layout */
+            background:transparent !important;  /* por si el wrapper pinta fondo */
+          }
+          body:has(.roadmap-scope) .navbar{
+            display:none !important;            /* oculta la navbar global solo aquí */
+          }
+        }
+        /* Fallback si :has() no aplica (ajusta 72/84 si tu layout empuja más) */
+        .roadmap-scope{ margin-top:-72px; }
+        @media (min-width:992px){ .roadmap-scope{ margin-top:-84px; } }
+
+        /* Un pelín de aire para la ribbon propia (sin mover nada más) */
+        .roadmap-scope nav.soft-ribbon{ margin-top:25px; }
+        /* =================================================================================== */
 
         /* ===== Lienzo y arte difuminado ===== */
         .roadmap-scope{
@@ -138,7 +156,7 @@ export default function ResourceRoadmap() {
       <div className="bg-art" aria-hidden="true"></div>
 
       <div className="content">
-        
+        {/* HERO */}
         <section className="hero">
           <div className="container-neo">
             <span className="chip">Roadmap</span>
@@ -147,7 +165,6 @@ export default function ResourceRoadmap() {
               Una vista clara de lo que estamos construyendo: ahora, lo próximo y lo que vendrá después.
             </p>
 
-           
             <div className="legend">
               <span className="pill feature">Feature</span>
               <span className="pill improve">Mejora</span>
@@ -157,11 +174,11 @@ export default function ResourceRoadmap() {
           </div>
         </section>
 
-        
+        {/* BOARD */}
         <section className="py-3">
           <div className="container-neo">
             <div className="board">
-              
+              {/* Ahora */}
               <div className="column">
                 <div className="head">
                   <h5>Ahora</h5>
@@ -203,7 +220,7 @@ export default function ResourceRoadmap() {
                 </div>
               </div>
 
-              
+              {/* Próximo */}
               <div className="column">
                 <div className="head">
                   <h5>Próximo</h5>
@@ -243,7 +260,7 @@ export default function ResourceRoadmap() {
                 </div>
               </div>
 
-              
+              {/* Más adelante */}
               <div className="column">
                 <div className="head">
                   <h5>Más adelante</h5>
@@ -280,7 +297,7 @@ export default function ResourceRoadmap() {
               </div>
             </div>
 
-            
+            {/* CTA inferior */}
             <div className="d-flex gap-2 mt-4">
               <button className="btn btn-outline-secondary" onClick={() => navigate(-1)}>← Volver</button>
               <Link to="/login" className="btn btn-outline-primary">Iniciar sesión</Link>

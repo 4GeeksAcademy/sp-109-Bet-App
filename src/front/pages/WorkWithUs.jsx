@@ -1,6 +1,6 @@
+// src/front/pages/WorkWithUs.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 
 import SoftRibbonNav from "../components/SoftRibbonNav";
 import SiteFooter from "../components/SiteFooter";
@@ -55,31 +55,17 @@ export const WorkWithUs = () => {
 
   const onChange = (e) => {
     const { name, value, type, checked, files } = e.target;
-
-    if (type === "checkbox" && name === "consent") {
-      setForm((f) => ({ ...f, consent: checked }));
-      return;
-    }
-    if (type === "checkbox" && name === "relocate") {
-      setForm((f) => ({ ...f, relocate: checked }));
-      return;
-    }
-    if (type === "checkbox" && name === "remote") {
-      setForm((f) => ({ ...f, remote: checked }));
-      return;
-    }
-    if (type === "file") {
-      setForm((f) => ({ ...f, cvFile: files?.[0] ?? null }));
-      return;
-    }
-
-    setForm((f) => ({ ...f, [name]: value }));
+    if (type === "checkbox" && name === "consent") return setForm(f => ({ ...f, consent: checked }));
+    if (type === "checkbox" && name === "relocate") return setForm(f => ({ ...f, relocate: checked }));
+    if (type === "checkbox" && name === "remote") return setForm(f => ({ ...f, remote: checked }));
+    if (type === "file") return setForm(f => ({ ...f, cvFile: files?.[0] ?? null }));
+    setForm(f => ({ ...f, [name]: value }));
   };
 
   const toggleSkill = (skill) => {
-    setForm((f) =>
+    setForm(f =>
       f.skills.includes(skill)
-        ? { ...f, skills: f.skills.filter((s) => s !== skill) }
+        ? { ...f, skills: f.skills.filter(s => s !== skill) }
         : { ...f, skills: [...f.skills, skill] }
     );
   };
@@ -88,28 +74,22 @@ export const WorkWithUs = () => {
     if (!form.name.trim()) return "Por favor, indícanos tu nombre.";
     if (!/^\S+@\S+\.\S+$/.test(form.email)) return "Email no válido.";
     if (!form.role) return "Elige un perfil/rol.";
-    if (!form.about.trim() || form.about.length < 40)
-      return "Cuéntanos un poco más de ti (mín. 40 caracteres).";
-    if (!form.consent)
-      return "Necesitamos tu consentimiento para tratar tus datos.";
+    if (!form.about.trim() || form.about.length < 40) return "Cuéntanos un poco más de ti (mín. 40 caracteres).";
+    if (!form.consent) return "Necesitamos tu consentimiento para tratar tus datos.";
     return "";
-  };
+    };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     const v = validate();
-    if (v) {
-      setError(v);
-      return;
-    }
+    if (v) return setError(v);
 
     setSubmitting(true);
     try {
-      // Simulación de envío
-      await new Promise((r) => setTimeout(r, 900));
+      await new Promise(r => setTimeout(r, 900)); // simulación
       setSent(true);
-    } catch (e) {
+    } catch {
       setError("Algo no fue bien. Intenta de nuevo.");
     } finally {
       setSubmitting(false);
@@ -129,6 +109,17 @@ export const WorkWithUs = () => {
           --su-grad: linear-gradient(310deg,#7928CA,#FF0080);
         }
 
+        /* ====== MISMO FIX QUE EN CONTACT (solo afecta a esta vista) ====== */
+        :where(body):has(.workwithus-scope) nav.navbar{
+          display:none !important;               /* oculta la navbar del layout */
+        }
+        :where(body):has(.workwithus-scope) .content-wrapper.flex-grow-1,
+        :where(body):has(.workwithus-scope) .flex-grow-1.main-content.d-flex.flex-column{
+          padding-top:0 !important;              /* elimina el empuje superior */
+          background:transparent !important;     /* por si el wrapper pinta fondo */
+        }
+        /* ================================================================= */
+
         .workwithus-scope{
           position:relative; min-height:100dvh;
           background:
@@ -144,12 +135,12 @@ export const WorkWithUs = () => {
         .content{ position:relative; z-index:1; }
         .container-neo{ max-width:1180px; margin:0 auto; padding:0 16px; }
 
-        
+        /* Solo ocultamos los botones sueltos del template si existieran */
         .navbar .btn, .navbar .btn-group,
         nav.navbar + .container .btn, nav.navbar + .container .btn-group,
         .template-links { display:none !important; }
 
-        
+        /* ===== HERO ===== */
         .jobs-hero{
           position:relative; color:#eaf2ff; padding:80px 0 140px;
           background: radial-gradient(1400px 600px at 50% -280px, #20314d 0%, #0f1b33 62%);
@@ -159,7 +150,7 @@ export const WorkWithUs = () => {
         .jobs-hero p{ color:#a9b8cc; max-width:780px; font-size:1.05rem; }
         .wave{ position:absolute; left:0; right:0; bottom:-1px; height:120px; width:100%; }
 
-       
+        /* ===== CARD ===== */
         .card-soft{
           background:#fff; border:1px solid rgba(255,255,255,.65);
           border-radius:22px; box-shadow:0 22px 70px rgba(15,23,42,.14);
@@ -182,7 +173,6 @@ export const WorkWithUs = () => {
           outline:none;
         }
 
-        
         .form-range{ accent-color:#a78bfa; }
         .form-range::-webkit-slider-thumb{ background:#a78bfa; }
         .form-range::-moz-range-thumb{ background:#a78bfa; }
@@ -193,7 +183,6 @@ export const WorkWithUs = () => {
           box-shadow:0 6px 16px rgba(15,23,42,.06);
         }
 
-        
         .chip{
           border:1px solid #e9e9f3; border-radius:999px;
           padding:.38rem .78rem; cursor:pointer; user-select:none;
@@ -207,7 +196,6 @@ export const WorkWithUs = () => {
           box-shadow:0 12px 28px rgba(203,12,159,.30);
         }
 
-        
         .btn{ border-radius:12px; font-weight:800; }
         .btn-brand{
           background-image: var(--su-grad); border:0; color:#fff;
@@ -230,19 +218,15 @@ export const WorkWithUs = () => {
           padding:1rem; border-radius:14px;
         }
 
-        
-        .block-title{
-          font-weight:900; color:#20314d; margin:8px 0 2px;
-        }
+        .block-title{ font-weight:900; color:#20314d; margin:8px 0 2px; }
         .block-sub{ color:#6b7c90; margin-bottom:8px; }
 
-        
         .form-actions{ margin-top: 1.35rem; padding-top: .35rem; }
       `}</style>
 
       <div className="bg-art" aria-hidden="true"></div>
 
-      
+      {/* HERO */}
       <section className="jobs-hero">
         <div className="container-neo">
           <h1 className="mb-1">Trabaja con nosotros</h1>
@@ -256,14 +240,13 @@ export const WorkWithUs = () => {
         </svg>
       </section>
 
-      
+      {/* FORM */}
       <section className="content py-4 py-md-5">
         <div className="container-neo">
           <div className="card-soft">
             {!sent ? (
               <form onSubmit={handleSubmit}>
                 <div className="row g-4">
-                  
                   <div className="col-12">
                     <div className="block-title">Datos básicos</div>
                     <div className="block-sub">Tu info de contacto y rol preferido.</div>
@@ -304,9 +287,7 @@ export const WorkWithUs = () => {
                       required
                     >
                       <option value="">Elige un rol</option>
-                      {roles.map((r) => (
-                        <option key={r} value={r}>{r}</option>
-                      ))}
+                      {roles.map(r => <option key={r} value={r}>{r}</option>)}
                     </select>
                   </div>
 
@@ -325,7 +306,6 @@ export const WorkWithUs = () => {
                     </select>
                   </div>
 
-                  
                   <div className="col-12">
                     <div className="block-title mt-1">Enlaces</div>
                   </div>
@@ -383,11 +363,10 @@ export const WorkWithUs = () => {
                     </div>
                   </div>
 
-                  
                   <div className="col-12">
                     <label className="label mb-2 d-block">Skills principales</label>
                     <div className="d-flex flex-wrap gap-2">
-                      {allSkills.map((s) => (
+                      {allSkills.map(s => (
                         <span
                           key={s}
                           role="button"
@@ -400,7 +379,6 @@ export const WorkWithUs = () => {
                     </div>
                   </div>
 
-                  
                   <div className="col-12">
                     <label className="label mb-1">Sobre ti</label>
                     <textarea
@@ -415,7 +393,6 @@ export const WorkWithUs = () => {
                     <div className="hint mt-1">Mínimo 40 caracteres.</div>
                   </div>
 
-                  
                   <div className="col-md-6">
                     <label className="label mb-1">CV (PDF o DOCX)</label>
                     <input
@@ -425,9 +402,7 @@ export const WorkWithUs = () => {
                       name="cvFile"
                       onChange={onChange}
                     />
-                    {form.cvFile && (
-                      <div className="hint mt-1">Archivo: {form.cvFile.name}</div>
-                    )}
+                    {form.cvFile && <div className="hint mt-1">Archivo: {form.cvFile.name}</div>}
                   </div>
 
                   <div className="col-md-6">
@@ -481,16 +456,11 @@ export const WorkWithUs = () => {
                     </div>
                   )}
 
-                  
                   <div className="col-12 d-flex flex-wrap gap-3 form-actions">
                     <button className="btn btn-brand" type="submit" disabled={submitting}>
                       {submitting ? "Enviando…" : "Enviar solicitud"}
                     </button>
-                    <button
-                      type="button"
-                      className="btn btn-ghost"
-                      onClick={() => navigate(-1)}
-                    >
+                    <button type="button" className="btn btn-ghost" onClick={() => navigate(-1)}>
                       ← Volver
                     </button>
                   </div>
@@ -499,8 +469,7 @@ export const WorkWithUs = () => {
             ) : (
               <div className="text-center">
                 <div className="success mb-4">
-                  ¡Solicitud enviada! 🎉 <br />
-                  Te contactaremos muy pronto. Gracias por tu interés.
+                  ¡Solicitud enviada! 🎉 <br /> Te contactaremos muy pronto. Gracias por tu interés.
                 </div>
                 <button className="btn btn-brand" onClick={() => navigate(-1)}>
                   ← Volver

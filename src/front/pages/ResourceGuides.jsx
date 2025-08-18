@@ -1,6 +1,6 @@
+// src/front/pages/ResourceGuides.jsx
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-
 
 import SoftRibbonNav from "../components/SoftRibbonNav";
 import SiteFooter from "../components/SiteFooter";
@@ -11,6 +11,7 @@ export default function ResourceGuides() {
 
   return (
     <div className="guides-scope">
+      {/* Ribbon propia */}
       <SoftRibbonNav />
 
       <style>{`
@@ -21,6 +22,28 @@ export default function ResourceGuides() {
           --su-muted:#6b7c90;
           --su-grad: linear-gradient(310deg,#7928CA,#FF0080);
         }
+
+        /* ============ Anti-franja superior (mismo enfoque que LandingPreview) ============ */
+        @supports selector(body:has(.guides-scope)) {
+          body:has(.guides-scope) .content-wrapper,
+          body:has(.guides-scope) .flex-grow-1.main-content.d-flex.flex-column{
+            padding-top: 0 !important;          /* quita empuje del layout */
+            background: transparent !important; /* evita fondo blanco del wrapper */
+          }
+          body:has(.guides-scope) .navbar{
+            display: none !important;           /* oculta navbar del template SOLO aquí */
+          }
+        }
+        /* Fallback si :has() o el wrapper no aplican (ajusta 72/84 si tu layout empuja más) */
+        .guides-scope{
+          margin-top: -72px;
+        }
+        @media (min-width: 992px){
+          .guides-scope{ margin-top: -84px; }
+        }
+        /* Un pelín de aire para la ribbon sin desplazar nada raro */
+        .guides-scope nav.soft-ribbon{ margin-top: 25px; }
+        /* ============================================================================= */
 
         /* ===== FONDO SUAVE + ARTE DIFUMINADO ===== */
         .guides-scope{
@@ -100,10 +123,11 @@ export default function ResourceGuides() {
         .cta-row{ display:flex; gap:10px; flex-wrap:wrap; }
       `}</style>
 
+      {/* Fondo artístico suave */}
       <div className="bg-art" aria-hidden="true"></div>
 
       <div className="content">
-        
+        {/* HERO */}
         <section className="hero">
           <div className="container-neo">
             <span className="chip">Recursos</span>
@@ -114,11 +138,11 @@ export default function ResourceGuides() {
           </div>
         </section>
 
-        
+        {/* Tarjetas de guías */}
         <section className="py-3">
           <div className="container-neo">
             <div className="row g-4">
-              
+              {/* Guía 1 */}
               <div className="col-md-6 col-lg-4">
                 <div className="card-soft p-4">
                   <div className="emoji mb-3">🧩</div>
@@ -135,7 +159,7 @@ export default function ResourceGuides() {
                 </div>
               </div>
 
-              
+              {/* Guía 2 */}
               <div className="col-md-6 col-lg-4">
                 <div className="card-soft p-4">
                   <div className="emoji mb-3">👥</div>
@@ -152,7 +176,7 @@ export default function ResourceGuides() {
                 </div>
               </div>
 
-              
+              {/* Guía 3 */}
               <div className="col-md-6 col-lg-4">
                 <div className="card-soft p-4">
                   <div className="emoji mb-3">🎯</div>
@@ -170,7 +194,7 @@ export default function ResourceGuides() {
               </div>
             </div>
 
-           
+            {/* FAQ + CTA */}
             <div className="row g-4 mt-1">
               <div className="col-lg-6">
                 <h5 className="title-ink mb-3">Consejos rápidos</h5>
@@ -209,8 +233,6 @@ export default function ResourceGuides() {
                     <Link to="/company/contact" className="btn btn-outline-secondary btn-sm">Contacto</Link>
                   </div>
                 </div>
-
-                
               </div>
             </div>
 

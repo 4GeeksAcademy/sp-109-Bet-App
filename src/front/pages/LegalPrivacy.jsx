@@ -1,6 +1,6 @@
+// src/front/pages/LegalPrivacy.jsx
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-
 
 import SoftRibbonNav from "../components/SoftRibbonNav";
 import SiteFooter from "../components/SiteFooter";
@@ -17,6 +17,8 @@ export default function LegalPrivacy() {
   return (
     <div className="legal-privacy-scope">
       <SoftRibbonNav />
+      {/* arte de fondo (solo visual) */}
+      <div className="bg-art" aria-hidden="true"></div>
 
       <style>{`
         :root{
@@ -26,6 +28,25 @@ export default function LegalPrivacy() {
           --su-muted:#6b7c90;
           --su-gradient: linear-gradient(310deg,#7928CA,#FF0080);
         }
+
+        /* ================== ARREGLA LA FRANJA BLANCA (solo en esta vista) ================== */
+        @supports selector(body:has(.legal-privacy-scope)) {
+          body:has(.legal-privacy-scope) .content-wrapper,
+          body:has(.legal-privacy-scope) .flex-grow-1.main-content.d-flex.flex-column{
+            padding-top:0 !important;           /* elimina empuje superior del layout */
+            background:transparent !important;  /* evita fondo blanco del wrapper */
+          }
+          body:has(.legal-privacy-scope) .navbar{
+            display:none !important;            /* oculta navbar global solo aquí */
+          }
+        }
+        /* Fallback si :has() no aplica (ajusta 72/84 si tu layout empuja más) */
+        .legal-privacy-scope{ margin-top:-72px; }
+        @media (min-width:992px){ .legal-privacy-scope{ margin-top:-84px; } }
+
+        /* Un pelín de aire para la ribbon propia (si SoftRibbonNav usa nav.soft-ribbon) */
+        .legal-privacy-scope nav.soft-ribbon{ margin-top:25px; }
+        /* =================================================================================== */
 
         /* Lienzo con arte difuminado */
         .legal-privacy-scope{
@@ -100,9 +121,7 @@ export default function LegalPrivacy() {
         .btn-brand:hover{ filter:brightness(1.05); transform:translateY(-1px); }
       `}</style>
 
-      <div className="bg-art" aria-hidden="true"></div>
-
-      
+      {/* HERO */}
       <section className="hero">
         <div className="container-neo">
           <span className="chip">Legal</span>
@@ -114,7 +133,6 @@ export default function LegalPrivacy() {
             Última actualización: {today}
           </small>
 
-          
           <nav className="toc" aria-label="Índice rápido">
             {[
               ["#datos","Datos que recopilamos"],
@@ -135,7 +153,7 @@ export default function LegalPrivacy() {
         </div>
       </section>
 
-      
+      {/* CONTENIDO */}
       <section className="section content">
         <div className="container-neo">
           <div className="card-soft p-4 p-md-5">
