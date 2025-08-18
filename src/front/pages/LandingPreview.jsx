@@ -14,7 +14,7 @@ export const LandingPreview = () => {
       <SoftRibbonNav />
 
       <style>{`
-/* ===== PALETA Soft-UI ===== */
+
 :root{
   --su-primary:#cb0c9f;
   --su-info:#17c1e8;
@@ -27,14 +27,14 @@ export const LandingPreview = () => {
 a[href*="4geeks"], a[href*="4Geeks"], a[href*="template"], a[href*="docs"]{ display:none !important; }
 footer .made-with, .template-links, .footer-credit{ display:none !important; }
 
-/* Oculta barra/menú de demo por completo */
+
   .navbar, .navbar * { display:none !important; }
 
   /* Si quedara algún botón suelto que apunte a "/" (Home),
      lo ocultamos pero dejando visible el brand del ribbon */
   a[href="/"]:not(.soft-brand) { display:none !important; }
 
-/* --------------------- HERO --------------------- */
+
 .hero-gradient{
   background:
     radial-gradient(1200px 600px at 8% -10%, #eef0ff 0%, transparent 60%),
@@ -54,7 +54,7 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
 }
 .btn-brand:hover{ filter:brightness(1.03); transform:translateY(-1px); }
 
-/* Panel oblicuo con tu imagen */
+
 .oblique-card{
   position: relative;
   height: 560px;
@@ -73,10 +73,10 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
 }
 @media (max-width: 991.98px){ .oblique-card{ height: 380px; } }
 
-/* --------------------- 3 PASOS --------------------- */
+
 .soft-card{ border:0; border-radius:1.25rem; box-shadow:0 12px 40px rgba(15,23,42,.08); }
 
-/* Tarjeta con foto — SIN borde y con sombra negra suave */
+
 .card-photo{
   border-radius:18px;
   border:0 !important;
@@ -84,12 +84,12 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
   box-shadow:0 16px 40px rgba(0,0,0,.12); /* sombra negra sutil */
   overflow:hidden;
 }
-/* Imagen superior */
+
 .card-photo .top-photo{
   border-radius:16px;
   width:100%; height:200px; object-fit:cover; object-position:center 45%;
 }
-/* Badge flotante sin borde */
+
 .badge-floating{
   position:absolute; top:-14px; left:18px;
   background:#fff; padding:.35rem .8rem; border-radius:999px;
@@ -100,7 +100,7 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
 /* Por si Bootstrap añade borde a .card */
 .card{ border: 0 !important; }
 
-/* --------------------- TESTIMONIOS --------------------- */
+
 .t-card{
   border-radius:22px;
   background: radial-gradient(120% 100% at 0% 0%, #192447 0%, #0f1b33 60%);
@@ -114,7 +114,7 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
 }
 .t-stats small{ color:#9fb0c6; }
 
-/* --------------------- LISTA bullets (debajo testimonio 2) --------------------- */
+
 .dot{
   width:36px; height:36px; border-radius:999px;
   background-image:var(--su-gradient);
@@ -123,7 +123,7 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
 .bullet h6{ color:#20314d; margin:0; }
 .bullet p{ color:#6b7c90; margin:0; }
 
-/* Espaciado general */
+
 .section{ padding-top:2.5rem; padding-bottom:3rem; }
 /* Más respiro ANTES del bloque “Más que apuestas” */
 .bullets-gap{ margin-top: 2.75rem; }
@@ -131,7 +131,7 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
 
       `}</style>
 
-      {/* ================= HERO ================= */}
+      
       <section className="hero-gradient py-5 py-lg-6">
         <div className="container">
           <div className="row align-items-center g-5">
@@ -149,10 +149,10 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
 
               <div className="d-flex flex-wrap gap-2 mt-3">
                 <button className="btn btn-brand btn-lg" onClick={() => navigate("/login")}>
-                  Iniciar sesión
+                  Log In
                 </button>
                 <button className="btn btn-outline-secondary btn-lg" onClick={() => navigate("/create")}>
-                  Crear usuario
+                  Sign Up
                 </button>
                 
               </div>
@@ -167,7 +167,7 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
         </div>
       </section>
 
-      {/* ============== EN 3 PASOS (ahora LAS 3 con foto) ============== */}
+      
       <section className="section">
         <div className="container">
           <div className="text-center mb-4">
@@ -179,7 +179,7 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
           </div>
 
           <div className="row g-4 align-items-stretch">
-            {/* Paso 1 — con foto */}
+            
             <div className="col-lg-4">
               <div className="card h-100 position-relative card-photo">
                 <img
@@ -196,7 +196,7 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
               </div>
             </div>
 
-            {/* Paso 2 — con foto */}
+            
             <div className="col-lg-4">
               <div className="card h-100 position-relative card-photo">
                 <img
@@ -205,7 +205,7 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
                   alt="Invitar amigos"
                   style={{ objectPosition: "center 35%" }}
                   onError={(e) => {
-                    e.currentTarget.onerror = null; // evita loops
+                    e.currentTarget.onerror = null; 
                     e.currentTarget.src =
                       "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1200&q=80";
                   }}
@@ -219,7 +219,7 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
               </div>
             </div>
 
-            {/* Paso 3 — con foto (con badge) */}
+            
             <div className="col-lg-4">
               <div className="card h-100 position-relative card-photo">
                 <span className="badge-floating">¡También de todo un poco!</span>
@@ -241,7 +241,7 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
         </div>
       </section>
 
-      {/* ===================== TESTIMONIO 1 ===================== */}
+      
       <section className="section pt-0">
         <div className="container">
           <div className="t-card p-4 p-md-5">
@@ -278,7 +278,7 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
         </div>
       </section>
 
-      {/* ===================== TESTIMONIO 2 + BULLETS ===================== */}
+      
       <section className="section pt-4">
         <div className="container">
           <div className="t-card p-4 p-md-5 mb-4">
@@ -313,7 +313,7 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
             </div>
           </div>
 
-          {/* Bloque tipo bullets con MÁS separación arriba */}
+          
           <div className="row g-4 bullets-gap">
             <div className="col-lg-5">
               <h3 className="mb-2" style={{ color:"#cb0c9f" }}>Más que apuestas</h3>
@@ -350,7 +350,7 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
         </div>
       </section>
 
-      {/* Footer */}
+      
       <SiteFooter />
     </div>
   );

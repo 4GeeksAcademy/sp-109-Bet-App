@@ -1,4 +1,3 @@
-// src/front/components/SoftRibbonNav.jsx
 import React from "react";
 import { Link } from "react-router-dom";
 
@@ -67,58 +66,58 @@ export default function SoftRibbonNav() {
       `}</style>
 
       <nav className="soft-ribbon">
-        {/* Título fijo (sin enlace) */}
+        
         <div className="soft-brand" aria-label="BETS APP">BETS APP</div>
 
         <div className="soft-menu">
-          {/* Compañía */}
+          
           <details className="soft-dd">
-            <summary>Compañía ▾</summary>
+            <summary>Company ▾</summary>
             <div className="soft-panel">
-              <Link className="soft-link" to="/company/team">Equipo</Link>
-              <Link className="soft-link" to="/company/jobs">Trabaja con nosotros</Link>
-              <Link className="soft-link" to="/company/contact">Contacto</Link>
+              <Link className="soft-link" to="/company/team">Team</Link>
+              <Link className="soft-link" to="/company/jobs">Work with us</Link>
+              <Link className="soft-link" to="/company/contact">Contact</Link>
             </div>
           </details>
 
-          {/* Cuenta (sin Mi perfil) */}
+          
           <details className="soft-dd">
-            <summary>Cuenta ▾</summary>
+            <summary>Account ▾</summary>
             <div className="soft-panel">
-              <Link className="soft-link" to="/login">Iniciar sesión</Link>
-              <Link className="soft-link" to="/create">Crear usuario</Link>
+              <Link className="soft-link" to="/login">Log In</Link>
+              <Link className="soft-link" to="/create">Sign Up</Link>
             </div>
           </details>
 
-          {/* (Eliminado) Playgrounds */}
-
-          {/* Admin (solo Login admin) */}
           
 
-          {/* Recursos */}
+          
+          
+
+          
           <details className="soft-dd">
-            <summary>Recursos ▾</summary>
+            <summary>Resource ▾</summary>
             <div className="soft-panel">
-              <Link className="soft-link" to="/resources/guides">Guías rápidas</Link>
+              <Link className="soft-link" to="/resources/guides">Guides</Link>
               <Link className="soft-link" to="/resources/changelog">Changelog</Link>
               <Link className="soft-link" to="/resources/roadmap">Roadmap</Link>
-              <Link className="soft-link" to="/resources/status">Estado del servicio</Link>
+              <Link className="soft-link" to="/resources/status">Status</Link>
             </div>
           </details>
 
-          {/* Legal */}
+          
           <details className="soft-dd">
             <summary>Legal ▾</summary>
             <div className="soft-panel">
-              <Link className="soft-link" to="/legal/terms">Términos</Link>
-              <Link className="soft-link" to="/legal/privacy">Privacidad</Link>
+              <Link className="soft-link" to="/legal/terms">Terms</Link>
+              <Link className="soft-link" to="/legal/privacy">Privacy</Link>
               <Link className="soft-link" to="/legal/cookies">Cookies</Link>
-              <Link className="soft-link" to="/legal/responsible">Juego responsable</Link>
+              <Link className="soft-link" to="/legal/responsible">Responsible</Link>
             </div>
           </details>
         </div>
 
-        {/* CTA */}
+        
         
       </nav>
     </div>
