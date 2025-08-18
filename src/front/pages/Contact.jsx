@@ -44,10 +44,7 @@ export const Contact = () => {
 
   return (
     <div className="contact-new-scope">
-      {/* Cabecera Bet APP */}
       <SoftRibbonNav />
-
-      {/* Fondo artístico global (como el resto de vistas) */}
       <div className="bg-art" aria-hidden="true"></div>
 
       <style>{`
@@ -58,6 +55,17 @@ export const Contact = () => {
           --su-muted:#6b7c90;
           --su-grad: linear-gradient(310deg,#7928CA,#FF0080);
         }
+
+        /* ================== ARREGLA LA FRANJA BLANCA (solo en esta vista) ================== */
+        :where(body):has(.contact-new-scope) nav.navbar{
+          display:none !important;            /* quitamos la navbar del layout para evitar la barra blanca */
+        }
+        :where(body):has(.contact-new-scope) .content-wrapper.flex-grow-1,
+        :where(body):has(.contact-new-scope) .flex-grow-1.main-content.d-flex.flex-column{
+          padding-top:0 !important;           /* elimina empuje superior */
+          background:transparent !important;  /* por si el wrapper pinta fondo */
+        }
+        /* =================================================================================== */
 
         .contact-new-scope{
           position:relative;
@@ -166,18 +174,11 @@ export const Contact = () => {
           transition: transform .15s ease, filter .15s ease, box-shadow .15s ease;
         }
         .btn-ghost:hover{ background:#f2f8ff; transform:translateY(-1px); }
-
-        /* Oculta SOLO la tira de botones del template (no la navbar entera) */
-        .navbar .btn, .navbar .btn-group,
-        nav.navbar + .container .btn,
-        nav.navbar + .container .btn-group,
-        .template-links { display: none !important; }
       `}</style>
 
       <div className="content">
         <section className="contact-hero">
           <div className="container-neo contact-wrap">
-            {/* Tarjeta izquierda: más ancha y semitransparente */}
             <div className="card-soft">
               <h1 className="title">Contacto</h1>
               <p className="lead">
@@ -276,7 +277,7 @@ export const Contact = () => {
               </form>
             </div>
 
-            {/* Imagen derecha (misma que la landing) */}
+            {/* Imagen derecha */}
             <div className="hero-art" aria-hidden="true">
               <img src={heroArt} alt="" />
             </div>
@@ -284,7 +285,6 @@ export const Contact = () => {
         </section>
       </div>
 
-      {/* Footer */}
       <SiteFooter />
     </div>
   );

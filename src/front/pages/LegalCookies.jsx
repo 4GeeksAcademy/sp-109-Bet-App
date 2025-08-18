@@ -1,6 +1,6 @@
+// src/front/pages/LegalCookies.jsx
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
 
 import SoftRibbonNav from "../components/SoftRibbonNav";
 import SiteFooter from "../components/SiteFooter";
@@ -13,9 +13,9 @@ export default function LegalCookies() {
     try {
       const saved = JSON.parse(localStorage.getItem("cookiePrefs") || "{}");
       return {
-        functional: true,               
-        analytics: !!saved.analytics,   
-        marketing: !!saved.marketing,   
+        functional: true,
+        analytics: !!saved.analytics,
+        marketing: !!saved.marketing,
       };
     } catch {
       return { functional: true, analytics: false, marketing: false };
@@ -23,14 +23,14 @@ export default function LegalCookies() {
   });
 
   useEffect(() => {
-    
+    // noop
   }, []);
 
   const savePrefs = () => {
-    localStorage.setItem("cookiePrefs", JSON.stringify({
-      analytics: prefs.analytics,
-      marketing: prefs.marketing,
-    }));
+    localStorage.setItem(
+      "cookiePrefs",
+      JSON.stringify({ analytics: prefs.analytics, marketing: prefs.marketing })
+    );
     alert("Preferencias guardadas.");
   };
 
@@ -60,6 +60,25 @@ export default function LegalCookies() {
           --su-muted:#6b7c90;
           --su-gradient: linear-gradient(310deg,#7928CA,#FF0080);
         }
+
+        /* ================== ARREGLA LA FRANJA BLANCA (solo en esta vista) ================== */
+        @supports selector(body:has(.legal-cookies-scope)) {
+          body:has(.legal-cookies-scope) .content-wrapper,
+          body:has(.legal-cookies-scope) .flex-grow-1.main-content.d-flex.flex-column{
+            padding-top:0 !important;           /* elimina empuje superior del layout */
+            background:transparent !important;  /* evita fondo blanco del wrapper */
+          }
+          body:has(.legal-cookies-scope) .navbar{
+            display:none !important;            /* oculta navbar global solo aquí */
+          }
+        }
+        /* Fallback si :has() no aplica (ajusta 72/84 si tu layout empuja más) */
+        .legal-cookies-scope{ margin-top:-72px; }
+        @media (min-width:992px){ .legal-cookies-scope{ margin-top:-84px; } }
+
+        /* Un poco de aire para la SoftRibbon propia (si usa nav.soft-ribbon) */
+        .legal-cookies-scope nav.soft-ribbon{ margin-top:25px; }
+        /* =================================================================================== */
 
         /* Lienzo + arte difuminado */
         .legal-cookies-scope{
@@ -159,7 +178,7 @@ export default function LegalCookies() {
 
       <div className="bg-art" aria-hidden="true"></div>
 
-      
+      {/* HERO */}
       <section className="hero">
         <div className="container-neo">
           <span className="chip">Legal</span>
@@ -173,12 +192,12 @@ export default function LegalCookies() {
         </div>
       </section>
 
-      
+      {/* CONTENIDO */}
       <section className="content">
         <div className="container-neo">
           <div className="card-soft p-4 p-md-5">
             <div className="row g-4">
-              
+              {/* Texto */}
               <div className="col-12 col-lg-6">
                 <h5 className="mb-2">¿Qué son las cookies?</h5>
                 <p>
@@ -196,7 +215,7 @@ export default function LegalCookies() {
                 </ul>
               </div>
 
-              
+              {/* Preferencias */}
               <div className="col-12 col-lg-6">
                 <h5 className="mb-2">Gestión de preferencias</h5>
 
@@ -245,7 +264,7 @@ export default function LegalCookies() {
                 </div>
               </div>
 
-              
+              {/* Tabla */}
               <div className="col-12">
                 <h5 className="mt-2 mt-lg-4 mb-2">Cookies que podrías encontrar</h5>
                 <div className="table-wrap">
@@ -296,7 +315,7 @@ export default function LegalCookies() {
                 </small>
               </div>
 
-              
+              {/* Ayuda */}
               <div className="col-12 col-md-6">
                 <h5 className="mb-2">Cómo deshabilitar cookies en tu navegador</h5>
                 <p className="muted">

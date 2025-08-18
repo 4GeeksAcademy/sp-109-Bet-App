@@ -23,6 +23,25 @@ export default function ResourceStatus() {
           --su-grad: linear-gradient(310deg,#7928CA,#FF0080);
         }
 
+        /* ================== ARREGLA LA FRANJA BLANCA (solo en esta vista) ================== */
+        @supports selector(body:has(.status-scope)) {
+          body:has(.status-scope) .content-wrapper,
+          body:has(.status-scope) .flex-grow-1.main-content.d-flex.flex-column{
+            padding-top:0 !important;           /* elimina empuje superior del layout */
+            background:transparent !important;  /* por si el wrapper pinta fondo */
+          }
+          body:has(.status-scope) .navbar{
+            display:none !important;            /* oculta la navbar global solo aquí */
+          }
+        }
+        /* Fallback si :has() no aplica (ajusta 72/84 si tu layout empuja más) */
+        .status-scope{ margin-top:-72px; }
+        @media (min-width:992px){ .status-scope{ margin-top:-84px; } }
+
+        /* Un pelín de aire para la ribbon propia (sin mover nada más) */
+        .status-scope nav.soft-ribbon{ margin-top:25px; }
+        /* =================================================================================== */
+
         /* ===== Lienzo y arte difuminado ===== */
         .status-scope{
           position:relative; min-height:100dvh;
