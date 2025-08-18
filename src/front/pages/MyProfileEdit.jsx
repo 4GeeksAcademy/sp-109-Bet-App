@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import "../styles/myprofileEdit.css";
 
 // 🔽 Solo visual
 import SoftRibbonNav from "../components/SoftRibbonNav";
@@ -192,6 +193,8 @@ export const MyProfileEdit = () => {
     }
   };
 
+  if (!user) return <p>Loading...</p>;
+
   // ====== SOLO VISUAL ======
   const Styles = () => (
     <style>{`
@@ -285,154 +288,168 @@ export const MyProfileEdit = () => {
         <Styles />
         <SoftRibbonNav />
         <div className="bg-art" aria-hidden="true"></div>
-        <div className="content container py-5 text-center">Cargando...</div>
+        <div className="content container py-5 text-center">Loading...</div>
         <SiteFooter />
       </div>
     );
 
   return (
-    <div className="profileedit-scope">
+  <main className="profileedit-scope">
       <Styles />
       <SoftRibbonNav />
       <div className="bg-art" aria-hidden="true"></div>
 
-      <div className="content">
-        <div className="container py-4">
-          <div className="pe-card">
-            <div className="pe-hero">
-              <h2>Editar Perfil</h2>
-            </div>
+      <div className="mp-hero" />
+      <div className="container mp-overlap d-flex justify-content-center">
+        <div className="card pe-card shadow-lg" style={{ maxWidth: 1000, width: "100%" }}>
+          <div className="card-body p-4 p-md-5">
+                {error && <div className="alert alert-danger mb-4">{error}</div>}
 
-            <div className="p-4 p-md-5 pe-grid">
-              {error && <div className="alert alert-danger mb-4">{error}</div>}
+                <h2 className="mb-2 text-gradient-lilac">Edit Profile</h2>
+                <p className="text-muted mb-4 text-center">Update your information and location</p>
 
-              {/* Fila 1: Name / Last Name */}
-              <div className="row g-3 name-last">
-                <div className="col-12 col-md-6">
-                  <label className="form-label">Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name || ""}
-                    onChange={handleChange}
-                    className="form-control"
-                    placeholder="Name"
-                  />
-                </div>
-                <div className="col-12 col-md-6">
-                  <label className="form-label">Last Name</label>
-                  <input
-                    type="text"
-                    name="last_name"
-                    value={formData.last_name || ""}
-                    onChange={handleChange}
-                    className="form-control"
-                    placeholder="Last Name"
-                  />
-                </div>
-              </div>
+            <div className="pe-grid">
+                  {/* Fila 1: Name / Last Name */}
+                    <div className="row g-3">
+                          <div className="col-md-6">
+                            <div className="form-floating"> 
+                              <input
+                                type="text"
+                                name="name"
+                                value={formData.name || ""}
+                                onChange={handleChange}
+                                className="form-control"
+                                placeholder="Name"
+                              />
+                              <label>Name</label>
+                            </div>
+                          </div>
+                          <div className="col-md-6">  
+                            <div className="form-floating">
+                            <input
+                              type="text"
+                              name="last_name"
+                              value={formData.last_name || ""}
+                              onChange={handleChange}
+                              className="form-control"
+                              placeholder="Last Name"
+                            />
+                            <label>Last Name</label>
+                            </div>
+                          </div>
+                    </div>
 
-              {/* Fila 2: Username / Email */}
-              <div className="row g-3 mt-1 user-email">
-                <div className="col-12 col-md-6">
-                  <label className="form-label">Username</label>
-                  <input
-                    type="text"
-                    name="username"
-                    value={formData.username || ""}
-                    onChange={handleChange}
-                    className="form-control"
-                    placeholder="Username"
-                  />
-                </div>
-                <div className="col-12 col-md-6">
-                  <label className="form-label">Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email || ""}
-                    onChange={handleChange}
-                    className="form-control"
-                    placeholder="Email"
-                  />
-                </div>
-              </div>
+                  {/* Fila 2: Username / Email */} 
+                    <div className="row g-3 mt-1">
+                      <div className="col-md-6">
+                        <div className="form-floating">  
+                        <input
+                          type="text"
+                          name="username"
+                          value={formData.username || ""}
+                          onChange={handleChange}
+                          className="form-control"
+                          placeholder="Username"
+                        />
+                        <label>Username</label>
+                        </div>
+                      </div>
+                      
+                      <div className="col-md-6">
+                        <div className="form-floating"> 
+                        <input
+                          type="email"
+                          name="email"
+                          value={formData.email || ""}
+                          onChange={handleChange}
+                          className="form-control"
+                          placeholder="Email"
+                        />
+                        <label>Email</label>
+                        </div>
+                      </div>
+                    </div>
 
-              {/* Fila 3: Address + Buscar */}
-              <div className="row g-3 mt-1 align-items-end address-row">
-                <div className="col-12">
-                  <label className="form-label">Address</label>
-                </div>
-                <div className="col-12 col-md-9 addr-col">
-                  <input
-                    type="text"
-                    name="address"
-                    value={formData.address || ""}
-                    onChange={handleChange}
-                    className="form-control"
-                    placeholder="Address"
-                  />
-                </div>
-                <div className="col-12 col-md-3 btn-col">
-                  <button type="button" className="btn btn-secondary w-100" onClick={handleAddressSearch}>
-                    Buscar
-                  </button>
-                </div>
-              </div>
+                  {/* Fila 3: Address + Buscar */}
+                  <div className="mt-3">
+                    <label htmlFor="address" className="form-label">Address</label>
+                    
+                    <div className="input-group pe-search mb-2">
+                        <input
+                          type="text"
+                          name="address"
+                          value={formData.address || ""}
+                          onChange={handleChange}
+                          className="form-control"
+                          placeholder="Address"
+                        />
 
-              {/* Fila 4: Lat / Lon */}
-              <div className="row g-3 mt-1 lat-lon">
-                <div className="col-12 col-md-6">
-                  <label className="form-label">Latitude</label>
-                  <input
-                    type="number"
-                    name="latitude"
-                    value={formData.latitude || ""}
-                    onChange={handleChange}
-                    className="form-control"
-                    placeholder="Latitude"
-                  />
-                </div>
-                <div className="col-12 col-md-6">
-                  <label className="form-label">Longitude</label>
-                  <input
-                    type="number"
-                    name="longitude"
-                    value={formData.longitude || ""}
-                    onChange={handleChange}
-                    className="form-control"
-                    placeholder="Longitude"
-                  />
-                </div>
-              </div>
+                        <button type="button" className="btn pe-search" onClick={handleAddressSearch}>
+                            <i className="fa-solid fa-magnifying-glass me-2" aria-hidden="true"></i>
+                            Search
+                        </button>
+                    </div>
+                  </div>
+                  
+                  {/* Fila 4: Lat/Lon */}
+                  <div className="row g-3 mt-1">
+                    <div className="col-md-6">
+                      <div className="form-floating">
+                          <input
+                            type="number"
+                            name="latitude"
+                            value={formData.latitude || ""}
+                            onChange={handleChange}
+                            className="form-control mb-2"
+                            placeholder="Latitude"
+                          />
+                          <label>Latitude</label>
+                      </div>  
+                    </div>
+                    
+                    <div className="col-md-6">
+                      <div className="form-floating">
+                        <input
+                        type="number"
+                        name="longitude"
+                        value={formData.longitude || ""}
+                        onChange={handleChange}
+                        className="form-control mb-2"
+                        placeholder="Longitude"/>
+                        <label>Longitude</label>
+                      </div>
+                    </div>              
+                  </div> 
 
-              {/* Mapa */}
-              <div className="mt-4 pe-map" style={{ height: "460px" }}>
-                <MapContainer center={mapCenter} zoom={13} style={{ height: "100%", width: "100%" }}>
-                  <TileLayer
-                    attribution="&copy; OpenStreetMap contributors"
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  />
-                  <RecenterMap lat={mapCenter[0]} lon={mapCenter[1]} />
-                  <DraggableMarker formData={formData} setFormData={setFormData} />
-                </MapContainer>
-              </div>
+                  {/* Mapa */}
+                  <div className="mt-4 pe-map">
+                    <MapContainer center={mapCenter} zoom={13} style={{ height: "100%", width: "100%" }}>
+                      <TileLayer
+                        attribution="&copy; OpenStreetMap contributors"
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      />
+                      <RecenterMap lat={mapCenter[0]} lon={mapCenter[1]} />
+                      <DraggableMarker formData={formData} setFormData={setFormData} />
+                    </MapContainer>
+                  </div>
 
-              {/* Acciones */}
-              <div className="mt-4 d-flex gap-2">
-                <button onClick={handleSave} className="btn btn-success">
-                  Save
-                </button>
-                <button onClick={() => navigate("/my-profile")} className="btn btn-secondary">
-                  Go Back
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <SiteFooter />
-    </div>
+                  {/* Acciones */}
+                  <div className="mt-4 d-flex flex-wrap gap-2 justify-content-center">
+                    <button onClick={handleSave} className="btn btn-gradient-lilac btn-sm px-4">
+                      <i className="fa-regular fa-floppy-disk me-2" aria-hidden="true"></i>
+                      Save
+                    </button>
+                    <button onClick={() => navigate("/my-profile")} className="btn btn-secondary-soft btn-sm px-4">
+                      <i className="fa-solid fa-arrow-left me-2" aria-hidden="true"></i>
+                      Go Back
+                    </button>
+                  </div>  
+            </div>  
+          </div> 
+        </div>  
+      </div> 
+    
+    <SiteFooter />
+  </main>  
   );
 };
