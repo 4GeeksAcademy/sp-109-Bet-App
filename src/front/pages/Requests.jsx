@@ -1,7 +1,6 @@
 // src/front/pages/Requests.jsx
 import React, { useEffect, useState } from "react";
 
-// 🔽 Solo visual
 import SoftRibbonNav from "../components/SoftRibbonNav";
 import SiteFooter from "../components/SiteFooter";
 import heroArt from "../../../docs/assets/img/curved11.jpg";
@@ -69,14 +68,14 @@ export const Requests = () => {
         }
       );
       if (res.ok) {
-        setReceived((prev) => prev.filter((r) => r.id !== reqId)); // ✅ quitar de la lista
+        setReceived((prev) => prev.filter((r) => r.id !== reqId));
       }
     } catch (err) {
       console.error("Error updating request:", err);
     }
   };
 
-  // ====== SOLO VISUAL ======
+  /* ====================== SOLO VISUAL ====================== */
   const Styles = () => (
     <style>{`
       :root{
@@ -88,12 +87,11 @@ export const Requests = () => {
       }
 
       .requests-scope{
-        position:relative;
-        min-height:100dvh;
+        position:relative; min-height:100dvh;
         background:
           radial-gradient(1400px 600px at 6% -12%, #eef0ff 0%, transparent 60%),
           radial-gradient(1100px 520px at 96% -10%, #e6f9ff 0%, transparent 55%),
-          linear-gradient(#fff,#fff);
+          #fff;
       }
       .requests-scope .bg-art{
         position:fixed; inset:0; pointer-events:none;
@@ -106,55 +104,95 @@ export const Requests = () => {
       .requests-scope .container{ max-width:1100px; }
 
       /* Ocultar botones/links del template superior */
-      .navbar .btn,
-      .navbar .btn-group,
+      .navbar .btn, .navbar .btn-group,
       nav.navbar + .container .btn,
       nav.navbar + .container .btn-group,
       .template-links { display: none !important; }
 
-      /* Hero */
-      .rq-hero{ text-align:center; margin-top:1.25rem; margin-bottom:1rem; }
+      /* ===== HERO mejorado ===== */
+      .rq-hero{ text-align:center; margin:1.25rem 0 1.1rem; }
       .rq-hero h2{
-        margin:0; font-weight:800; letter-spacing:.2px;
+        margin:0; font-weight:900; letter-spacing:.2px; position:relative; display:inline-block;
         background: var(--su-gradient);
         -webkit-background-clip:text; background-clip:text; color:transparent;
       }
-      .rq-hero .subtitle{ color:var(--su-muted); }
-
-      /* Tarjeta */
-      .rq-card{
-        border-radius:18px; border:1px solid #edf1f6; background:#fff;
-        box-shadow:0 18px 50px rgba(15,23,42,.10);
+      .rq-hero h2::after{
+        content:""; position:absolute; inset:-8px -18px; z-index:-1;
+        background: radial-gradient(70% 130% at 50% 0%, rgba(203,12,159,.12), rgba(23,193,232,.10));
+        filter: blur(8px); border-radius:999px;
       }
-      .rq-card h3{ font-size:1.1rem; font-weight:800; color:#20314d; }
+      .rq-hero .subtitle{ color:var(--su-muted); margin-top:.15rem; }
 
-      /* Lista */
+      /* ===== Tarjetas ===== */
+      .rq-card{
+        position:relative;
+        border-radius:20px; border:1px solid #edf1f6; background:#fff;
+        box-shadow:0 18px 60px rgba(15,23,42,.14);
+        overflow:hidden;
+      }
+      /* Barra superior de color (decorativa) */
+      .rq-card::before{
+        content:""; position:absolute; left:16px; right:16px; top:0; height:6px;
+        background:var(--su-gradient); border-radius:0 0 10px 10px; opacity:.25;
+      }
+      .rq-card h3{
+        font-size:1.1rem; font-weight:900; color:#20314d; margin-top:2px;
+        display:flex; align-items:center; gap:.5rem;
+      }
+      .rq-card h3::before{
+        content:""; width:26px; height:26px; border-radius:8px;
+        background:#f1ecff; box-shadow:0 6px 16px rgba(124,58,237,.18);
+        display:inline-block;
+      }
+
+      /* ===== Lista ===== */
       .rq-list .list-group-item{
-        border:1px solid #ecf2fa !important; border-radius:12px !important;
+        border:1px solid transparent !important; border-radius:14px !important;
         margin-bottom:10px; padding:12px 14px;
         display:flex; justify-content:space-between; align-items:center;
+        background:
+          linear-gradient(#fff,#fff) padding-box,
+          linear-gradient(90deg, #e9d7ff, #ffe0f2) border-box;
+        box-shadow:0 10px 26px rgba(15,23,42,.06);
+        transition:transform .12s ease, box-shadow .12s ease;
+      }
+      .rq-list .list-group-item:hover{
+        transform:translateY(-2px);
+        box-shadow:0 16px 38px rgba(15,23,42,.12);
+      }
+      /* tarjeta vacía */
+      .rq-empty{
+        color:var(--su-muted); margin:.25rem 0 .5rem; position:relative; padding-left:26px;
+      }
+      .rq-empty::before{
+        content:"ℹ️"; position:absolute; left:0; top:0; line-height:1;
+        filter:saturate(1.2);
+      }
+      /* chip de estado dentro de <em> */
+      .rq-list em{
+        background:#f6f3ff; color:#6c4bd5; border:1px solid #e8e1ff;
+        padding:.15rem .45rem; border-radius:999px; font-style:normal; font-weight:800;
       }
 
-      /* Botones */
-      .requests-scope .btn{ border-radius:12px !important; font-weight:700; }
+      /* ===== Botones ===== */
+      .requests-scope .btn{ border-radius:12px !important; font-weight:800; }
       .requests-scope .btn-success{
-        background-image: linear-gradient(310deg, #16a34a, #4ade80) !important; border:0 !important; color:#fff !important;
-        box-shadow:0 12px 30px rgba(34,197,94,.35);
+        background: linear-gradient(180deg, #eafff2, #d8ffe6) !important;
+        color:#137a47 !important; border:1px solid #bff5d0 !important;
+        box-shadow:0 10px 26px rgba(34,197,94,.18);
       }
       .requests-scope .btn-danger{
-        background: linear-gradient(180deg, #fff5f5, #ffe9e9) !important; color:#b4232a !important;
-        border:1px solid #ffd2d2 !important; box-shadow:0 8px 22px rgba(244,63,94,.16);
+        background: linear-gradient(180deg, #fff5f5, #ffe9e9) !important;
+        color:#b4232a !important; border:1px solid #ffd2d2 !important;
+        box-shadow:0 10px 26px rgba(244,63,94,.16);
       }
-      .requests-scope .btn-outline-primary{
-        background:#fff !important; color:#20314d !important;
-        border:1px solid #d7e3ff !important; box-shadow:0 8px 22px rgba(15,23,42,.06);
-      }
-      .requests-scope .btn-outline-primary:hover{
-        background:#f2f8ff !important; transform:translateY(-1px);
-      }
+      .requests-scope .btn:hover{ transform:translateY(-1px); }
 
-      /* Mensajes vacíos */
-      .rq-empty{ color:var(--su-muted); margin:0.25rem 0 0.5rem; }
+      /* Responsive pequeños ajustes */
+      @media (max-width: 575.98px){
+        .rq-list .list-group-item{ padding:12px; }
+        .rq-card::before{ left:12px; right:12px; }
+      }
     `}</style>
   );
 
@@ -190,7 +228,7 @@ export const Requests = () => {
         <div className="container py-4">
           {/* Hero */}
           <div className="rq-hero">
-            <h2>Solicitudes</h2>
+            <h2>Requests</h2>
             <div className="subtitle">Gestiona invitaciones y solicitudes de acceso</div>
           </div>
 
@@ -206,7 +244,6 @@ export const Requests = () => {
                     {received.map((req) => (
                       <li key={req.id} className="list-group-item">
                         <span>
-                          {/* ✅ Diferencia entre invitación y solicitud */}
                           {req.status === "invited" ? (
                             <>Te invitaron a <strong>{req.playground_name}</strong></>
                           ) : (

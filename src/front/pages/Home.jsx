@@ -1,4 +1,3 @@
-// src/front/pages/Home.jsx
 import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/AuthContext";
@@ -15,10 +14,10 @@ export const Home = () => {
 
   return (
     <div className="home-neo-scope">
-      {/* NAV superior Bet APP */}
+      
       <SoftRibbonNav />
 
-      {/* Fondo artístico global difuminado */}
+      
       <div className="bg-art" aria-hidden="true"></div>
 
       <style>{`
@@ -47,7 +46,7 @@ export const Home = () => {
         }
         .home-neo-scope .content{ position:relative; z-index:1; }
 
-        /* Oculta solo los botones del template de demo, no nuestro ribbon */
+        
         .navbar .btn,
         .navbar .btn-group,
         nav.navbar + .container .btn,
@@ -56,7 +55,7 @@ export const Home = () => {
 
         .container-neo{ max-width: 1180px; margin: 0 auto; padding: 0 16px; }
 
-        /* ====== HERO ====== */
+        
         .hero{ padding: 42px 0 28px; }
         .hero-wrap{
           display:grid; grid-template-columns: 1.15fr .85fr; gap: 24px;
@@ -99,7 +98,7 @@ export const Home = () => {
         }
         .btn-ghost:hover{ transform:translateY(-1px); }
 
-        /* Tarjeta principal del hero */
+        
         .hero-card{
           border-radius:22px; overflow:hidden;
           position:relative;
@@ -111,7 +110,7 @@ export const Home = () => {
         }
         .hero-card img{ width:100%; height:360px; object-fit:cover; display:block; }
 
-        /* Franja de texto bajo la imagen */
+        
         .hero-caption{
           padding:.7rem .95rem;
           background:#fff;
@@ -121,7 +120,7 @@ export const Home = () => {
         }
         .hero-caption .ico{ color:#7b2fc9; }
 
-        /* ====== PROMOS / PUBLICIDAD ====== */
+        
         .section{ padding: 22px 0 12px; }
         .grid-3{ display:grid; grid-template-columns: repeat(3,1fr); gap:18px; }
         @media (max-width: 991.98px){ .grid-3{ grid-template-columns: 1fr; } }
@@ -142,7 +141,7 @@ export const Home = () => {
         .promo h5{ margin: 0 0 4px; color:#20314d; font-weight:800; }
         .promo p{ margin:0; color:var(--su-muted); }
 
-        /* ====== TENDENCIAS ====== */
+        
         .grid-2{ display:grid; grid-template-columns: repeat(2,1fr); gap:18px; }
         @media (max-width: 991.98px){ .grid-2{ grid-template-columns: 1fr; } }
 
@@ -161,7 +160,7 @@ export const Home = () => {
         }
         .odd.is-hot{ background:#fff9f2; border-color:#ffd1a6; color:#a65a00; }
 
-        /* ====== ARTÍCULOS ====== */
+        
         .article{ background:#fff; border:1px solid #edf1f6; border-radius:18px;
           box-shadow:0 18px 50px rgba(15,23,42,.10); overflow:hidden;
         }
@@ -186,10 +185,10 @@ export const Home = () => {
       `}</style>
 
       <div className="content">
-        {/* ======= HERO ======= */}
+        
         <section className="hero">
           <div className="container-neo hero-wrap">
-            {/* Columna izquierda */}
+            
             <div>
               <h1 className="title">
                 ¡Hola, <span className="name">{displayName}</span>!
@@ -205,18 +204,18 @@ export const Home = () => {
 
               <div className="cta-row">
                 <Link className="btn-brand" to="/playground">
-                  <FaFutbol className="me-2" /> Crear apuesta
+                  <FaFutbol className="me-2" /> Create Bet
                 </Link>
                 <Link className="btn-ghost" to="/playground/search">
-                  <FaSearch className="me-2" /> Buscar sala
+                  <FaSearch className="me-2" /> Search Playground
                 </Link>
                 <Link className="btn-ghost" to="/my-profile">
-                  <FaUser className="me-2" /> Mi perfil
+                  <FaUser className="me-2" /> My Profile
                 </Link>
               </div>
             </div>
 
-            {/* Columna derecha (imagen grande con caption) */}
+            
             <div className="hero-card">
               <img
                 src="https://cdn.pixabay.com/photo/2022/07/10/16/57/boston-terrier-7313320_640.jpg"
@@ -230,7 +229,7 @@ export const Home = () => {
           </div>
         </section>
 
-        {/* ======= PROMOS (RETOS) ======= */}
+        
         <section className="section">
           <div className="container-neo">
             <div className="section-title">
@@ -281,7 +280,7 @@ export const Home = () => {
           </div>
         </section>
 
-        {/* ======= TENDENCIAS HOY ======= */}
+        
         <section className="section">
           <div className="container-neo">
             <div className="section-title">
@@ -327,7 +326,7 @@ export const Home = () => {
           </div>
         </section>
 
-        {/* ======= ARTÍCULOS Y GUÍAS ======= */}
+        
         <section className="section" style={{ paddingBottom: 24 }}>
           <div className="container-neo">
             <div className="section-title">
@@ -400,7 +399,7 @@ export const Home = () => {
         </section>
       </div>
 
-      {/* Footer */}
+      
       <SiteFooter />
     </div>
   );
