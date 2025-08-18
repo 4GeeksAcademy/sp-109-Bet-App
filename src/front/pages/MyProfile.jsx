@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import "../styles/myprofile.css";
 
 // Fix iconos Leaflet (necesario en Vite/Webpack)
 delete L.Icon.Default.prototype._getIconUrl;
@@ -139,39 +140,38 @@ export const MyProfile = () => {
   const avatarUrl = getAvatar(user);
 
   return (
-    <div className="container mt-5 d-flex justify-content-center">
-      <div className="card shadow-sm" style={{ maxWidth: 900, width: "100%" }}>
-        <div className="card-body p-4">
+   <main className="myprofile-page">
+      
+      <div className="mp-hero" />
+
+    <div className="container mp-overlap d-flex justify-content-center">
+      <div className="card mp-card shadow-lg" style={{ maxWidth: 1000, width: "100%" }}>
+        <div className="card-body p-4 p-md-5">
           {/* Cabecera + avatar */}
           <div className="text-center mb-4">
-            <h2 className="mb-3">Mi Perfil</h2>
+            <h2 className="mb-2 text-gradient-lilac">My Profile</h2>
+            <p className="text-muted mb-3">Gestiona tu información y foto de perfil</p>
 
             <div className="d-flex flex-column align-items-center">
-              <div
-                className="rounded-circle overflow-hidden border"
-                style={{
-                  width: 140,
-                  height: 140,
-                  background: "#f6f7fb",
-                  display: "grid",
-                  placeItems: "center",
-                }}
-              >
-                <img
-                  src={avatarUrl}
-                  alt="Avatar"
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
-              </div>
+              <div className="avatar-ring">
+                <div className="avatar-inner">
+                  <img
+                    src={avatarUrl}
+                    alt="Avatar"
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                </div>
+              </div>  
 
               <div className="mt-3">
                 <button
                   type="button"
-                  className="btn btn-outline-secondary btn-sm"
+                  className="btn btn-outline-lilac btn-sm"
                   onClick={openPicker}
                   disabled={uploading}
                 >
-                  {uploading ? "Subiendo…" : "Cambiar foto"}
+                  <i className="fa-solid fa-camera me-2" aria-hidden="true"></i>
+                  {uploading ? "Uploading…" : "Change photo"}
                 </button>
                 <input
                   ref={fileInputRef}
@@ -190,7 +190,7 @@ export const MyProfile = () => {
           <hr />
 
           {/* Datos */}
-          <div className="row g-3">
+          <div className="row g-4">
             <div className="col-sm-6">
               <small className="text-muted d-block">Username</small>
               <div className="fw-semibold">{user.username}</div>
@@ -201,36 +201,36 @@ export const MyProfile = () => {
             </div>
 
             <div className="col-sm-6">
-              <small className="text-muted d-block">Nombre</small>
+              <small className="text-muted d-block">Name</small>
               <div className="fw-semibold">{user.name || "-"}</div>
             </div>
             <div className="col-sm-6">
-              <small className="text-muted d-block">Apellidos</small>
+              <small className="text-muted d-block">Last Name</small>
               <div className="fw-semibold">{user.last_name || "-"}</div>
             </div>
 
             <div className="col-sm-6">
-              <small className="text-muted d-block">Dinero</small>
+              <small className="text-muted d-block">Money</small>
               <div className="fw-semibold">{user.money ?? "-"}</div>
             </div>
             <div className="col-sm-6">
-              <small className="text-muted d-block">Dirección</small>
+              <small className="text-muted d-block">Adress</small>
               <div className="fw-semibold">{user.address || "-"}</div>
             </div>
 
             <div className="col-sm-6">
-              <small className="text-muted d-block">Latitud</small>
+              <small className="text-muted d-block">Latitude</small>
               <div className="fw-semibold">{user.latitude ?? "-"}</div>
             </div>
             <div className="col-sm-6">
-              <small className="text-muted d-block">Longitud</small>
+              <small className="text-muted d-block">Longitude</small>
               <div className="fw-semibold">{user.longitude ?? "-"}</div>
             </div>
           </div>
 
           {/* Mapa */}
           {user.latitude && user.longitude && (
-            <div className="mt-4" style={{ height: 420, width: "100%" }}>
+            <div className="mt-4 mp-map" style={{ height: 420, width: "100%" }}>
               <MapContainer
                 center={[user.latitude, user.longitude]}
                 zoom={13}
@@ -250,24 +250,27 @@ export const MyProfile = () => {
           )}
 
           {/* Acciones */}
-          <div className="mt-4 d-flex gap-2">
+          <div className="mt-4 d-flex flex-wrap gap-2 justify-content-center">
             <button
               onClick={() => navigate("/profile/edit")}
-              className="btn btn-primary"
+              className="btn btn-gradient-lilac btn-sm px-4"
               disabled={uploading}
             >
+              <i className="fa-regular fa-pen-to-square me-2" aria-hidden="true"></i>
               Editar
             </button>
             <button
               onClick={handleDelete}
-              className="btn btn-danger"
+              className="btn btn-danger-soft btn-sm px-4"
               disabled={uploading}
             >
+              <i className="fa-solid fa-trash-can me-2" aria-hidden="true"><
               Eliminar cuenta
             </button>
           </div>
         </div>
       </div>
     </div>
+   </main>  
   );
 };

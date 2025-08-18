@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import "../styles/myprofileEdit.css";
 
 const markerIcon = new L.Icon({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
@@ -186,106 +187,158 @@ export const MyProfileEdit = () => {
     }
   };
 
-  if (!user) return <p>Cargando...</p>;
+  if (!user) return <p>Loading...</p>;
 
   return (
-    <div className="container mt-5">
-      {error && <div className="alert alert-danger">{error}</div>}
-      <h2>Editar Perfil</h2>
+   <main className="profileedit-page">
 
-      <label>Name</label>
-      <input
-        type="text"
-        name="name"
-        value={formData.name || ""}
-        onChange={handleChange}
-        className="form-control mb-2"
-        placeholder="Name"
-      />
+    <div className="pe-hero" />
 
-      <label>Last Name</label>
-      <input
-        type="text"
-        name="last_name"
-        value={formData.last_name || ""}
-        onChange={handleChange}
-        className="form-control mb-2"
-        placeholder="Last Name"
-      />
+    <div className="container pe-overlap d-flex justify-content-center">
+      <div className="card pe-card shadow-lg" style={{ maxWidth: 1000, width: "100%" }}> 
+        <div className="card-body p-4 p-md-5">
+          {error && <div className="alert alert-danger">{error}</div>}
+          
+          <h2 className="mb-2 text-gradient-lilac">Edit My Profile</h2>
+          <p className="text-muted mb-4 text-center">Update your information and location</p>
+          <div className="row g-3">
+           <div className="col-md-6">
+              <div className="form-floating">                
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name || ""}
+                  onChange={handleChange}
+                  className="form-control mb-2"
+                  placeholder="Name"
+                />
+                <label>Name</label>
+              </div>
+            </div> 
+            
+              <div className="col-md-6">
+                <div className="form-floating">
+                  <input
+                    type="text"
+                    name="last_name"
+                    value={formData.last_name || ""}
+                    onChange={handleChange}
+                    className="form-control mb-2"
+                    placeholder="Last Name"
+                  />             
+                  <label>Last Name</label>
+                </div>
+              </div>
+            
+            
 
-      <label>Username</label>
-      <input
-        type="text"
-        name="username"
-        value={formData.username || ""}
-        onChange={handleChange}
-        className="form-control mb-2"
-        placeholder="Username"
-      />
+            <div className="col-md-6">
+                <div className="form-floating">
+                <input
+                  type="text"
+                  name="username"
+                  value={formData.username || ""}
+                  onChange={handleChange}
+                  className="form-control mb-2"
+                  placeholder="Username"
+                />
+                <label>Username</label>
+                </div> 
+            </div>
 
-      <label>Email</label>
-      <input
-        type="email"
-        name="email"
-        value={formData.email || ""}
-        onChange={handleChange}
-        className="form-control mb-2"
-        placeholder="Email"
-      />
+            <div className="col-md-6">
+              <div className="form-floating">
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email || ""}
+                  onChange={handleChange}
+                  className="form-control mb-2"
+                  placeholder="Email"
+                />
+                <label>Email</label>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-3">
+            <label className="form-label fw-semibold" htmlFor="address">Address</label>
+            <div className="input-group pe-search mb-2">
+              <input
+                type="text"
+                name="address"
+                value={formData.address || ""}
+                onChange={handleChange}
+                className="form-control me-2"
+                placeholder="Address"
+              />
 
-      <label>Address</label>
-      <div className="d-flex mb-2">
-        <input
-          type="text"
-          name="address"
-          value={formData.address || ""}
-          onChange={handleChange}
-          className="form-control me-2"
-          placeholder="Address"
-        />
-        <button type="button" className="btn btn-outline-primary" onClick={handleAddressSearch}>
-          Buscar
-        </button>
+              <button type="button" className="btn btn-outline-lilac" onClick={handleAddressSearch}>
+                <i className="fa-solid fa-magnifying-glass me-2" aria-hidden="true"></i>
+                Search
+              </button>
+            </div>
+
+
+            <div className="row g-3 mt-1">
+              <div className="col-md-6">
+                <div className="form-floating">
+                  <input
+                    type="number"
+                    name="latitude"
+                    value={formData.latitude || ""}
+                    onChange={handleChange}
+                    className="form-control mb-2"
+                    placeholder="Latitude"
+                  />
+                  <label>Latitude</label>
+                </div>  
+              </div>
+
+              <div className="col-md-6">
+                <div className="form-floating">
+                  
+                  <input
+                    type="number"
+                    name="longitude"
+                    value={formData.longitude || ""}
+                    onChange={handleChange}
+                    className="form-control mb-2"
+                    placeholder="Longitude"
+                  />
+                  <label>Longitude</label>
+                </div>
+              </div>              
+            </div>
+          
+            {/* Mapa */}
+            <div className="mt-4 pe-map">
+                <MapContainer center={mapCenter} zoom={13} style={{ height: "100%", width: "100%" }}>
+                  <TileLayer
+                    attribution="&copy; OpenStreetMap contributors"
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+                  <RecenterMap lat={mapCenter[0]} lon={mapCenter[1]} />
+                  <DraggableMarker formData={formData} setFormData={setFormData} />
+                </MapContainer>
+            </div>
+          
+          <div className="mt-4 d-flex flex-wrap gap-2 justify-content-center">
+            <button onClick={handleSave} className="btn btn-gradient-lilac btn-sm px-4">
+              <i className="fa-regular fa-floppy-disk me-2" aria-hidden="true"></i>
+              Save
+            </button>
+            <button onClick={() => navigate("/my-profile")} className="btn btn-secondary-soft btn-sm px-4">
+              <i className="fa-solid fa-arrow-left me-2" aria-hidden="true"></i>
+              Go Back
+            </button>
+          </div>  
+        
+          </div> 
+        </div>
       </div>
-
-      <label>Latitude</label>
-      <input
-        type="number"
-        name="latitude"
-        value={formData.latitude || ""}
-        onChange={handleChange}
-        className="form-control mb-2"
-        placeholder="Latitude"
-      />
-
-      <label>Longitude</label>
-      <input
-        type="number"
-        name="longitude"
-        value={formData.longitude || ""}
-        onChange={handleChange}
-        className="form-control mb-2"
-        placeholder="Longitude"
-      />
-
-      <div className="mb-3" style={{ height: "500px" }}>
-        <MapContainer center={mapCenter} zoom={13} style={{ height: "100%", width: "100%" }}>
-          <TileLayer
-            attribution="&copy; OpenStreetMap contributors"
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          <RecenterMap lat={mapCenter[0]} lon={mapCenter[1]} />
-          <DraggableMarker formData={formData} setFormData={setFormData} />
-        </MapContainer>
-      </div>
-
-      <button onClick={handleSave} className="btn btn-success me-2">
-        Save
-      </button>
-      <button onClick={() => navigate("/my-profile")} className="btn btn-secondary">
-        Go Back
-      </button>
     </div>
+   </main>  
   );
 };
 
