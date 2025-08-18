@@ -64,6 +64,7 @@ import ResourceChangelog from "./pages/ResourceChangelog.jsx";
 import ResourceRoadmap from "./pages/ResourceRoadmap.jsx";
 import ResourceStatus from "./pages/ResourceStatus.jsx";
 import BetWinners from "./pages/BetWinners.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
 
 // Hook de auth para decidir qué mostrar en "/"
 import { useAuth } from "./hooks/AuthContext";
@@ -137,6 +138,15 @@ export const router = createBrowserRouter(
         element={
           <PrivateRoutes>
             <Home />
+          </PrivateRoutes>
+        }
+      />
+
+      <Route
+        path="/dashboard"
+        element={
+          <PrivateRoutes>
+            <Dashboard />
           </PrivateRoutes>
         }
       />

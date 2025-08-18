@@ -1,6 +1,31 @@
 .sidebar {
-  height: 100vh;
-  width: 19rem;               
+  height: 100vh; /* Sidebar siempre ocupa toda la altura de la ventana */
+  width: 19rem;
+  position: sticky; /* Se mantiene fija mientras se hace scroll */
+  top: 0;
+  overflow-y: auto; /* Scroll interno si el contenido del sidebar es muy largo */
+  flex-shrink: 0; /* No se encoge */
+}
+
+
+.layout-container {
+  display: flex;
+  min-height: 100vh; /* Asegura que el contenedor principal ocupe toda la altura */
+}
+
+.main-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow: hidden; /* Evita que la barra de scroll del body aparezca por el contenido */
+}
+
+
+.content-wrapper {
+  flex-grow: 1;
+  overflow-y: auto; 
+  padding: 1rem;
 }
 
 .sidenav-btn {
@@ -37,3 +62,5 @@
   color: #ffc107;
   cursor: default;
 }
+
+

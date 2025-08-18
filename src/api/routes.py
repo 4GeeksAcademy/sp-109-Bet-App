@@ -18,6 +18,63 @@ def handle_hello():
         "message": "Hello! I'm a message from the backend"
     }), 200
 
+@api.route('/dashboard', methods=['GET'])
+@jwt_required()
+def get_dashboard():
+    user_id = int(get_jwt_identity())
+
+    user = User.query.get(user_id)
+    if not user:
+        raise APIException("User not found", 404)
+
+    # Playgrounds en los que participa
+    playground_users = PlaygroundUser.query.filter_by(user_id=user_id).all()
+    playgrounds = [pu.playground for pu in playground_users]
+
+    # Playgrounds creados por el usuario
+    created_playgrounds = Playground.query.filter_by(created_by=user_id).all()
+
+    # Apuestas activas del usuario
+    active_bets = (
+        db.session.query(Bet)
+        .join(UserBet, UserBet.bet_id == Bet.id)
+        .filter(UserBet.user_id == user_id, Bet.status == BetStatus.active)
+        .all()
+    )
+
+    # Apuestas disponibles (en playgrounds donde participa pero aún no ha votado)
+    available_bets = (
+        db.session.query(Bet)
+        .filter(
+            Bet.playground_id.in_([pg.id for pg in playgrounds]),
+            Bet.status == BetStatus.active,
+            ~Bet.id.in_(
+                db.session.query(UserBet.bet_id).filter_by(user_id=user_id)
+            )
+        )
+        .all()
+    )
+
+    # Historial de apuestas resueltas
+    history_bets = (
+        db.session.query(Bet)
+        .join(UserBet, UserBet.bet_id == Bet.id)
+        .filter(UserBet.user_id == user_id, Bet.status == BetStatus.resolved)
+        .order_by(Bet.id.desc())
+        .limit(5)
+        .all()
+    )
+
+    return jsonify({
+        "user": user.serialize(),
+        "playgroundsJoined": [pu.serialize() for pu in playground_users],
+        "playgroundsCreated": [pg.serialize() for pg in created_playgrounds],
+        "activeBets": [b.serialize_with_votes(user_id=user_id) for b in active_bets],
+        "availableBets": [b.serialize_with_votes(user_id=user_id) for b in available_bets],
+        "history": [b.serialize_with_votes(user_id=user_id) for b in history_bets]
+    }), 200
+
+
 # ----------- USER -----------
 
 @api.route('/signup', methods=['POST'])
