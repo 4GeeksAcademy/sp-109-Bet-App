@@ -1,8 +1,10 @@
+// src/front/pages/Playgrounds.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import SoftRibbonNav from "../components/SoftRibbonNav";
 import SiteFooter from "../components/SiteFooter";
 import { useAuth } from "../hooks/AuthContext";
+import heroArt from "../../../docs/assets/img/curved11.jpg";
 
 /* ===== Miniatura con fallback SVG embebido (sin red) y sin parpadeo ===== */
 function PgThumb({ src, name, alt }) {
@@ -59,7 +61,8 @@ export const Playgrounds = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { token } = useAuth()
+  const { token } = useAuth();
+
   /* ====== Estilos Soft-UI locales ====== */
   const Styles = () => (
     <style>{`
@@ -70,13 +73,32 @@ export const Playgrounds = () => {
         --su-muted:#6b7c90;
         --su-gradient: linear-gradient(310deg, #7928CA, #FF0080);
       }
+
       .pg-scope{
+        position:relative;
+        min-height:100dvh;
         background:
           radial-gradient(1400px 600px at 5% -10%, #eef0ff 0%, transparent 60%),
           radial-gradient(1100px 520px at 95% -10%, #e6f9ff 0%, transparent 55%),
           linear-gradient(#fff,#fff);
       }
+      /* Arte difuminado de fondo (como en el resto) */
+      .pg-scope .bg-art{
+        position:fixed; inset:0; pointer-events:none;
+        background-image:url(${heroArt});
+        background-size:cover; background-position:center;
+        filter: blur(18px) saturate(1.05) contrast(1.04);
+        opacity:.18; z-index:0;
+      }
+      .pg-scope .content{ position:relative; z-index:1; }
       .container-neo{ max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+
+      /* Oculta los botones del template superior (no nuestro nav) */
+      .navbar .btn,
+      .navbar .btn-group,
+      nav.navbar + .container .btn,
+      nav.navbar + .container .btn-group,
+      .template-links { display: none !important; }
 
       /* Hero */
       .pg-hero{ padding: 28px 0 18px; }
@@ -86,6 +108,7 @@ export const Playgrounds = () => {
         background-image: var(--su-gradient); border:0; color:#fff;
         font-weight:800; border-radius:12px; padding:.8rem 1.1rem;
         box-shadow:0 10px 26px rgba(203,12,159,.35);
+        transition: transform .15s ease, filter .15s ease, box-shadow .15s ease;
       }
       .btn-brand:hover{ filter:brightness(1.05); transform:translateY(-1px); }
 
@@ -105,7 +128,7 @@ export const Playgrounds = () => {
         grid-template-columns: repeat(1, 1fr);
       }
       @media (min-width: 700px){ .pg-grid{ grid-template-columns: repeat(2, 1fr); } }
-      @media (min-width: 1024px){ .pg-grid{ grid-template-columns: repeat(2, 1fr); } }
+      @media (min-width: 1200px){ .pg-grid{ grid-template-columns: repeat(3, 1fr); } }
 
       .pg-card{
         background:#fff; border:1px solid #edf1f6; border-radius:18px;
@@ -125,6 +148,7 @@ export const Playgrounds = () => {
         border:1px solid #e9edf4; background:#fff; color:#20314d;
         padding:.5rem .7rem; border-radius:10px; font-weight:700;
         box-shadow:0 8px 22px rgba(15,23,42,.06);
+        transition: transform .15s ease, filter .15s ease, box-shadow .15s ease;
       }
       .btn-ghost:hover{ transform:translateY(-1px); }
       .btn-outline-danger{ border-color:#ffd2d2; color:#b4232a; }
@@ -141,15 +165,6 @@ export const Playgrounds = () => {
         border:2px dashed #e9edf4; border-radius:18px; padding:28px; text-align:center;
         color:#6b7c90; background:#fff; box-shadow:0 10px 26px rgba(15,23,42,.05);
       }
-
-      .navbar .btn,
-        .navbar .btn-group,
-        nav.navbar + .container .btn,
-        nav.navbar + .container .btn-group,
-        .template-links {
-          display: none !important;
-        }
-
     `}</style>
   );
 
@@ -205,22 +220,6 @@ export const Playgrounds = () => {
     if (user) getPlaygrounds();
   }, [user]);
 
-  if (user === undefined) {
-    return (
-      <div className="container mt-5">
-        <p>Cargando...</p>
-      </div>
-    );
-  }
-
-  if (!token || user === null) {
-    return (
-      <div className="container mt-5">
-        <p>Por favor, inicie sesión para ver los playgrounds.</p>
-      </div>
-    );
-  }
-
   const handleDelete = async (id) => {
     if (!window.confirm("¿Seguro que deseas eliminar este playground?")) return;
 
@@ -237,122 +236,173 @@ export const Playgrounds = () => {
     }
   };
 
+  /* ====== UI ====== */
+  const LoadingOrAuth = () => (
+    <div className="content">
+      <section className="pg-hero">
+        <div className="container-neo">
+          <h2 className="pg-title mb-1">Tus Playgrounds</h2>
+          <p className="pg-sub mb-0">Cargando…</p>
+        </div>
+      </section>
+    </div>
+  );
+
+  if (user === undefined) {
+    return (
+      <div className="pg-scope">
+        <Styles />
+        <SoftRibbonNav />
+        <div className="bg-art" aria-hidden="true"></div>
+        <LoadingOrAuth />
+        <SiteFooter />
+      </div>
+    );
+  }
+
+  if (!token || user === null) {
+    return (
+      <div className="pg-scope">
+        <Styles />
+        <SoftRibbonNav />
+        <div className="bg-art" aria-hidden="true"></div>
+
+        <div className="content">
+          <section className="pg-hero">
+            <div className="container-neo">
+              <h2 className="pg-title mb-1">Tus Playgrounds</h2>
+              <p className="pg-sub mb-0">Por favor, inicia sesión para ver tus playgrounds.</p>
+              <div className="mt-3">
+                <button className="btn btn-brand" onClick={() => navigate("/login")}>
+                  Iniciar sesión
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <SiteFooter />
+      </div>
+    );
+  }
+
   return (
     <div className="pg-scope">
       <Styles />
       <SoftRibbonNav />
+      <div className="bg-art" aria-hidden="true"></div>
 
       {/* HERO */}
-      <section className="pg-hero">
-        <div className="container-neo">
-          <div className="d-flex align-items-center justify-content-between mb-2">
-            <div>
-              <h2 className="pg-title mb-1">Tus Playgrounds</h2>
-              <p className="pg-sub mb-0">
-                Crea salas privadas, invita a tu gente y monta apuestas clásicas o “chorras”. Tú pones las reglas.
-              </p>
+      <div className="content">
+        <section className="pg-hero">
+          <div className="container-neo">
+            <div className="d-flex align-items-center justify-content-between mb-2">
+              <div>
+                <h2 className="pg-title mb-1">Tus Playgrounds</h2>
+                <p className="pg-sub mb-0">
+                  Crea salas privadas, invita a tu gente y monta apuestas clásicas o “chorras”. Tú pones las reglas.
+                </p>
+              </div>
+
+              {user && (
+                <button className="btn btn-brand" onClick={() => navigate("/playground/create")}>
+                  Nuevo playground
+                </button>
+              )}
             </div>
 
-            {user && (
-              <button className="btn btn-brand" onClick={() => navigate("/playground/create")}>
-                Nuevo playground
-              </button>
-            )}
-          </div>
-
-          {/* Chips de usuario / moneda si existen datos */}
-          <div className="hero-chips mt-3">
-            {user?.url_image && (
-              <span className="chip">
-                <img src={user.url_image} alt="avatar" />
-                {user?.username || "usuario"}
-              </span>
-            )}
-            {typeof user?.money !== "undefined" && (
-              <span className="chip">🪙 {user.money}</span>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* ALERTAS */}
-      <div className="container-neo">
-        {successMessage && (
-          <div className="alert alert-soft py-2 px-3 mb-3" role="alert">
-            {successMessage}
-          </div>
-        )}
-        {error && <p className="text-danger">{error}</p>}
-      </div>
-
-      {/* LISTA / GRID */}
-      <section className="pb-4">
-        <div className="container-neo">
-          {playgrounds.length === 0 ? (
-            <div className="empty">
-              Aún no tienes playgrounds. Crea el primero con el botón <strong>“Nuevo playground”</strong>.
+            {/* Chips de usuario / moneda si existen datos */}
+            <div className="hero-chips mt-3">
+              {user?.url_image && (
+                <span className="chip">
+                  <img src={user.url_image} alt="avatar" />
+                  {user?.username || "usuario"}
+                </span>
+              )}
+              {typeof user?.money !== "undefined" && <span className="chip">🪙 {user.money}</span>}
             </div>
-          ) : (
-            <div className="pg-grid">
-              {playgrounds.map((pg) => {
-                const canEnter = (user?.username === pg.creator_name) || pg.is_invited;
-                const canEdit = user?.username === pg.creator_name;
+          </div>
+        </section>
 
-                return (
-                  <div key={pg.id} className="pg-card">
-                    {/* Thumb */}
-                    <PgThumb src={pg.url_image} name={pg.name} alt={pg.name} />
-
-                    {/* Meta */}
-                    <div className="meta">
-                      <h5 className="mb-1">{pg.name}</h5>
-                      <small className="text-muted">
-                        ({pg.slug}) · Creador: {pg.creator_name || "desconocido"}
-                      </small>
-
-                      <div className="pg-badges">
-                        {pg.is_invited && <span className="pg-badge">Invitado</span>}
-                      </div>
-                    </div>
-
-                    {/* Acciones */}
-                    <div className="actions">
-                      {canEnter && (
-                        <button
-                          className="btn-ghost"
-                          onClick={() => navigate(`/playground/${pg.id}`)}
-                          title="Entrar"
-                        >
-                          Entrar
-                        </button>
-                      )}
-
-                      {canEdit && (
-                        <>
-                          <button
-                            onClick={() => navigate(`/playground/edit/${pg.id}`)}
-                            className="btn-ghost"
-                            title="Editar"
-                          >
-                            ✏️
-                          </button>
-                          <button
-                            onClick={() => handleDelete(pg.id)}
-                            className="btn-ghost btn-outline-danger"
-                            title="Eliminar"
-                          >
-                            🗑️
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+        {/* ALERTAS */}
+        <div className="container-neo">
+          {successMessage && (
+            <div className="alert alert-soft py-2 px-3 mb-3" role="alert">
+              {successMessage}
             </div>
           )}
+          {error && <p className="text-danger">{error}</p>}
         </div>
-      </section>
+
+        {/* LISTA / GRID */}
+        <section className="pb-4">
+          <div className="container-neo">
+            {playgrounds.length === 0 ? (
+              <div className="empty">
+                Aún no tienes playgrounds. Crea el primero con el botón <strong>“Nuevo playground”</strong>.
+              </div>
+            ) : (
+              <div className="pg-grid">
+                {playgrounds.map((pg) => {
+                  const canEnter = user?.username === pg.creator_name || pg.is_invited;
+                  const canEdit = user?.username === pg.creator_name;
+
+                  return (
+                    <div key={pg.id} className="pg-card">
+                      {/* Thumb */}
+                      <PgThumb src={pg.url_image} name={pg.name} alt={pg.name} />
+
+                      {/* Meta */}
+                      <div className="meta">
+                        <h5 className="mb-1">{pg.name}</h5>
+                        <small className="text-muted">
+                          ({pg.slug}) · Creador: {pg.creator_name || "desconocido"}
+                        </small>
+
+                        <div className="pg-badges">
+                          {pg.is_invited && <span className="pg-badge">Invitado</span>}
+                        </div>
+                      </div>
+
+                      {/* Acciones */}
+                      <div className="actions">
+                        {canEnter && (
+                          <button
+                            className="btn-ghost"
+                            onClick={() => navigate(`/playground/${pg.id}`)}
+                            title="Entrar"
+                          >
+                            Entrar
+                          </button>
+                        )}
+
+                        {canEdit && (
+                          <>
+                            <button
+                              onClick={() => navigate(`/playground/edit/${pg.id}`)}
+                              className="btn-ghost"
+                              title="Editar"
+                            >
+                              ✏️
+                            </button>
+                            <button
+                              onClick={() => handleDelete(pg.id)}
+                              className="btn-ghost btn-outline-danger"
+                              title="Eliminar"
+                            >
+                              🗑️
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
 
       <SiteFooter />
     </div>
