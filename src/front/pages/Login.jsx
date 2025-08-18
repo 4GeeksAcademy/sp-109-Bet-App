@@ -101,6 +101,17 @@ export const Login = () => {
                                 Don’t have an account?
                                 <Link to="/create" className="login-link gradient">Sign up</Link>
                                 </p>
+
+                                <p className="login-bottom mt-2">
+                                Shall we leave it for another time? {" "}
+                                <button
+                                    type="button"
+                                    className="btn btn-link p-0 align-baseline login-link gradient"
+                                    onClick={() => navigate("/preview")}
+                                >
+                                    Home
+                                </button>
+                                </p>
                                 
                             </div>
                             </div>
