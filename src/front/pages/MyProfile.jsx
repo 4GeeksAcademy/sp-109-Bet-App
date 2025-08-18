@@ -264,7 +264,7 @@ export const MyProfile = () => {
               className="btn btn-danger-soft btn-sm px-4"
               disabled={uploading}
             >
-              <i className="fa-solid fa-trash-can me-2" aria-hidden="true"><
+              <i className="fa-solid fa-trash-can me-2" aria-hidden="true"/>
               Eliminar cuenta
             </button>
           </div>
