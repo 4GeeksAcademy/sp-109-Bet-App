@@ -538,10 +538,10 @@ def update_bet(pg_id, bet_id):
 @api.route('/playground/<int:pg_id>/bet/<int:bet_id>/vote', methods=['POST'])
 @jwt_required()
 def vote_bet_option(pg_id, bet_id):
-
     user_id = int(get_jwt_identity())
     body = request.get_json(silent=True) or {}
     option_id = body.get("option_id")
+
     try:
         option_id = int(option_id) if option_id is not None else None
     except (TypeError, ValueError):
@@ -554,13 +554,12 @@ def vote_bet_option(pg_id, bet_id):
     bet = Bet.query.filter_by(id=bet_id, playground_id=pg_id).first()
     if not bet:
         raise APIException("Bet not found in this playground", 404)
-    
-    #Bloqueo por estado/tiempo
+
+    # Bloqueo por estado/tiempo
     if bet.status in (BetStatus.locked, BetStatus.resolved, BetStatus.cancelled):
         return jsonify({"message": "Bet is not open for voting"}), 400
 
     if bet.deadline and bet.deadline <= datetime.utcnow():
-        # Opcional: aquí también se podria marcar cómo locked. 
         return jsonify({"message": "Bet deadline passed"}), 400
 
     # Validar que la opción pertenece a la apuesta
@@ -568,25 +567,36 @@ def vote_bet_option(pg_id, bet_id):
     if not option:
         raise APIException("Option not found or doesn't belong to the bet", 404)
 
-    # Buscar si el usuario ya votó
-    existing_vote = UserBet.query.filter_by(user_id=user_id, bet_id=bet_id).first()
+    # Validar que el usuario existe
+    user = User.query.get(user_id)
+    if not user:
+        raise APIException("User not found", 404)
 
+    # Validar saldo suficiente
+    if user.money < bet.amount:
+        raise APIException("Insufficient balance to participate", 400)
+
+    # Validar que el usuario no haya votado ya
+    existing_vote = UserBet.query.filter_by(user_id=user_id, bet_id=bet_id).first()
     if existing_vote:
         raise APIException("You have already voted and cannot change your vote", 400)
 
-
+    # Registrar voto
     new_user_bet = UserBet(
         user_id=user_id,
         bet_id=bet_id,
         option_id=option_id
-        )
+    )
     db.session.add(new_user_bet)
 
+    # Descontar dinero del usuario
+    user.money -= bet.amount
 
     db.session.commit()
 
     # Devolver la apuesta actualizada
     return jsonify(bet.serialize_with_votes(user_id=user_id)), 200
+
 
 
 
