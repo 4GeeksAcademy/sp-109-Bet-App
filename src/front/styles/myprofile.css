@@ -2,7 +2,7 @@
 
 .mp-hero {
   height: 220px;
-  background: linear-gradient(90deg, #ff007a 0%, #7a2bff 100%);
+  background: (120deg, rgba(23,193,232,.10), rgba(203,12,159,.08));
   border-bottom-left-radius: 24px;
   border-bottom-right-radius: 24px;
 }
@@ -81,4 +81,19 @@
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+}
+
+.profileedit-scope .form-control,
+.profileedit-scope .form-select {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background-clip: padding-box;
+}
+
+.profileedit-scope .form-control:focus,
+.profileedit-scope .form-select:focus {
+  outline: 0;
+  border-color: #c23db3 !important;                    /* borde lila */
+  box-shadow: 0 0 0 6px rgba(194, 61, 179, 0.18) !important; /* halo lila */
+  background-image: none;
 }

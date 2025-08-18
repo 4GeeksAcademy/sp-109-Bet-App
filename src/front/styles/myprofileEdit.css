@@ -2,7 +2,7 @@
 
 .pe-hero {
   height: 200px;
-  background: linear-gradient(90deg, #ff007a 0%, #7a2bff 100%);
+  background: 120deg, rgba(23,193,232,.10), rgba(203,12,159,.08);
   border-bottom-left-radius: 24px;
   border-bottom-right-radius: 24px;
 }
@@ -68,7 +68,7 @@
 
 /* go back */
 .btn-secondary-soft {
-  background: #eef2f7; color: #344767; border: 1px solid #e2e8f0;
+  background: #eef2f7; color: #344767; border: 1px solid #e2e8f0 ;
   border-radius: 12px; font-weight: 600;
 }
 .btn-secondary-soft:hover { background: #e2e8f0; }

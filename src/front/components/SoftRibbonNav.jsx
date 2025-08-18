@@ -93,12 +93,7 @@ export default function SoftRibbonNav() {
           {/* (Eliminado) Playgrounds */}
 
           {/* Admin (solo Login admin) */}
-          <details className="soft-dd">
-            <summary>Admin ▾</summary>
-            <div className="soft-panel">
-              <Link className="soft-link" to="/admin/login">Login admin</Link>
-            </div>
-          </details>
+          
 
           {/* Recursos */}
           <details className="soft-dd">
@@ -124,7 +119,7 @@ export default function SoftRibbonNav() {
         </div>
 
         {/* CTA */}
-        <Link to="/create" className="soft-cta">Crear usuario</Link>
+        
       </nav>
     </div>
   );
