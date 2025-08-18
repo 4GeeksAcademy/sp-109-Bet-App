@@ -1,4 +1,3 @@
-// src/front/components/SiteFooter.jsx
 import React from "react";
 import { Link } from "react-router-dom";
 
@@ -101,7 +100,7 @@ export default function SiteFooter() {
 
       <div className="container py-5">
         <div className="row g-4">
-          {/* Marca / descripción / redes */}
+          
           <div className="col-12 col-lg-4">
             <h5 className="brand mb-2">Playgrounds & Bets</h5>
             <p className="small mb-3">
@@ -124,7 +123,7 @@ export default function SiteFooter() {
                 <span className="sr-only">X (Twitter)</span>
               </a>
 
-              {/* Instagram */}
+              
              <a
                 className="social social--ig"
                 href="https://www.instagram.com/hello.betapp/"
@@ -139,10 +138,10 @@ export default function SiteFooter() {
                 <span className="sr-only">Instagram</span>
               </a>
 
-              {/* Discord */}
+              
               <a
                 className="social social--dc"
-                href="https://discord.com/users/1405858847951687690" // <-- ID numérico del usuario "betapp"
+                href="https://discord.com/users/1405858847951687690" 
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Discord (perfil)"
@@ -154,7 +153,7 @@ export default function SiteFooter() {
                 <span className="sr-only">Discord</span>
               </a>
 
-              {/* Email */}
+              
               <a className="social social--mail" href="mailto:hola@playbets.app" aria-label="Email" title="Email">
                 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M3 6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6Zm2 .5V7l7 4.5L19 7v-.5H5Zm0 3.2V18h14V9.7l-7 4.5-7-4.5Z"/>
@@ -164,43 +163,43 @@ export default function SiteFooter() {
             </div>
           </div>
 
-          {/* Columnas */}
+          
           <div className="col-6 col-lg-2">
-            <h6 className="mb-3">Compañía</h6>
+            <h6 className="mb-3">Company</h6>
             <ul className="list-unstyled small m-0">
-              <li><Link to="/company/team">Equipo</Link></li>
-              <li><Link to="/company/jobs">Trabaja con nosotros</Link></li>
-              <li><Link to="/company/contact">Contacto</Link></li>
+              <li><Link to="/company/team">Team</Link></li>
+              <li><Link to="/company/jobs">Work with us</Link></li>
+              <li><Link to="/company/contact">Contact</Link></li>
             </ul>
           </div>
 
           <div className="col-6 col-lg-2">
-            <h6 className="mb-3">Cuenta</h6>
+            <h6 className="mb-3">Account</h6>
             <ul className="list-unstyled small m-0">
-              <li><Link to="/login">Iniciar sesión</Link></li>
-              <li><Link to="/create">Crear usuario</Link></li>
-              <li><Link to="/my-profile">Mi perfil</Link></li>
-              <li><Link to="/admin/login">Admin Login</Link></li>
+              <li><Link to="/login">Log In</Link></li>
+              <li><Link to="/create">Sign Up</Link></li>
+              <li><Link to="/my-profile">My Profile</Link></li>
+              <li><Link to="/admin/login">Admin Log In</Link></li>
             </ul>
           </div>
 
           <div className="col-6 col-lg-2">
-            <h6 className="mb-3">Recursos</h6>
+            <h6 className="mb-3">Resource</h6>
             <ul className="list-unstyled small m-0">
-              <li><Link to="/guides">Guías rápidas</Link></li>
+              <li><Link to="/guides">Guides</Link></li>
               <li><Link to="/changelog">Changelog</Link></li>
               <li><Link to="/roadmap">Roadmap</Link></li>
-              <li><Link to="/status">Estado del servicio</Link></li>
+              <li><Link to="/status">Status</Link></li>
             </ul>
           </div>
 
           <div className="col-6 col-lg-2">
             <h6 className="mb-3">Legal</h6>
             <ul className="list-unstyled small m-0">
-              <li><Link to="/legal/terms">Términos</Link></li>
-              <li><Link to="/legal/privacy">Privacidad</Link></li>
+              <li><Link to="/legal/terms">Terms</Link></li>
+              <li><Link to="/legal/privacy">Privacy</Link></li>
               <li><Link to="/legal/cookies">Cookies</Link></li>
-              <li><Link to="/legal/responsible">Juego responsable</Link></li>
+              <li><Link to="/legal/responsible">Responsible</Link></li>
             </ul>
           </div>
         </div>
