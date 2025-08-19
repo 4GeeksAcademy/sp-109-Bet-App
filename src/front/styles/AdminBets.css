@@ -1,0 +1,112 @@
+/* src/front/pages/AdminBets.css */
+
+:root {
+  --su-primary: #cb0c9f;
+  --su-info: #17c1e8;
+  --su-dark: #0f1b33;
+  --su-muted: #6b7c90;
+  --su-grad: linear-gradient(310deg, #7928CA, #FF0080);
+}
+
+.admin-bets-scope {
+  position: relative;
+  min-height: 100dvh;
+  background:
+    radial-gradient(1400px 600px at 6% -12%, #eef0ff 0%, transparent 60%),
+    radial-gradient(1100px 520px at 96% -10%, #e6f9ff 0%, transparent 55%),
+    #fff;
+}
+
+.admin-bets-scope .bg-art {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: url('../../../docs/assets/img/curved11.jpg');
+  background-size: cover;
+  background-position: center;
+  filter: blur(18px) saturate(1.05) contrast(1.04);
+  opacity: .18;
+  z-index: 0;
+}
+
+.admin-bets-scope .content {
+  position: relative;
+  z-index: 1;
+}
+
+/* Oculta solo los botones del template demo (no nuestro ribbon) */
+.navbar .btn,
+.navbar .btn-group,
+nav.navbar + .container .btn,
+nav.navbar + .container .btn-group,
+.template-links {
+  display: none !important;
+}
+
+.container-neo {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* HERO */
+.bets-hero {
+  padding: 28px 0 16px;
+}
+
+.bets-title {
+  font-weight: 900;
+  color: #20314d;
+  margin: 0;
+}
+
+.bets-sub {
+  color: var(--su-muted);
+  margin: 0;
+}
+
+/* Alert suave */
+.alert-soft {
+  border-radius: 14px;
+  border: 1px solid #e9edf4;
+  background: #f7fbff;
+  color: #0f5676;
+  font-weight: 600;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, .05);
+}
+
+/* Lista Soft-UI */
+.list-soft .list-group-item {
+  border: 1px solid #eef2f7 !important;
+  margin-bottom: 10px;
+  border-radius: 14px;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, .06);
+  background: #fff;
+}
+
+/* Botones suaves (overrides locales sin tocar la lógica) */
+.admin-bets-scope .btn-warning {
+  background: linear-gradient(180deg, #fffaf0, #fff1c7) !important;
+  color: #7a5a00 !important;
+  border: 1px solid #ffe49a !important;
+  border-radius: 10px;
+  font-weight: 800;
+  box-shadow: 0 8px 22px rgba(250, 204, 21, .16);
+}
+
+.admin-bets-scope .btn-warning:hover {
+  transform: translateY(-1px);
+}
+
+.admin-bets-scope .btn-danger {
+  background: linear-gradient(180deg, #fff5f5, #ffe9e9) !important;
+  color: #b4232a !important;
+  border: 1px solid #ffd2d2 !important;
+  border-radius: 10px;
+  font-weight: 800;
+  box-shadow: 0 8px 22px rgba(244, 63, 94, .16);
+}
+
+.admin-bets-scope .btn-danger:hover {
+  transform: translateY(-1px);
+}
