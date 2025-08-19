@@ -169,7 +169,7 @@ export const BetEdit = () => {
         { method: "PUT", headers, body: JSON.stringify(payload) }
       );
 
-      if (resp.status === 401) throw new Error("No autorizado. Vuelve a iniciar sesión.");
+      if (resp.status === 401) throw new Error("Unauthorized. Please log in again.");
       if (!resp.ok) {
         let d = {};
         try { d = await resp.json(); } catch { }

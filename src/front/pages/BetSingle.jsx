@@ -27,12 +27,22 @@ export const BetSingle = () => {
   const [loadingWinners, setLoadingWinners] = useState(false);
   const [winnersError, setWinnersError] = useState(null);
 
-  // --- Helpers ---
+  // --- Helpers roles ---
 
   const isAdmin = role === "admin";
   const isUser = role === "user";
   const notEnoughMoney = user?.money < bet?.amount;
+  const isCreator = bet?.user_id === user?.id;
 
+  //---Helper deadline + estados---
+
+  const apiLinked   = !!bet?.external_match_id;                // deportiva con API
+  const deadlineMs  = bet?.deadline ? Date.parse(bet.deadline) : null;
+  const nowMs       = Date.now();
+
+  const deadlinePassed = !!deadlineMs && deadlineMs <= nowMs;
+  const isLocked   = bet?.status === "locked";
+  const isResolved = bet?.status === "resolved";
 
 
   const headers = useMemo(() => ({
@@ -41,12 +51,7 @@ export const BetSingle = () => {
   }),
     [token]
   );
-
-  // --- Es creador de la bet? --- 
-  const isCreator = bet?.user_id === Number(localStorage.getItem("user_id"));
-
-
-
+  
   // --- img helper ---    
   const getBetImage = (b) =>
     b?.url_image || (b?.id ? localStorage.getItem(`bet-image-${b.id}`) : null);
@@ -63,12 +68,11 @@ export const BetSingle = () => {
       );
 
       if (resp.status === 401) {
-        if (isAdmin) {
-          logout()
+        logout()
+        if (isAdmin) {          
           navigate("/admin/login", { replace: true, state: { msg: "Session expired" } });
         } else {
-          logout()
-          navigate("/login", { replace: true, state: { msg: "Session expired" } });
+        navigate("/login", { replace: true, state: { msg: "Session expired" } });
         }
         return;
       }
@@ -101,7 +105,6 @@ export const BetSingle = () => {
   }, [id, betId, token]);
 
   
-
   // Polling/Votaciones - Si la apuesta no está resuelta 
   useEffect(() => {
     if (!bet) return;
@@ -161,11 +164,11 @@ export const BetSingle = () => {
 
   // --- Votar ---
   const votingDisabled =
-    !bet ||
-    bet.status === "locked" ||
-    bet.status === "resolved" ||
-    bet.status === "cancelled" ||
-    (bet.deadline && new Date(bet.deadline).getTime() <= Date.now());
+      !bet ||
+      isLocked ||
+      isResolved ||
+      bet?.status === "cancelled" ||
+      deadlinePassed;
 
 
   //--- Manejo de votaciones --- //
@@ -263,9 +266,9 @@ export const BetSingle = () => {
       );
 
       if (resp.status === 401) {
+        logout()
         if (isAdmin) {
-          logout()
-          navigate("/admin/login", { replace: true, state: { msg: "Session expired" } });
+        navigate("/admin/login", { replace: true, state: { msg: "Session expired" } });
         } else {
           logout()
           navigate("/login", { replace: true, state: { msg: "Session expired" } });
@@ -313,16 +316,13 @@ export const BetSingle = () => {
     bet.winner_option_id &&
     bet.options?.find((o) => o.id === bet.winner_option_id)?.label;
 
-  const deadlinePassed = bet?.deadline && new Date(bet.deadline).getTime() <= Date.now();
-  const isLocked = bet?.status === "locked";
-  const isResolved = bet?.status === "resolved";
 
+  // --- Botón se muestra siempre al admin si no está resuelta/cancelada la apuesta y al creador sí ya pasó el deadline para resolverla  ---
+  
+  const canManualResolveUI = isAdmin
+    ? !isResolved
+    : (isCreator || isAdmin) && !isResolved && (isLocked || deadlinePassed);
 
-  // --- Botón se muestra si es creador o admin, y no está resuelta la apuesta ---
-  const canManualResolveUI =
-    (isCreator || isAdmin) && !isResolved && (isLocked || deadlinePassed);
-  
-  
 
   return (
     <div className="container mt-4">
@@ -354,8 +354,16 @@ export const BetSingle = () => {
             {bet.created_at ? new Date(bet.created_at).toLocaleString() : "N/A"}
           </div>
           <div className="mb-2">
-            <strong>Deadline:</strong>{" "}
-            {bet.deadline ? new Date(bet.deadline).toLocaleString() : "No deadline"}
+            <strong>{apiLinked ? "Kickoff" : "Deadline"}:</strong>{" "}
+            {deadlineMs
+              ? new Date(bet.deadline).toLocaleString()
+              : apiLinked
+                ? "Not available yet"
+                : "No deadline"}
+
+            {apiLinked && deadlineMs && (
+              <span className="ms-2 badge bg-info">from API</span>
+            )}
           </div>
           <div className="mb-2">
             <strong>Resolved at:</strong>{" "}
@@ -368,9 +376,9 @@ export const BetSingle = () => {
             </div>
           )}
 
-          {deadlinePassed && bet.status !== "resolved" && (
+          {deadlinePassed && !isResolved && (
             <div className="alert alert-warning">
-              Deadline passed. Waiting for result…
+              {apiLinked ? "Kickoff passed." : "Deadline passed."} Waiting for result…
             </div>
           )}
 
