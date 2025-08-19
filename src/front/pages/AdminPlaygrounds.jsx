@@ -1,9 +1,9 @@
 // src/front/pages/AdminPlaygrounds.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaTrash } from "react-icons/fa";
+import { FaTrash, FaEye } from "react-icons/fa";
 import { useAuth } from "../hooks/AuthContext";
-
+import "../styles/AdminPlaygrounds.css";
 /* 🔽 Solo visual */
 import SoftRibbonNav from "../components/SoftRibbonNav";
 import SiteFooter from "../components/SiteFooter";
@@ -79,85 +79,8 @@ export const AdminPlaygrounds = () => {
     }
   };
 
-  /* ====== ESTILOS SOLO VISUAL ====== */
-  const Styles = () => (
-    <style>{`
-      :root{
-        --su-primary:#cb0c9f;
-        --su-info:#17c1e8;
-        --su-dark:#0f1b33;
-        --su-muted:#6b7c90;
-        --su-grad: linear-gradient(310deg, #7928CA, #FF0080);
-      }
-
-      .admin-pg-scope{
-        position:relative; min-height:100dvh;
-        background:
-          radial-gradient(1400px 600px at 6% -12%, #eef0ff 0%, transparent 60%),
-          radial-gradient(1100px 520px at 96% -10%, #e6f9ff 0%, transparent 55%),
-          #fff;
-      }
-      .admin-pg-scope .bg-art{
-        position:fixed; inset:0; pointer-events:none;
-        background-image:url(${heroArt});
-        background-size:cover; background-position:center;
-        filter: blur(18px) saturate(1.05) contrast(1.04);
-        opacity:.18; z-index:0;
-      }
-      .admin-pg-scope .content{ position:relative; z-index:1; }
-
-      /* Oculta solo botones del template demo (no nuestro ribbon) */
-      .navbar .btn,
-      .navbar .btn-group,
-      nav.navbar + .container .btn,
-      nav.navbar + .container .btn-group,
-      .template-links { display: none !important; }
-
-      .container-neo{ max-width: 1100px; margin: 0 auto; padding: 0 16px; }
-
-      /* HERO */
-      .pg-hero{ padding:28px 0 16px; }
-      .pg-title{ font-weight:900; color:#20314d; margin:0; }
-      .pg-sub{ color:var(--su-muted); margin:0; }
-
-      /* Listado Soft-UI */
-      .list-soft .list-group-item{
-        border:1px solid #eef2f7 !important;
-        margin-bottom:10px; border-radius:14px;
-        box-shadow:0 10px 26px rgba(15,23,42,.06);
-        background:#fff;
-      }
-
-      .btn-ghost{
-        border:1px solid #e9edf4; background:#fff; color:#20314d;
-        padding:.45rem .65rem; border-radius:10px; font-weight:700;
-        box-shadow:0 8px 22px rgba(15,23,42,.06);
-        transition: transform .15s ease, filter .15s ease, box-shadow .15s ease;
-      }
-      .btn-ghost:hover{ transform:translateY(-1px); }
-      .btn-outline-danger{
-        border-color:#ffd2d2 !important; color:#b4232a !important; background:#fff !important;
-      }
-
-      /* Alert */
-      .alert-soft{
-        border-radius:14px; border:1px solid #e9edf4;
-        background:#f7fbff; color:#0f5676; font-weight:600;
-        box-shadow:0 10px 26px rgba(15,23,42,.05);
-      }
-
-      /* Empty / Loading */
-      .card-soft{
-        background:#fff; border:1px solid #edf1f6; border-radius:18px;
-        box-shadow:0 18px 50px rgba(15,23,42,.10);
-        padding:16px;
-      }
-    `}</style>
-  );
-
   return (
     <div className="admin-pg-scope">
-      <Styles />
       <SoftRibbonNav />
       <div className="bg-art" aria-hidden="true"></div>
 
@@ -183,21 +106,36 @@ export const AdminPlaygrounds = () => {
                 {playgrounds.map((pg) => (
                   <li
                     key={pg.id}
-                    className="list-group-item d-flex justify-content-between align-items-center"
+                    className="list-group-item d-flex justify-content-between align-items-center flex-wrap"
                   >
-                    <div>
-                      <strong>{pg.name}</strong> — {pg.slug} — Creator: {pg.created_by || "Unknown"}
+                    <div className="pg-info">
+                      <h5 className="pg-name mb-3">Name: {pg.name}</h5>
+                      <p className="pg-slug">Slug: <span>{pg.slug}</span></p>
+                      <p className="pg-creator">Creator: <span>{pg.created_by || "Unknown"}</span></p>
+                      <p className="pg-participants">
+                        Participants: <span>{pg.playground_used ? pg.playground_used.length : 0}</span>
+                      </p>
                     </div>
-                    <button
-                      className="btn btn-sm btn-ghost btn-outline-danger"
-                      onClick={() => handleDelete(pg.id)}
-                      title="Delete Playground"
-                    >
-                      <FaTrash />
-                    </button>
+                    <div className="pg-actions">
+                      <button
+                        className="btn btn-sm btn-ghost btn-outline-primary"
+                        onClick={() => navigate(`/playground/${pg.id}`)}
+                        title="View Playground"
+                      >
+                        <FaEye />
+                      </button>
+                      <button
+                        className="btn btn-sm btn-ghost btn-outline-danger"
+                        onClick={() => handleDelete(pg.id)}
+                        title="Delete Playground"
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>
+
             )}
           </div>
         </section>

@@ -185,7 +185,49 @@ def handle_user():
         db.session.commit()
         return jsonify({"msg": "User deleted"}), 200
 
+# -----------------------------------------
 
+@api.route('/user/<int:user_id>', methods=['GET', 'PUT', 'DELETE'])
+@jwt_required()
+def handle_single_user(user_id):
+    current_user_id = get_jwt_identity()
+    claims = get_jwt()  # contiene "role" y otros claims del token
+
+    # Solo el propio usuario o un admin pueden acceder
+    if str(current_user_id) != str(user_id) and claims.get("role") != "admin":
+        raise APIException("No tienes permiso para esta acción", 403)
+
+    user = User.query.get(user_id)
+    if not user:
+        raise APIException("User not found", 404)
+
+    # GET
+    if request.method == 'GET':
+        return jsonify(user.serialize()), 200
+
+    # PUT (editar)
+    if request.method == 'PUT':
+        data = request.get_json()
+        for field in ["username", "name", "last_name", "email", "password", "money", "is_active", "address", "latitude", "longitude"]:
+            if field in data:
+                if field in ["latitude", "longitude"]:
+                    if data[field] is None:
+                        setattr(user, field, None)
+                    else:
+                        try:
+                            setattr(user, field, float(data[field]))
+                        except (ValueError, TypeError):
+                            raise APIException(f"Invalid value for {field}", 400)
+                else:
+                    setattr(user, field, data[field])
+        db.session.commit()
+        return jsonify({"msg": "User updated", "user": user.serialize()}), 200
+
+    # DELETE
+    if request.method == 'DELETE':
+        db.session.delete(user)
+        db.session.commit()
+        return jsonify({"msg": "User deleted"}), 200
 
 # ----------- ADMIN USER -----------
 
@@ -223,86 +265,86 @@ def handle_user():
 #     db.session.commit()
 #     return jsonify({"msg": "Admin deleted"}), 200
 
-
 @api.route('/playground/<int:id>', methods=['GET'])
+@jwt_required()
 def show_playground(id):
-
     playground = Playground.query.filter_by(id=id).first()
 
     if not playground:
         raise APIException("Playground not found", 404)
 
-    response_body = {
+    return jsonify({
         "message": "success",
         "playground": playground.serialize()
-    }
-
-    return jsonify(response_body), 200
+    }), 200
 
 
 @api.route('/playground/<int:id>', methods=['DELETE'])
+@jwt_required()
 def delete_playground(id):
+    current_user_id = int(get_jwt_identity())
+    user = User.query.get(current_user_id)
 
-    playground = Playground.query.filter_by(id=id).first()
-
+    playground = Playground.query.get(id)
     if not playground:
         raise APIException("Playground not found", 404)
+
+    # ✅ Permiso: solo el creador o admin pueden borrar
+    if playground.created_by != current_user_id and user.role != "admin":
+        raise APIException("No tienes permiso para eliminar este playground", 403)
 
     db.session.delete(playground)
     db.session.commit()
 
-    response_body = {
-        "message": "Playground deleted",
-    }
-
-    return jsonify(response_body), 200
+    return jsonify({"message": "Playground deleted"}), 200
 
 
 @api.route('/playground/<int:id>', methods=['PUT'])
+@jwt_required()
 def update_playground(id):
+    current_user_id = int(get_jwt_identity())
+    user = User.query.get(current_user_id)
 
-    playground = Playground.query.filter_by(id=id).first()
-
+    playground = Playground.query.get(id)
     if not playground:
         raise APIException("Playground not found", 404)
+
+    # ✅ Permiso: solo el creador o admin pueden editar
+    if playground.created_by != current_user_id and user.role != "admin":
+        raise APIException("No tienes permiso para editar este playground", 403)
 
     data = request.get_json()
     new_name = data.get('name')
     new_image = data.get('url_image')
     new_description = data.get('description')
 
-
     if new_name:
         if not new_name.strip():
             raise APIException("Name cannot be empty", 400)
-        
 
-    if new_name != playground.name:
-        new_slug = generate_unique_slug(db. session, Playground, new_name)
-        existing = Playground.query.filter_by(slug=new_slug).first()
+        if new_name != playground.name:
+            new_slug = generate_unique_slug(db.session, Playground, new_name)
+            existing = Playground.query.filter_by(slug=new_slug).first()
 
-        if existing and existing.id != playground.id:
-            raise APIException("Slug already in use", 400)
-        
-        playground.name = new_name
-        playground.slug = new_slug
+            if existing and existing.id != playground.id:
+                raise APIException("Slug already in use", 400)
 
-    
+            playground.name = new_name
+            playground.slug = new_slug
+
     if new_image is not None:
         playground.url_image = new_image
 
     if new_description is not None:
         playground.description = new_description
-        
-        
+
     db.session.commit()
-    
-    response_body = {
+
+    return jsonify({
         "message": "Playground updated",
         "playground": playground.serialize()
-    }
+    }), 200
 
-    return jsonify(response_body), 200
 
 
 
