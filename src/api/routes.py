@@ -8,6 +8,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt
 from werkzeug.security import check_password_hash, generate_password_hash
 import requests
+import os
+from api.football_data import fd_get_match
 
 api = Blueprint('api', __name__)
 
@@ -422,28 +424,41 @@ def get_bets_by_playground(pg_id):
 @jwt_required()
 def create_bet(pg_id):
 
-    body = request.get_json()
-
-
+    body = request.get_json(silent=True) or {}
     user_id = int(get_jwt_identity())
 
-        
+    # -- validar usuario y playground ---   
     user = User.query.get(user_id)
     if not user:
         raise APIException("User not found", 404)
     
+    playground=Playground.query.get(pg_id)
+    if not playground:
+        raise APIException("Playground not found", 404)
     
-    name = body.get('name')
+    # --- campos base ---
+    name = (body.get('name') or '').strip()
+    if not name:
+        raise APIException("Name is required", 400)
+    
     amount = body.get('amount')
-    if amount is None:
-        raise APIException("Amount is required", 404)
+    try:
+        amount = float(amount)
+    except (TypeError, ValueError):
+        raise APIException("Amount must be a number", 400)
     
     status_str = body.get("status")
     type_str = body.get("type", "sports")
+
     event_description = body.get("event_description")
     deadline_str = body.get("deadline")
+
     league = body.get("league")
     match = body.get("match")
+
+    # --- sports de Api ---
+    competition_code   = body.get("competition_code")
+    external_match_id  = body.get("external_match_id")
 
     options = body.get('options', [])
     if not options or not isinstance(options, list):
@@ -459,19 +474,76 @@ def create_bet(pg_id):
     except KeyError:
         raise APIException(f"Invalid type '{type_str}'", 400)
     
-    playground=Playground.query.get(pg_id)
-    if not playground:
-        raise APIException("Playground not found", 404)
+    # --- Deadline ---
+    # Si ES sports: el deadline viene de la API (external_match_id)
+    # Si NO es sports: usamos el deadline indicado por creador bet
+
+    def parse_iso(s: str) -> datetime:
+        dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
+        if dt.tzinfo is not None:
+            dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
+        return dt
     
-    deadline = datetime.fromisoformat(deadline_str) if deadline_str else None
-        
+    deadline = None
+
+# --- deadline según tipo ---
+
+    if type_enum == BetType.sports:
+        if external_match_id:
+            try:
+                emid = int(external_match_id)
+            except (TypeError, ValueError):
+                raise APIException("external_match_id must be an integer", 400)
+            
+            api_key = os.getenv("FOOTBALL_DATA_API_KEY")
+            if not api_key:
+                raise APIException("FOOTBALL_DATA_API_KEY is not configured", 500)
+            
+            try:
+                r = requests.get(
+                    f"https://api.football-data.org/v4/matches/{emid}",
+                    headers={"X-Auth-Token": api_key},
+                    timeout=10
+                )
+                r.raise_for_status()
+                data = r.json()
+            except requests.RequestException as e:
+                raise APIException(f"Failed to loading match from Football-Data: {e}", 502)
+            
+            match_payload = data.get("match", data)
+            utc_date = match_payload.get("utcDate")
+            if not utc_date:
+                raise APIException("External API did not return 'utcDate' for the match", 502)
+            # deadline = kickoff del partido (UTC)
+            deadline = parse_iso(utc_date)
+
+            external_match_id = emid
+        else:
+            # Apuesta deportiva sin external_match_id: no ponemos deadline automático
+            deadline = None
+    else:
+        # NO sports: permitimos enviar deadline manual
+        if deadline_str:
+            try:
+                deadline = parse_iso(deadline_str)
+            except Exception:
+                raise APIException("Invalid deadline format (use ISO 8601)", 400)
+    
+    # --- Opciones ---
     bet_options = []
-    for option in options:
-        label = option.get('label')
+    for opt in options:
+        label = (opt.get('label') or '').strip()
         if not label:
             raise APIException("Option label is required", 400)
-        bet_options.append(BetOption(label=label))
+        ext_team_id = opt.get("external_team_id")
+        try:
+            ext_team_id = int(ext_team_id) if ext_team_id is not None else None
+        except (TypeError, ValueError):
+            ext_team_id = None
 
+        bet_options.append(BetOption(label=label, external_team_id=ext_team_id))
+
+     # --- Crear bet ---
     new_bet = Bet(
         name=name,
         amount=amount,
@@ -483,7 +555,9 @@ def create_bet(pg_id):
         league=league,
         match=match,
         event_description=event_description,
-        options=bet_options
+        options=bet_options,
+        competition_code=competition_code,
+        external_match_id=external_match_id
     )
 
     db.session.add(new_bet)
@@ -1569,6 +1643,7 @@ def can_manual_resolve(bet: "Bet") -> bool:
 @jwt_required()
 def resolve_bet_manual(pg_id, bet_id):
     """Permite al creador o un admin resolver manualmente una apuesta NO ligada a API (sin external_match_id)."""
+    is_admin_user = is_admin(uid)
     uid = int(get_jwt_identity())
 
     bet = Bet.query.filter_by(id=bet_id, playground_id=pg_id).first()
@@ -1576,11 +1651,11 @@ def resolve_bet_manual(pg_id, bet_id):
         return jsonify({"message": "Bet not found"}), 404
 
     # Solo el creador puede resolver manualmente
-    if bet.user_id != uid and not is_admin(uid):
+    if bet.user_id != uid and not is_admin_user:
         return jsonify({"message": "Not allowed"}), 403
     
     # Comprobamos si se puede resolver manualmente
-    if not can_manual_resolve(bet):
+    if not is_admin_user and not can_manual_resolve(bet):
         return jsonify({"message": "Bet cannot be resolved yet"}), 400
 
     # No permitir si ya está cerrada
@@ -1593,6 +1668,8 @@ def resolve_bet_manual(pg_id, bet_id):
     # Esta ruta es para NO-API (o cuando no se configuró partido externo)
     if getattr(bet, "external_match_id", None) and not is_admin(uid):
         return jsonify({"message": "This bet is linked to an external match; use auto resolution"}), 400
+    
+    
     
     data = request.get_json(silent=True) or {}
     winner_option_id = data.get("winner_option_id")
@@ -1608,9 +1685,13 @@ def resolve_bet_manual(pg_id, bet_id):
     winner = BetOption.query.filter_by(id=winner_option_id, bet_id=bet.id).first()
     if not winner:
         return jsonify({"message": "Winner option invalid for this bet"}), 400
-
-    if bet.deadline and bet.deadline > datetime.utcnow():
+    
+    # Bloqueo por deadline solo para no-admin
+    if not is_admin_user and bet.deadline and bet.deadline > datetime.utcnow():
         return jsonify({"message": "Bet cannot be resolved before the deadline"}), 400
+
+    # if bet.deadline and bet.deadline > datetime.utcnow():
+    #     return jsonify({"message": "Bet cannot be resolved before the deadline"}), 400
 
     bet.winner_option_id = winner.id
     bet.status = BetStatus.resolved
@@ -1645,29 +1726,68 @@ def resolve_bet_auto(pg_id, bet_id):
     if bet.status in (BetStatus.resolved, BetStatus.cancelled):
         return jsonify({"message": "Bet already finished"}), 400
 
-    # Verificamos si ya pasó el deadline
-    if bet.deadline and bet.deadline > datetime.utcnow():
-        return jsonify({"message": "Bet cannot be resolved before the deadline"}), 400
+    # # Verificamos si ya pasó el deadline
+    # if bet.deadline and bet.deadline > datetime.utcnow():
+    #     return jsonify({"message": "Bet cannot be resolved before the deadline"}), 400
 
     # --- Aquí llamamos a la API externa ---
+    # Llamada a football-data
     try:
-        import requests
-        api_url = f"https://tu-api-externa.com/match/{bet.external_match_id}"
-        r = requests.get(api_url, timeout=5)
-        r.raise_for_status()
-        match_data = r.json()
+        match = fd_get_match(int(bet.external_match_id))
     except Exception as e:
-        return jsonify({"message": f"Error fetching external result: {e}"}), 500
+        return jsonify({"message": f"Error loading external result: {e}"}), 502
 
-    # Supongamos que la API devuelve {"winner_code": "home"} o "away" o "draw"
-    winner_code = match_data.get("winner_code")
-    if not winner_code:
+    # Aseguramos que el partido ha terminado
+    status = (match or {}).get("status")
+    if status != "FINISHED":
+        return jsonify({"message": f"Match not finished yet (status={status})"}), 400
+
+
+    # Ganador: HOME_TEAM, AWAY_TEAM o DRAW
+    winner_code = (match.get("score") or {}).get("winner")
+    if winner_code not in ("HOME_TEAM", "AWAY_TEAM", "DRAW"):
         return jsonify({"message": "No winner info in external API"}), 400
 
     # Buscar en bet.options la que coincida con ese código
     winner_option = next((opt for opt in bet.options if opt.label.lower() == winner_code.lower()), None)
     if not winner_option:
         return jsonify({"message": f"No matching option for code {winner_code}"}), 400
+    
+    home = (match.get("homeTeam") or {}).get("name") or (match.get("homeTeam") or {}).get("shortName", "")
+    away = (match.get("awayTeam") or {}).get("name") or (match.get("awayTeam") or {}).get("shortName", "")
+
+    #--mapeo opciones por label---
+    def normalize(s: str) -> str:
+        return (s or "").strip().lower()
+    
+    #--- opciones de ganadores ---
+    wanted_labels = []
+    if winner_code == "HOME_TEAM":
+        wanted_labels = [home]
+    elif winner_code == "AWAY_TEAM":
+        wanted_labels = [away]
+    else:
+        wanted_labels = ["draw", "empate", "tie"]
+
+    winner_option = None
+    for opt in bet.options:
+        lab = normalize(opt.label)
+        if lab in map(normalize, wanted_labels):
+            winner_option = opt
+            break
+
+    if not winner_option:
+        # fallback: nombre del equipo
+        for opt in bet.options:
+            lab = normalize(opt.label)
+            if winner_code == "HOME_TEAM" and normalize(home) in lab:
+                winner_option = opt; break
+            if winner_code == "AWAY_TEAM" and normalize(away) in lab:
+                winner_option = opt; break
+
+    if not winner_option:
+        return jsonify({"message": f"No matching bet option for winner {winner_code} ({home} vs {away})"}), 400
+
 
     # Guardar como ganadora
     bet.winner_option_id = winner_option.id

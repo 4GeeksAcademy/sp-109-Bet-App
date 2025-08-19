@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
+
 export const BetOptions = () => {
     const { id, betId } = useParams();
     const navigate = useNavigate();
