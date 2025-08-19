@@ -1,33 +1,42 @@
+/* ===== ALTURA GLOBAL FIABLE ===== */
+html, body, #root { height: 100%; margin: 0; }
+
+/* ===== SIDEBAR ===== */
 .sidebar {
-  height: 100vh; /* Sidebar siempre ocupa toda la altura de la ventana */
+  height: 100vh;            /* siempre toda la altura de la ventana */
   width: 19rem;
-  position: sticky; /* Se mantiene fija mientras se hace scroll */
+  position: sticky;         /* se mantiene visible al hacer scroll */
   top: 0;
-  overflow-y: auto; /* Scroll interno si el contenido del sidebar es muy largo */
-  flex-shrink: 0; /* No se encoge */
+  overflow-y: auto;         /* scroll interno si se llena */
+  flex-shrink: 0;           /* no se encoge */
 }
 
-
+/* ===== CONTENEDOR PRINCIPAL (sidebar | main) ===== */
 .layout-container {
   display: flex;
-  min-height: 100vh; /* Asegura que el contenedor principal ocupe toda la altura */
+  min-height: 100svh;       /* móviles modernos */
+  min-height: 100vh;        /* fallback */
 }
 
+/* ===== COLUMNA MAIN: navbar | contenido (flex) | footer ===== */
 .main-content {
-  flex-grow: 1;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  overflow: hidden; /* Evita que la barra de scroll del body aparezca por el contenido */
+  flex: 1 1 auto;           /* ocupa el espacio restante */
+  min-width: 0;             /* evita desbordes horizontales */
+  /* NO pongas min-height:100vh aquí, rompe el sticky del footer */
+  overflow: visible;        /* no bloquear scroll del body */
 }
 
-
+/* ===== ZONA DE CONTENIDO QUE CRECE Y EMPUJA EL FOOTER ===== */
 .content-wrapper {
-  flex-grow: 1;
-  overflow-y: auto; 
+  flex: 1 1 auto;           /* esto empuja el footer hacia abajo */
+  min-height: 0;            /* corrige scrolls fantasmas */
+  overflow-y: auto;         /* scroll del contenido si se necesita */
   padding: 1rem;
 }
 
+/* ===== ESTILOS VARIOS QUE YA TENÍAS ===== */
 .sidenav-btn {
   display: flex;
   align-items: center;
@@ -63,4 +72,186 @@
   cursor: default;
 }
 
+/* (opcional) compacta el footer si usas la clase footer--compact */
+.footer-soft.footer--compact .container{
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+.footer-soft.footer--compact hr{
+  margin: .6rem 0 !important;
+  opacity: .12;
+}
 
+/* Oculta footers incrustados dentro del contenido de las páginas antiguas.
+   El footer del layout NO se oculta porque está FUERA de .content-wrapper. */
+.content-wrapper .footer-soft { 
+  display: none !important; 
+}
+
+/* =======================
+   LAYOUT BASE (Desktop)
+   ======================= */
+
+/* Sidebar grande, pegado arriba, dentro del flujo */
+.sidebar {
+  height: 100dvh;                 /* mejor en móviles modernos */
+  width: 19rem;
+  min-width: 19rem;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+/* Fallbacks */
+@supports not (height: 100dvh) {
+  .sidebar { height: 100vh; }
+}
+
+.layout-container {
+  display: flex;
+  min-height: 100dvh;
+}
+@supports not (min-height: 100dvh) {
+  .layout-container { min-height: 100vh; }
+}
+
+/* Columna derecha (navbar + contenido + footer) en columna */
+.main-content {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  overflow: hidden;               /* evita doble scroll del body */
+}
+@supports not (min-height: 100dvh) {
+  .main-content { min-height: 100vh; }
+}
+
+/* Área que scrollea: donde se pinta cada página */
+.content-wrapper {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+/* Botones/usuario del sidenav (estilos base que ya tenías) */
+.sidenav-btn {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  color: #ffffff;
+  text-decoration: none;
+}
+.sidenav-btn:hover,
+.sidenav-btn-active {
+  background-color: #e9ecef;
+  color: #000;
+}
+.sidenav-user {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.sidenav-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  margin-bottom: 0.5rem;
+}
+
+/* ============================
+   /* =========================================================
+   RESPONSIVE (≤ 1200px): Sidebar compacto y contenido fluido
+   ========================================================= */
+@media (max-width: 1200px) {
+  /* Sidebar compacto, fijo y por DEBAJO del contenido */
+  .sidebar{
+    width:72px; min-width:72px; height:100dvh;
+    position:fixed; top:0; left:0;
+    z-index:10 !important;              /* ⬅️ no tapa al contenido */
+    overflow-y:auto;
+    border-right:0 !important;
+    box-shadow:none !important;
+  }
+
+  /* Columna principal: deja hueco y se apila por encima */
+  .main-content{
+    margin-left:72px;                   /* hueco para el sidebar */
+    min-width:0;
+    display:flex; flex-direction:column;
+    min-height:100vh;                   /* footer abajo */
+    position:relative;
+    z-index:20;                         /* ⬅️ encima del sidebar */
+  }
+
+  /* Área donde pintas las páginas */
+  .content-wrapper{
+    padding:12px;
+    overflow:auto;
+    position:relative;
+    z-index:25;                         /* ⬆️ cartas > sidebar */
+  }
+
+  /* Soft Ribbon siempre visible por encima */
+  .soft-ribbon-wrapper{
+    position:sticky; top:8px;
+    z-index:30;                         /* ⬆️ aún más arriba */
+  }
+  .soft-ribbon{
+    border-radius:18px !important;
+    padding:8px 10px !important;
+    gap:8px !important;
+  }
+  .soft-ribbon .soft-menu summary{
+    padding:6px 8px !important;
+    font-size:14px !important;
+  }
+
+  /* Cabecera de usuario compacta en el sidenav */
+  .sidenav-user{ padding:.75rem .5rem; }
+  .sidenav-avatar{ width:40px; height:40px; }
+  .sidenav-user > *:not(img):not(.sidenav-avatar){
+    display:none !important;            /* oculta nombre/monedas, etc. */
+  }
+
+  /* Botones del menú en modo icon-only (sin tocar JSX) */
+  .sidenav-btn{
+    justify-content:center;
+    padding:.65rem .5rem;
+    white-space:nowrap; overflow:hidden;
+    font-size:0 !important;             /* oculta texto crudo */
+    line-height:0 !important;
+    gap:0;
+  }
+  /* Iconos como <i>, <svg> o Bootstrap Icons */
+  .sidenav-btn > i,
+  .sidenav-btn > svg,
+  .sidenav-btn [class^="bi-"],
+  .sidenav-btn [class*=" bi-"]{
+    font-size:20px !important;
+    line-height:1 !important;
+    display:inline-block !important;
+  }
+  .sidenav-btn::before,
+  .sidenav-btn [class^="bi-"]::before,
+  .sidenav-btn [class*=" bi-"]::before{
+    font-size:20px !important;
+    line-height:1 !important;
+  }
+  /* Por si hubiera wrappers de texto */
+  .sidenav-btn > :is(span,strong,em,small){
+    display:none !important;
+  }
+}
+
+/* ====================================
+   MÓVIL PEQUEÑO (≤ 576px): más compacto
+   ==================================== */
+@media (max-width: 576px){
+  .sidebar{ width:56px; min-width:56px; }
+  .main-content{ margin-left:56px; }
+  .content-wrapper{ padding:10px; }
+  .soft-ribbon{ border-radius:16px !important; }
+}

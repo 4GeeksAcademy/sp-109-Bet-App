@@ -97,6 +97,24 @@ export const PlaygroundSearch = () => {
         --su-gradient: linear-gradient(310deg, #7928CA, #FF0080);
       }
 
+      /* ============ ARREGLA FRANJA SUPERIOR (igual que Playgrounds/Requests) ============ */
+      @supports selector(body:has(.pgsearch-scope)) {
+        body:has(.pgsearch-scope) .content-wrapper,
+        body:has(.pgsearch-scope) .flex-grow-1.main-content.d-flex.flex-column{
+          padding-top:0 !important;          /* quita empuje del Layout */
+          background:transparent !important; /* por si el wrapper pinta fondo */
+        }
+        body:has(.pgsearch-scope) .navbar{
+          display:none !important;           /* oculta navbar global solo aquí */
+        }
+      }
+      /* Fallback si :has() no existe en el navegador */
+      .pgsearch-scope{ margin-top:-72px; }
+      @media (min-width:992px){ .pgsearch-scope{ margin-top:-84px; } }
+      /* aire para la ribbon propia */
+      .pgsearch-scope nav.soft-ribbon{ margin-top:80px; }
+      /* ================================================================================ */
+
       .pgsearch-scope{
         position:relative;
         min-height:100dvh;
@@ -115,7 +133,7 @@ export const PlaygroundSearch = () => {
       .pgsearch-scope .content{ position:relative; z-index:1; }
       .pgsearch-scope .container{ max-width:960px; }
 
-      /* Ocultar botones del template superior */
+      /* Ocultar botones del template superior (no nuestro nav) */
       .navbar .btn,
       .navbar .btn-group,
       nav.navbar + .container .btn,

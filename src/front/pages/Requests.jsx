@@ -1,6 +1,5 @@
 // src/front/pages/Requests.jsx
 import React, { useEffect, useState } from "react";
-
 import SoftRibbonNav from "../components/SoftRibbonNav";
 import SiteFooter from "../components/SiteFooter";
 import heroArt from "../../../docs/assets/img/curved11.jpg";
@@ -86,6 +85,24 @@ export const Requests = () => {
         --su-gradient: linear-gradient(310deg, #7928CA, #FF0080);
       }
 
+      /* ============ ARREGLA FRANJA SUPERIOR (igual que Playgrounds) ============ */
+      @supports selector(body:has(.requests-scope)) {
+        body:has(.requests-scope) .content-wrapper,
+        body:has(.requests-scope) .flex-grow-1.main-content.d-flex.flex-column{
+          padding-top:0 !important;          /* quita empuje del Layout */
+          background:transparent !important; /* evita fondos del wrapper */
+        }
+        body:has(.requests-scope) .navbar{
+          display:none !important;           /* oculta navbar global aquí */
+        }
+      }
+      /* Fallback si :has() no existe */
+      .requests-scope{ margin-top:-72px; }
+      @media (min-width:992px){ .requests-scope{ margin-top:-84px; } }
+      /* aire para la ribbon propia */
+      .requests-scope nav.soft-ribbon{ margin-top:80px; }
+      /* ======================================================================== */
+
       .requests-scope{
         position:relative; min-height:100dvh;
         background:
@@ -130,7 +147,6 @@ export const Requests = () => {
         box-shadow:0 18px 60px rgba(15,23,42,.14);
         overflow:hidden;
       }
-      /* Barra superior de color (decorativa) */
       .rq-card::before{
         content:""; position:absolute; left:16px; right:16px; top:0; height:6px;
         background:var(--su-gradient); border-radius:0 0 10px 10px; opacity:.25;
@@ -160,7 +176,6 @@ export const Requests = () => {
         transform:translateY(-2px);
         box-shadow:0 16px 38px rgba(15,23,42,.12);
       }
-      /* tarjeta vacía */
       .rq-empty{
         color:var(--su-muted); margin:.25rem 0 .5rem; position:relative; padding-left:26px;
       }
@@ -168,7 +183,6 @@ export const Requests = () => {
         content:"ℹ️"; position:absolute; left:0; top:0; line-height:1;
         filter:saturate(1.2);
       }
-      /* chip de estado dentro de <em> */
       .rq-list em{
         background:#f6f3ff; color:#6c4bd5; border:1px solid #e8e1ff;
         padding:.15rem .45rem; border-radius:999px; font-style:normal; font-weight:800;
@@ -188,7 +202,6 @@ export const Requests = () => {
       }
       .requests-scope .btn:hover{ transform:translateY(-1px); }
 
-      /* Responsive pequeños ajustes */
       @media (max-width: 575.98px){
         .rq-list .list-group-item{ padding:12px; }
         .rq-card::before{ left:12px; right:12px; }
@@ -226,7 +239,6 @@ export const Requests = () => {
 
       <div className="content">
         <div className="container py-4">
-          {/* Hero */}
           <div className="rq-hero">
             <h2>Requests</h2>
             <div className="subtitle">Gestiona invitaciones y solicitudes de acceso</div>
