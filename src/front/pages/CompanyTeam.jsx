@@ -27,6 +27,25 @@ export const CompanyTeam = () => {
           --su-gradient: linear-gradient(310deg, #7928CA, #FF0080);
         }
 
+        /* ========= ARREGLO FRANJA BLANCA (solo en esta vista) ========= */
+        @supports selector(body:has(.team-scope)) {
+          body:has(.team-scope) nav.navbar{
+            display:none !important;                   /* oculta la navbar del layout */
+          }
+          body:has(.team-scope) .content-wrapper.flex-grow-1,
+          body:has(.team-scope) .flex-grow-1.main-content.d-flex.flex-column{
+            padding-top:0 !important;                  /* elimina el empuje superior */
+            background:transparent !important;         /* evita fondo blanco del wrapper */
+          }
+        }
+        /* Fallback si :has() no está disponible */
+        .team-scope{ margin-top:-72px; }
+        @media (min-width:992px){ .team-scope{ margin-top:-84px; } }
+
+        /* un pequeño respiro para la ribbon (si tu SoftRibbon usa <nav class="soft-ribbon">) */
+        .team-scope nav.soft-ribbon{ margin-top: 25px; }
+        /* ============================================================= */
+
         .team-scope{
           position:relative;
           min-height:100dvh;
@@ -217,7 +236,7 @@ export const CompanyTeam = () => {
                 </div>
               </div>
 
-              {/* Volver con más separación */}
+              {/* Volver */}
               <div className="col-12 text-center mt-4 pt-2">
                 <button className="btn-brand" onClick={() => navigate(-1)}>
                   ← Volver

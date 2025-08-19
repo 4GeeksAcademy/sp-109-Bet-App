@@ -5,9 +5,8 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-// 🔽 Solo visual
+// Visual
 import SoftRibbonNav from "../components/SoftRibbonNav";
-import SiteFooter from "../components/SiteFooter";
 import heroArt from "../../../docs/assets/img/curved11.jpg";
 import "../styles/myprofile.css";
 
@@ -140,7 +139,7 @@ export const MyProfile = () => {
     }
   };
 
-  // ====== SOLO VISUAL ======
+  /* ====== SOLO VISUAL ====== */
   const Styles = () => (
     <style>{`
       :root{
@@ -151,6 +150,22 @@ export const MyProfile = () => {
         --su-gradient: linear-gradient(310deg, #7928CA, #FF0080);
       }
 
+      /* ===== Arregla franja superior (oculta Navbar global en esta vista) ===== */
+      @supports selector(body:has(.profile-scope)) {
+        body:has(.profile-scope) .content-wrapper,
+        body:has(.profile-scope) .flex-grow-1.main-content.d-flex.flex-column{
+          padding-top:0 !important;
+          background:transparent !important;
+        }
+        body:has(.profile-scope) .navbar{
+          display:none !important;
+        }
+      }
+      .profile-scope{ margin-top:-72px; }
+      @media (min-width:992px){ .profile-scope{ margin-top:-84px; } }
+      .profile-scope nav.soft-ribbon{ margin-top:85px; }
+
+      /* ===== Lienzo ===== */
       .profile-scope{
         position:relative;
         min-height:100dvh;
@@ -169,13 +184,6 @@ export const MyProfile = () => {
       .profile-scope .content{ position:relative; z-index:1; }
       .profile-scope .container{ max-width: 1000px; }
 
-      /* Ocultar botones/links del template del header */
-      .navbar .btn,
-      .navbar .btn-group,
-      nav.navbar + .container .btn,
-      nav.navbar + .container .btn-group,
-      .template-links { display: none !important; }
-
       /* Tarjeta suave */
       .profile-card{
         border-radius:22px;
@@ -185,19 +193,13 @@ export const MyProfile = () => {
         overflow:hidden;
       }
 
-      /* Hero del perfil */
-      .profile-hero{
-        text-align:center;
-        padding:18px 12px 6px 12px;
-        background:linear-gradient(120deg, rgba(23,193,232,.10), rgba(203,12,159,.08));
-      }
-      .profile-hero h2{
-        margin:0;
-        font-weight:800;
-        letter-spacing:.2px;
+      /* Título */
+      .text-gradient-lilac{
         background: var(--su-gradient);
         -webkit-background-clip:text; background-clip:text;
         color:transparent;
+        font-weight:800;
+        letter-spacing:.2px;
       }
 
       /* Avatar con anillo suave */
@@ -206,17 +208,13 @@ export const MyProfile = () => {
         padding:3px; background: linear-gradient(145deg,#fff,rgba(203,12,159,.18));
         box-shadow:0 10px 26px rgba(15,23,42,.12);
       }
-      .avatar-ring .inner{
+      .avatar-ring .avatar-inner{
         width:100%; height:100%;
         border-radius:50%; overflow:hidden; background:#f6f7fb; display:grid; place-items:center;
         border:1px solid #eef2f8;
       }
 
-      /* Labels/valores */
-      .profile-scope .text-muted{ color: var(--su-muted) !important; }
-      .profile-scope .fw-semibold{ color:#20314d; }
-
-      /* Botones Soft-UI */
+      /* Botones (usa estilos base) */
       .profile-scope .btn{
         border-radius:12px !important;
         font-weight:700;
@@ -255,129 +253,128 @@ export const MyProfile = () => {
         <SoftRibbonNav />
         <div className="bg-art" aria-hidden="true"></div>
         <div className="content container py-5 text-center">Cargando…</div>
-        <SiteFooter />
       </div>
     );
 
   const avatarUrl = getAvatar(user);
 
   return (
-  <main className="myprofile-page">
+    <div className="profile-scope">
       <Styles />
       <SoftRibbonNav />
       <div className="bg-art" aria-hidden="true"></div>
 
-      <div className="mp-hero" />
-        <div className="container mp-overlap d-flex justify-content-center">  
-         <div className="card pe-card shadow-lg" style={{ maxWidth: 1000, width: "100%" }}> 
-          <div className="card-body p-4 p-md-5">
-               {/* Avatar + acciones */}
-              <div className="text-center mb-4">
-                <h2 className="mb-2 text-gradient-lilac">Mi Perfil</h2>
-                <p className="text-muted mb-3">Gestiona tu información y foto de perfil</p>
-                
-                <div className="d-flex flex-column align-items-center">
-                  <div className="avatar-ring">
-                    <div className="avatar-inner">
-                      <img 
-                      src={avatarUrl} 
-                      alt="Avatar" 
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }} 
-                      />
-                    </div>
+      <div className="content">
+        <div className="container py-4 d-flex justify-content-center">
+          <div className="profile-card w-100 p-4 p-md-5" style={{ maxWidth: 1000 }}>
+            {/* Título */}
+            <div className="text-center mb-4">
+              <h2 className="mb-2 text-gradient-lilac">Mi Perfil</h2>
+              <p className="text-muted mb-3">Gestiona tu información y foto de perfil</p>
+
+              {/* Avatar + acciones */}
+              <div className="d-flex flex-column align-items-center">
+                <div className="avatar-ring">
+                  <div className="avatar-inner">
+                    <img
+                      src={avatarUrl}
+                      alt="Avatar"
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
                   </div>
-
-                    <div className="mt-3">
-                      <button
-                        type="button"
-                        className="btn btn-outline-lilac btn-sm"
-                        onClick={openPicker}
-                        disabled={uploading}
-                      >
-                        <i className="fa-solid fa-camera me-2" aria-hidden="true"></i>
-                        {uploading ? "Uploading…" : "Change photo"}
-                      </button>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        style={{ display: "none" }}
-                        onChange={handleChangePhoto}
-                      />
-                    </div>
-
-                  {okMsg && <div className="alert alert-success py-2 px-3 mt-3 mb-0">{okMsg}</div>}
-                  {error && <div className="alert alert-danger py-2 px-3 mt-3 mb-0">{error}</div>}
                 </div>
+
+                <div className="mt-3">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary btn-sm"
+                    onClick={openPicker}
+                    disabled={uploading}
+                  >
+                    <i className="fa-solid fa-camera me-2" aria-hidden="true"></i>
+                    {uploading ? "Uploading…" : "Change photo"}
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    style={{ display: "none" }}
+                    onChange={handleChangePhoto}
+                  />
+                </div>
+
+                {okMsg && <div className="alert alert-success py-2 px-3 mt-3 mb-0">{okMsg}</div>}
+                {error && <div className="alert alert-danger py-2 px-3 mt-3 mb-0">{error}</div>}
               </div>
-            
-              <hr />
-
-          {/* Datos */}
-          <div className="row g-4">
-            <div className="col-sm-6">
-              <small className="text-muted d-block">Username</small>
-              <div className="fw-semibold">{user.username}</div>
-            </div>
-            <div className="col-sm-6">
-              <small className="text-muted d-block">Email</small>
-              <div className="fw-semibold">{user.email}</div>
             </div>
 
-            <div className="col-sm-6">
-              <small className="text-muted d-block">Name</small>
-              <div className="fw-semibold">{user.name || "-"}</div>
-            </div>
-            <div className="col-sm-6">
-              <small className="text-muted d-block">Last Name</small>
-              <div className="fw-semibold">{user.last_name || "-"}</div>
+            <hr />
+
+            {/* Datos */}
+            <div className="row g-4">
+              <div className="col-sm-6">
+                <small className="text-muted d-block">Username</small>
+                <div className="fw-semibold">{user.username}</div>
+              </div>
+              <div className="col-sm-6">
+                <small className="text-muted d-block">Email</small>
+                <div className="fw-semibold">{user.email}</div>
+              </div>
+
+              <div className="col-sm-6">
+                <small className="text-muted d-block">Name</small>
+                <div className="fw-semibold">{user.name || "-"}</div>
+              </div>
+              <div className="col-sm-6">
+                <small className="text-muted d-block">Last Name</small>
+                <div className="fw-semibold">{user.last_name || "-"}</div>
+              </div>
+
+              <div className="col-sm-6">
+                <small className="text-muted d-block">Money</small>
+                <div className="fw-semibold">{user.money ?? "-"}</div>
+              </div>
+              <div className="col-sm-6">
+                <small className="text-muted d-block">Address</small>
+                <div className="fw-semibold">{user.address || "-"}</div>
+              </div>
+
+              <div className="col-sm-6">
+                <small className="text-muted d-block">Latitude</small>
+                <div className="fw-semibold">{user.latitude ?? "-"}</div>
+              </div>
+              <div className="col-sm-6">
+                <small className="text-muted d-block">Longitude</small>
+                <div className="fw-semibold">{user.longitude ?? "-"}</div>
+              </div>
             </div>
 
-            <div className="col-sm-6">
-              <small className="text-muted d-block">Money</small>
-              <div className="fw-semibold">{user.money ?? "-"}</div>
-            </div>
-            <div className="col-sm-6">
-              <small className="text-muted d-block">Adress</small>
-              <div className="fw-semibold">{user.address || "-"}</div>
-            </div>
-
-            <div className="col-sm-6">
-              <small className="text-muted d-block">Latitude</small>
-              <div className="fw-semibold">{user.latitude ?? "-"}</div>
-            </div>
-            <div className="col-sm-6">
-              <small className="text-muted d-block">Longitude</small>
-              <div className="fw-semibold">{user.longitude ?? "-"}</div>
-            </div>
-          </div>
-
-          {/* Mapa */}
-          {user.latitude && user.longitude && (
-            <div className="mt-4 mp-map" style={{ height: 420, width: "100%" }}>
-              <MapContainer
-                center={[user.latitude, user.longitude]}
-                zoom={13}
-                style={{ height: "100%", width: "100%" }}
-              >
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                <Marker position={[user.latitude, user.longitude]}>
-                  <Popup>
-                    {user.name || user.username} <br /> {user.address}
-                  </Popup>
-                </Marker>
-              </MapContainer>
-            </div>
-          )}
+            {/* Mapa */}
+            {user.latitude && user.longitude && (
+              <div className="mt-4 profile-map" style={{ height: 420, width: "100%" }}>
+                <MapContainer
+                  center={[user.latitude, user.longitude]}
+                  zoom={13}
+                  style={{ height: "100%", width: "100%" }}
+                >
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+                  <Marker position={[user.latitude, user.longitude]}>
+                    <Popup>
+                      {user.name || user.username} <br /> {user.address}
+                    </Popup>
+                  </Marker>
+                </MapContainer>
+              </div>
+            )}
 
             {/* Acciones */}
             <div className="mt-4 d-flex flex-wrap gap-2 justify-content-center">
               <button
                 onClick={() => navigate("/profile/edit")}
-                className="btn btn-gradient-lilac btn-sm px-4"
+                className="btn btn-primary btn-sm px-4"
                 disabled={uploading}
               >
                 <i className="fa-regular fa-pen-to-square me-2" aria-hidden="true"></i>
@@ -385,18 +382,17 @@ export const MyProfile = () => {
               </button>
               <button
                 onClick={handleDelete}
-                className="btn btn-danger-soft btn-sm px-4"
+                className="btn btn-danger btn-sm px-4"
                 disabled={uploading}
               >
-                <i className="fa-solid fa-trash-can me-2" aria-hidden="true"/>
-                Delete Acount
+                <i className="fa-solid fa-trash-can me-2" aria-hidden="true"></i>
+                Delete Account
               </button>
             </div>
+          </div>
         </div>
-      <div/>
-     </div>
+      </div>
+      {/* No añadimos <SiteFooter/> aquí para evitar doble footer: lo pone el Layout */}
     </div>
-    <SiteFooter />
-  </main>  
   );
 };

@@ -24,7 +24,7 @@ export const SideNav = () => {
   return (
     <div className="sidenav-container">
       <div className="sidenav-top">
-        <h4>Bet APP</h4>
+        <h4></h4>
       </div>
       <div className="sidenav-mid">
         <div className="sidenav-user">
@@ -46,11 +46,7 @@ export const SideNav = () => {
           {role === "user" ? (
             <>
 
-             <NavLink to="/dashboard" className={({ isActive }) =>
-                `sidenav-btn ${isActive ? "sidenav-btn-active" : ""}`}>
-                <FaHome className="me-3" />
-                <span>Dashboard</span>
-              </NavLink>
+             
 
               <NavLink to="/" className={({ isActive }) =>
                 `sidenav-btn ${isActive ? "sidenav-btn-active" : ""}`}>

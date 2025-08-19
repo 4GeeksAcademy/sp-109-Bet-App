@@ -1,5 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+/* 👇 Solo visual */
+import SoftRibbonNav from "../components/SoftRibbonNav";
+import heroArt from "../../../docs/assets/img/curved11.jpg";
 
 export const PlaygroundEdit = () => {
   const { id } = useParams();
@@ -11,11 +14,9 @@ export const PlaygroundEdit = () => {
   const [description, setDescription] = useState("");
   const [error, setError] = useState(null);
 
-  
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
 
-  
   useEffect(() => {
     const fetchPlayground = async () => {
       try {
@@ -35,7 +36,6 @@ export const PlaygroundEdit = () => {
     fetchPlayground();
   }, [id]);
 
-  
   useEffect(() => {
     const generatedSlug = name
       .toLowerCase()
@@ -44,7 +44,6 @@ export const PlaygroundEdit = () => {
     setSlug(generatedSlug);
   }, [name]);
 
- 
   const handlePickFile = () => fileInputRef.current?.click();
 
   const handleFileChange = async (e) => {
@@ -74,7 +73,7 @@ export const PlaygroundEdit = () => {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error?.message || "Error subiendo la imagen");
-      setImage(data.secure_url); 
+      setImage(data.secure_url);
     } catch (err) {
       console.error(err);
       setError(err.message);
@@ -84,7 +83,6 @@ export const PlaygroundEdit = () => {
     }
   };
 
-  
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -104,7 +102,6 @@ export const PlaygroundEdit = () => {
         throw new Error(data.msg || "Failed to update playground");
       }
 
-     
       navigate("/playground", {
         state: { successMessage: "Playground updated successfully!" },
       });
@@ -114,7 +111,7 @@ export const PlaygroundEdit = () => {
     }
   };
 
-  
+  /* ====== SOLO VISUAL (color de siempre + hasta arriba) ====== */
   const Styles = () => (
     <style>{`
       :root{
@@ -124,13 +121,40 @@ export const PlaygroundEdit = () => {
         --su-muted:#6b7c90;
         --su-grad: linear-gradient(310deg,#7928CA,#FF0080);
       }
+
+      /* Quita padding/menú del layout global para que llegue hasta arriba */
+      @supports selector(body:has(.pge-scope)) {
+        body:has(.pge-scope) .content-wrapper,
+        body:has(.pge-scope) .flex-grow-1.main-content.d-flex.flex-column{
+          padding-top:0 !important;
+          background:transparent !important;
+        }
+        body:has(.pge-scope) .navbar{
+          display:none !important;
+        }
+      }
+      /* Fallback si :has() no existe */
+      .pge-scope{ margin-top:-72px; }
+      @media (min-width:992px){ .pge-scope{ margin-top:-84px; } }
+      /* Da respiración a nuestra SoftRibbon propia */
+      .pge-scope nav.soft-ribbon{ margin-top:80px; }
+
       .pge-scope{
+        position:relative; min-height:100dvh;
         background:
           radial-gradient(1400px 600px at 6% -12%, #eef0ff 0%, transparent 60%),
           radial-gradient(1100px 520px at 96% -10%, #e6f9ff 0%, transparent 55%),
           #fff;
-        min-height:100dvh;
       }
+      .pge-scope .bg-art{
+        position:fixed; inset:0; pointer-events:none;
+        background-image:url(${heroArt});
+        background-size:cover; background-position:center;
+        filter: blur(18px) saturate(1.05) contrast(1.04);
+        opacity:.18; z-index:0;
+      }
+      .pge-scope .content{ position:relative; z-index:1; }
+
       .container-neo{ max-width: 1080px; margin: 0 auto; padding: 0 16px; }
 
       .pge-hero{ padding: 36px 0 10px; }
@@ -180,6 +204,7 @@ export const PlaygroundEdit = () => {
         background-image:var(--su-grad); color:#fff; border:0;
         border-radius:12px; font-weight:800;
         padding:.9rem 1.2rem; box-shadow:0 14px 34px rgba(203,12,159,.35);
+        transition: transform .15s ease, filter .15s ease, box-shadow .15s ease;
       }
       .btn-brand:hover{ filter:brightness(1.05); transform:translateY(-1px); }
       .btn-ghost{
@@ -191,10 +216,20 @@ export const PlaygroundEdit = () => {
         border:1px dashed #cfe0ff; border-radius:12px; padding:.7rem .9rem;
         background:#f8fbff; color:#2b62b4; font-weight:700;
       }
+
+      /* Oculta solo los botones del template demo (no tu UI) */
+      .navbar .btn,
+      .navbar .btn-group,
+      nav.navbar + .container .btn,
+      nav.navbar + .container .btn-group,
+      .template-links { display: none !important; }
+
+      @media (max-width: 576px){
+        .container-neo{ padding: 0 12px; }
+      }
     `}</style>
   );
 
-  
   const previewFallback = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
     <svg xmlns='http://www.w3.org/2000/svg' width='640' height='360'>
       <rect width='100%' height='100%' rx='18' ry='18' fill='#eef2f7'/>
@@ -208,93 +243,96 @@ export const PlaygroundEdit = () => {
   return (
     <div className="pge-scope">
       <Styles />
+      {/* 👇 Soft Nav añadido */}
+      <SoftRibbonNav />
+      <div className="bg-art" aria-hidden="true" />
+      <div className="content">
+        {/* HERO */}
+        <section className="pge-hero">
+          <div className="container-neo">
+            <h2 className="title mb-1">Editar playground</h2>
+            <p className="muted m-0">Actualiza el nombre, imagen y descripción.</p>
+          </div>
+        </section>
 
-      
-      <section className="pge-hero">
-        <div className="container-neo">
-          <h2 className="title mb-1">Editar playground</h2>
-          <p className="muted m-0">Actualiza el nombre, imagen y descripción.</p>
-        </div>
-      </section>
+        {/* FORM + PREVIEW */}
+        <section className="pb-4">
+          <div className="container-neo">
+            <div className="row g-4">
+              <div className="col-lg-7">
+                <div className="card-soft">
+                  {error && <div className="alert alert-danger py-2 mb-3">{error}</div>}
 
-      
-      <section className="pb-4">
-        <div className="container-neo">
-          <div className="row g-4">
-            <div className="col-lg-7">
-              <div className="card-soft">
-                {error && <div className="alert alert-danger py-2 mb-3">{error}</div>}
-
-                <form onSubmit={handleSubmit}>
-                  <label htmlFor="playgroundName" className="form-label">Nombre</label>
-                  <input
-                    id="playgroundName"
-                    type="text"
-                    className="form-control mb-2"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-
-                  <div className="d-flex align-items-center gap-2 mb-3">
-                    <span className="slug-chip">slug:</span>
-                    <code className="text-muted">{slug || "—"}</code>
-                  </div>
-
-                  <label htmlFor="image" className="form-label">URL de imagen</label>
-                  <div className="d-flex gap-2 mb-2">
+                  <form onSubmit={handleSubmit}>
+                    <label htmlFor="playgroundName" className="form-label">Nombre</label>
                     <input
-                      id="image"
-                      type="url"
-                      className="form-control"
-                      placeholder="https://…"
-                      value={image}
-                      onChange={(e) => setImage(e.target.value)}
+                      id="playgroundName"
+                      type="text"
+                      className="form-control mb-2"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
                     />
-                    <button type="button" className="btn-lite" onClick={handlePickFile}>
-                      {isUploading ? "Subiendo..." : "Subir"}
-                    </button>
-                  </div>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    hidden
-                  />
-                  <div className="hint mb-3">Pega una URL o sube un archivo .</div>
 
-                  <label htmlFor="description" className="form-label">Descripción</label>
-                  <textarea
-                    id="description"
-                    className="form-control"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                  />
+                    <div className="d-flex align-items-center gap-2 mb-3">
+                      <span className="slug-chip">slug:</span>
+                      <code className="text-muted">{slug || "—"}</code>
+                    </div>
 
-                  <div className="d-flex flex-wrap gap-2 mt-3">
-                    <button type="submit" className="btn-brand">Save Changes</button>
-                    <button
-                      type="button"
-                      className="btn-ghost"
-                      onClick={() => navigate(`/playground/`)}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
+                    <label htmlFor="image" className="form-label">URL de imagen</label>
+                    <div className="d-flex gap-2 mb-2">
+                      <input
+                        id="image"
+                        type="url"
+                        className="form-control"
+                        placeholder="https://…"
+                        value={image}
+                        onChange={(e) => setImage(e.target.value)}
+                      />
+                      <button type="button" className="btn-lite" onClick={handlePickFile}>
+                        {isUploading ? "Subiendo..." : "Subir"}
+                      </button>
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      hidden
+                    />
+                    <div className="hint mb-3">Pega una URL o sube un archivo.</div>
+
+                    <label htmlFor="description" className="form-label">Descripción</label>
+                    <textarea
+                      id="description"
+                      className="form-control"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                    />
+
+                    <div className="d-flex flex-wrap gap-2 mt-3">
+                      <button type="submit" className="btn-brand">Save Changes</button>
+                      <button
+                        type="button"
+                        className="btn-ghost"
+                        onClick={() => navigate(`/playground/`)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </div>
               </div>
-            </div>
 
-            
-            <div className="col-lg-5">
-              <div className="preview">
-                <img src={image || previewFallback} alt="Vista previa" />
-                <div className="cap">{name || "Playground"}</div>
+              <div className="col-lg-5">
+                <div className="preview">
+                  <img src={image || previewFallback} alt="Vista previa" />
+                  <div className="cap">{name || "Playground"}</div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>{/* /content */}
     </div>
   );
 };

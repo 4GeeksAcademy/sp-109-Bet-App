@@ -10,128 +10,133 @@ export const LandingPreview = () => {
 
   return (
     <div className="landing-preview-scope">
-      {/* Barra Soft-UI tipo “ribbon” con nuestros enlaces */}
-      <SoftRibbonNav />
+      {/* Barra Soft-UI propia */}
+      <div className="soft-ribbon-wrapper">
+        <SoftRibbonNav />
+      </div>
 
       <style>{`
+        :root{
+          --su-primary:#cb0c9f;
+          --su-info:#17c1e8;
+          --su-dark:#0f1b33;
+          --su-secondary:#8796a8;
+          --su-gradient: linear-gradient(310deg, #7928CA, #FF0080);
+        }
 
-:root{
-  --su-primary:#cb0c9f;
-  --su-info:#17c1e8;
-  --su-dark:#0f1b33;
-  --su-secondary:#8796a8;
-  --su-gradient: linear-gradient(310deg, #7928CA, #FF0080);
-}
+        /* === Quitar el hueco superior de ESTA página ===
+           1) Camino ideal (browsers modernos): anulamos el padding
+              que pone el layout a .content-wrapper cuando hay navbar fija
+              y ocultamos esa navbar SOLO aquí.
+        */
+        @supports selector(body:has(.landing-preview-scope)) {
+          body:has(.landing-preview-scope) .content-wrapper{
+            padding-top: 0 !important;
+          }
+          body:has(.landing-preview-scope) .navbar{
+            display: none !important;
+          }
+        }
 
-/* Ocultar créditos / docs solo en esta vista */
-a[href*="4geeks"], a[href*="4Geeks"], a[href*="template"], a[href*="docs"]{ display:none !important; }
-footer .made-with, .template-links, .footer-credit{ display:none !important; }
+        /* 2) Fallback (si por lo que sea @supports/has no aplica):
+              subimos la página con un margen negativo.
+              Ajusta 72/84 si tu hueco fuera distinto.
+        */
+        .landing-preview-scope{
+          margin-top: -72px;   /* fallback */
+        }
+        @media (min-width: 992px){
+          .landing-preview-scope{ margin-top: -84px; } /* fallback escritorio */
+        }
 
+        .soft-ribbon-wrapper{
+          position: sticky;
+          top: 10px;     /* antes: 0 */
+          z-index: 1040;
+        }
 
-  .navbar, .navbar * { display:none !important; }
+        @media (min-width: 992px){
+          .soft-ribbon-wrapper{ top: 14px; } /* un pelín más en escritorio */
+        }
 
-  /* Si quedara algún botón suelto que apunte a "/" (Home),
-     lo ocultamos pero dejando visible el brand del ribbon */
-  a[href="/"]:not(.soft-brand) { display:none !important; }
+        /* ---------- Estilos de la landing ---------- */
+        .hero-gradient{
+          background:
+            radial-gradient(1200px 600px at 8% -10%, #eef0ff 0%, transparent 60%),
+            radial-gradient(900px 500px at 92% 0%, #e5f9ff 0%, transparent 55%),
+            linear-gradient(180deg, #fbfcff 0%, #ffffff 100%);
+        }
+        .badge-soft{ background:#f6e9f3; color:#cb0c9f; }
+        .gradient-text{
+          background: linear-gradient(90deg, var(--su-info), var(--su-primary));
+          -webkit-background-clip:text; background-clip:text;
+          -webkit-text-fill-color:transparent; color:transparent;
+        }
+        .btn-brand{
+          background-image: var(--su-gradient);
+          border:0; color:#fff;
+          box-shadow:0 8px 24px rgba(203,12,159,.35);
+        }
+        .btn-brand:hover{ filter:brightness(1.03); transform:translateY(-1px); }
 
+        .oblique-card{
+          position: relative;
+          height: 560px;
+          border-radius: 28px;
+          overflow: hidden;
+          box-shadow: 0 36px 120px rgba(15,23,42,.22);
+          clip-path: polygon(8% 0%, 100% 0%, 100% 100%, 24% 100%, 0% 155%, 0% 122%);
+          background:#fff;
+        }
+        .oblique-card img{
+          position:absolute; inset:-18% -18%;
+          width:136%; height:136%;
+          object-fit:cover; object-position:center;
+          transform:skewX(14deg) translateX(-8%) scale(1.04);
+          filter:saturate(1.06) contrast(1.04);
+        }
+        @media (max-width: 991.98px){ .oblique-card{ height: 380px; } }
 
-.hero-gradient{
-  background:
-    radial-gradient(1200px 600px at 8% -10%, #eef0ff 0%, transparent 60%),
-    radial-gradient(900px 500px at 92% 0%, #e5f9ff 0%, transparent 55%),
-    linear-gradient(180deg, #fbfcff 0%, #ffffff 100%);
-}
-.badge-soft{ background:#f6e9f3; color:#cb0c9f; }
-.gradient-text{
-  background: linear-gradient(90deg, var(--su-info), var(--su-primary));
-  -webkit-background-clip:text; background-clip:text;
-  -webkit-text-fill-color:transparent; color:transparent;
-}
-.btn-brand{
-  background-image: var(--su-gradient);
-  border:0; color:#fff;
-  box-shadow:0 8px 24px rgba(203,12,159,.35);
-}
-.btn-brand:hover{ filter:brightness(1.03); transform:translateY(-1px); }
+        .card-photo{
+          border-radius:18px;
+          border:0 !important;
+          background:#fff;
+          box-shadow:0 16px 40px rgba(0,0,0,.12);
+          overflow:hidden;
+        }
+        .card-photo .top-photo{
+          border-radius:16px;
+          width:100%; height:200px; object-fit:cover; object-position:center 45%;
+        }
+        .badge-floating{
+          position:absolute; top:-14px; left:18px;
+          background:#fff; padding:.35rem .8rem; border-radius:999px;
+          box-shadow:0 8px 20px rgba(0,0,0,.10);
+          font-weight:600; color:#8a2be2; border:0;
+        }
 
+        .t-card{
+          border-radius:22px;
+          background: radial-gradient(120% 100% at 0% 0%, #192447 0%, #0f1b33 60%);
+          color:#e8eef7;
+          box-shadow:0 28px 80px rgba(15,23,42,.35);
+        }
+        .t-card .media{ border-radius:18px; overflow:hidden; background:#0c1630; }
+        .t-img{ width:100%; height:220px; object-fit:cover; border-radius:16px; }
 
-.oblique-card{
-  position: relative;
-  height: 560px;
-  border-radius: 28px;
-  overflow: hidden;
-  box-shadow: 0 36px 120px rgba(15,23,42,.22);
-  clip-path: polygon(8% 0%, 100% 0%, 100% 100%, 24% 100%, 0% 155%, 0% 122%);
-  background:#fff;
-}
-.oblique-card img{
-  position:absolute; inset:-18% -18%;
-  width:136%; height:136%;
-  object-fit:cover; object-position:center;
-  transform:skewX(14deg) translateX(-8%) scale(1.04);
-  filter:saturate(1.06) contrast(1.04);
-}
-@media (max-width: 991.98px){ .oblique-card{ height: 380px; } }
+        .dot{
+          width:36px; height:36px; border-radius:999px;
+          background-image:var(--su-gradient);
+          box-shadow:0 8px 24px rgba(203,12,159,.3);
+        }
+        .bullet h6{ color:#20314d; margin:0; }
+        .bullet p{ color:#6b7c90; margin:0; }
 
-
-.soft-card{ border:0; border-radius:1.25rem; box-shadow:0 12px 40px rgba(15,23,42,.08); }
-
-
-.card-photo{
-  border-radius:18px;
-  border:0 !important;
-  background:#fff;
-  box-shadow:0 16px 40px rgba(0,0,0,.12); /* sombra negra sutil */
-  overflow:hidden;
-}
-
-.card-photo .top-photo{
-  border-radius:16px;
-  width:100%; height:200px; object-fit:cover; object-position:center 45%;
-}
-
-.badge-floating{
-  position:absolute; top:-14px; left:18px;
-  background:#fff; padding:.35rem .8rem; border-radius:999px;
-  box-shadow:0 8px 20px rgba(0,0,0,.10);
-  font-weight:600; color:#8a2be2;
-  border:0;
-}
-/* Por si Bootstrap añade borde a .card */
-.card{ border: 0 !important; }
-
-
-.t-card{
-  border-radius:22px;
-  background: radial-gradient(120% 100% at 0% 0%, #192447 0%, #0f1b33 60%);
-  color:#e8eef7;
-  box-shadow:0 28px 80px rgba(15,23,42,.35);
-}
-.t-card .media{ border-radius:18px; overflow:hidden; background:#0c1630; }
-.t-img{
-  display:block; width:auto; max-width:100%;
-  height:220px; object-fit:cover; object-position:center 20%; border-radius:16px;
-}
-.t-stats small{ color:#9fb0c6; }
-
-
-.dot{
-  width:36px; height:36px; border-radius:999px;
-  background-image:var(--su-gradient);
-  box-shadow:0 8px 24px rgba(203,12,159,.3);
-}
-.bullet h6{ color:#20314d; margin:0; }
-.bullet p{ color:#6b7c90; margin:0; }
-
-
-.section{ padding-top:2.5rem; padding-bottom:3rem; }
-/* Más respiro ANTES del bloque “Más que apuestas” */
-.bullets-gap{ margin-top: 2.75rem; }
-
-
+        .section{ padding-top:2.5rem; padding-bottom:3rem; }
+        .bullets-gap{ margin-top: 2.75rem; }
       `}</style>
 
-      
+      {/* HERO */}
       <section className="hero-gradient py-5 py-lg-6">
         <div className="container">
           <div className="row align-items-center g-5">
@@ -154,7 +159,6 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
                 <button className="btn btn-outline-secondary btn-lg" onClick={() => navigate("/create")}>
                   Sign Up
                 </button>
-                
               </div>
             </div>
 
@@ -167,7 +171,7 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
         </div>
       </section>
 
-      
+      {/* Cómo funciona */}
       <section className="section">
         <div className="container">
           <div className="text-center mb-4">
@@ -179,7 +183,6 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
           </div>
 
           <div className="row g-4 align-items-stretch">
-            
             <div className="col-lg-4">
               <div className="card h-100 position-relative card-photo">
                 <img
@@ -196,7 +199,6 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
               </div>
             </div>
 
-            
             <div className="col-lg-4">
               <div className="card h-100 position-relative card-photo">
                 <img
@@ -205,7 +207,7 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
                   alt="Invitar amigos"
                   style={{ objectPosition: "center 35%" }}
                   onError={(e) => {
-                    e.currentTarget.onerror = null; 
+                    e.currentTarget.onerror = null;
                     e.currentTarget.src =
                       "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1200&q=80";
                   }}
@@ -219,7 +221,6 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
               </div>
             </div>
 
-            
             <div className="col-lg-4">
               <div className="card h-100 position-relative card-photo">
                 <span className="badge-floating">¡También de todo un poco!</span>
@@ -241,7 +242,7 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
         </div>
       </section>
 
-      
+      {/* Testimonios + bullets */}
       <section className="section pt-0">
         <div className="container">
           <div className="t-card p-4 p-md-5">
@@ -278,7 +279,6 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
         </div>
       </section>
 
-      
       <section className="section pt-4">
         <div className="container">
           <div className="t-card p-4 p-md-5 mb-4">
@@ -313,7 +313,6 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
             </div>
           </div>
 
-          
           <div className="row g-4 bullets-gap">
             <div className="col-lg-5">
               <h3 className="mb-2" style={{ color:"#cb0c9f" }}>Más que apuestas</h3>
@@ -350,7 +349,6 @@ footer .made-with, .template-links, .footer-credit{ display:none !important; }
         </div>
       </section>
 
-      
       <SiteFooter />
     </div>
   );

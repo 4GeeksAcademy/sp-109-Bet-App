@@ -1,6 +1,6 @@
+// src/front/pages/LegalTerms.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
-
 
 import SoftRibbonNav from "../components/SoftRibbonNav";
 import SiteFooter from "../components/SiteFooter";
@@ -27,6 +27,25 @@ export const LegalTerms = () => {
           --su-muted:#6b7c90;
           --su-gradient: linear-gradient(310deg, #7928CA, #FF0080);
         }
+
+        /* ================== ARREGLA LA FRANJA BLANCA (solo en esta vista) ================== */
+        @supports selector(body:has(.legal-terms-scope)) {
+          body:has(.legal-terms-scope) .content-wrapper,
+          body:has(.legal-terms-scope) .flex-grow-1.main-content.d-flex.flex-column{
+            padding-top:0 !important;           /* elimina empuje superior del layout */
+            background:transparent !important;  /* evita fondo blanco del wrapper */
+          }
+          body:has(.legal-terms-scope) .navbar{
+            display:none !important;            /* oculta la navbar global solo aquí */
+          }
+        }
+        /* Fallback si :has() no aplica (ajusta 72/84 si tu layout empuja más) */
+        .legal-terms-scope{ margin-top:-72px; }
+        @media (min-width:992px){ .legal-terms-scope{ margin-top:-84px; } }
+
+        /* Un pelín de aire para la ribbon propia */
+        .legal-terms-scope nav.soft-ribbon{ margin-top:25px; }
+        /* =================================================================================== */
 
         /* ===== Lienzo y arte difuminado ===== */
         .legal-terms-scope{
@@ -105,7 +124,6 @@ export const LegalTerms = () => {
 
       <div className="bg-art" aria-hidden="true"></div>
 
-      
       <header className="hero-legal">
         <div className="container-neo">
           <span className="chip">Legal</span>
@@ -116,7 +134,6 @@ export const LegalTerms = () => {
           </p>
           <small className="last-update">Última actualización: {today}</small>
 
-          
           <nav className="toc" aria-label="Índice rápido">
             {[
               ["#intro","Introducción"],
@@ -136,7 +153,6 @@ export const LegalTerms = () => {
         </div>
       </header>
 
-      
       <main className="section content">
         <div className="container-neo">
           <div className="row g-4">
@@ -226,7 +242,6 @@ export const LegalTerms = () => {
             </div>
           </div>
 
-          
           <div className="cta-wrap d-flex flex-wrap gap-2 pb-4">
             <button className="btn btn-brand btn-lg" onClick={() => navigate(-1)}>
               ← Volver

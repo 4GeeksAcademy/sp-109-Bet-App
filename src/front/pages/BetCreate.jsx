@@ -225,6 +225,23 @@ export const BetCreate = () => {
         --su-gradient: linear-gradient(310deg, #7928CA, #FF0080);
       }
 
+      /* ============ Quitar franja superior del layout global ============ */
+      @supports selector(body:has(.betcreate-scope)) {
+        body:has(.betcreate-scope) .content-wrapper,
+        body:has(.betcreate-scope) .flex-grow-1.main-content.d-flex.flex-column{
+          padding-top:0 !important;
+          background:transparent !important;
+        }
+        body:has(.betcreate-scope) .navbar{
+          display:none !important;
+        }
+      }
+      /* Fallback si :has() no existe */
+      .betcreate-scope{ margin-top:-72px; }
+      @media (min-width:992px){ .betcreate-scope{ margin-top:-84px; } }
+      .betcreate-scope nav.soft-ribbon{ margin-top:80px; }
+      /* =================================================================== */
+
       .betcreate-scope{
         position:relative;
         min-height:100dvh;

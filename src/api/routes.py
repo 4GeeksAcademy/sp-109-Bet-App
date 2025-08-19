@@ -570,7 +570,10 @@ def create_bet(pg_id):
 
 
 @api.route('/playground/<int:pg_id>/bet/<int:bet_id>', methods=['DELETE'])
+@jwt_required()
 def delete_single_bet(pg_id, bet_id):
+    user_id = int(get_jwt_identity())
+    user_role = get_jwt().get("role")
 
     playground = Playground.query.get(pg_id)
     if not playground:
@@ -580,18 +583,26 @@ def delete_single_bet(pg_id, bet_id):
     if not bet:
         raise APIException("Bet not found in this playground", 404)
     
+    if user_role != "admin" and bet.user_id != user_id:
+        raise APIException("You are not authorized to delete this bet", 403)
+    
     db.session.delete(bet)
     db.session.commit()
 
-    return jsonify({"message": "Bet deleted succesfully", 
+    return jsonify({
+        "message": "Bet deleted successfully", 
         "bet_id": bet_id,
         "playground_id": pg_id
     }), 200
 
 
+
 @api.route('/playground/<int:pg_id>/bet/<int:bet_id>', methods=['PUT'])
 @jwt_required()
 def update_bet(pg_id, bet_id):
+    jwt_data = get_jwt()
+    user_role = jwt_data.get("role")
+    user_id = get_jwt_identity()
     body = request.get_json()
 
     playground = Playground.query.get(pg_id)
@@ -601,6 +612,9 @@ def update_bet(pg_id, bet_id):
     bet = Bet.query.filter_by(playground_id=pg_id, id=bet_id).first()
     if not bet:
         raise APIException("Bet not found", 404)
+    
+    if user_role != "admin" and bet.user_id != int(user_id):
+        raise APIException("You are not authorized to update this bet", 403)
     
     bet.name = body.get('name', bet.name)
     bet.amount = body.get('amount', bet.amount)
@@ -1051,7 +1065,9 @@ def get_admin_users():
 
 
 @api.route('/admin_users/<int:id>', methods=['GET'])
+@jwt_required()
 def get_admin_user(id):
+    current_user = get_jwt_identity()
     admin = AdminUser.query.get(id)
     if not admin:
         raise APIException("Admin user not found", 404)
@@ -1082,14 +1098,17 @@ def create_admin_user():
 
 
 @api.route('/admin_users/<int:id>', methods=['PUT'])
+@jwt_required()
 def update_admin_user(id):
+    current_user = get_jwt_identity()
     admin = AdminUser.query.get(id)
     if not admin:
         raise APIException("Admin user not found", 404)
 
     data = request.get_json()
     admin.email = data.get("email", admin.email)
-    admin.password = data.get("password", admin.password)
+    if "password" in data and data["password"]:
+        admin.password = generate_password_hash(data["password"])
     db.session.commit()
 
     return jsonify({"msg": "Admin user updated", "admin": admin.serialize()}), 200
@@ -1438,7 +1457,7 @@ def update_admin_bet(id):
 
     bet = Bet.query.get(id)
     if not bet:
-        return jsonify({"msg": "Bet not found"}), 404
+        return jsonify({"msg": "Bet not found"}), 404 
 
     data = request.get_json()
 

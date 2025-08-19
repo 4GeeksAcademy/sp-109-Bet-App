@@ -65,6 +65,25 @@ export default function LegalResponsible() {
           --su-gradient: linear-gradient(310deg,#7928CA,#FF0080);
         }
 
+        /* ================== ARREGLA LA FRANJA BLANCA (solo en esta vista) ================== */
+        @supports selector(body:has(.legal-rg-scope)) {
+          body:has(.legal-rg-scope) .content-wrapper,
+          body:has(.legal-rg-scope) .flex-grow-1.main-content.d-flex.flex-column{
+            padding-top:0 !important;           /* elimina empuje superior del layout */
+            background:transparent !important;  /* evita fondo blanco del wrapper */
+          }
+          body:has(.legal-rg-scope) .navbar{
+            display:none !important;            /* oculta navbar global solo aquí */
+          }
+        }
+        /* Fallback si :has() no aplica (ajusta 72/84 si tu layout empuja más) */
+        .legal-rg-scope{ margin-top:-72px; }
+        @media (min-width:992px){ .legal-rg-scope{ margin-top:-84px; } }
+
+        /* Un poco de aire para la SoftRibbon propia (si usa nav.soft-ribbon) */
+        .legal-rg-scope nav.soft-ribbon{ margin-top:25px; }
+        /* =================================================================================== */
+
         /* Lienzo + arte difuminado Soft-UI */
         .legal-rg-scope{
           position:relative; min-height:100dvh;

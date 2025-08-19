@@ -78,7 +78,7 @@ class Playground(db.Model):
             "description": self.description,
             "url_image": self.url_image,
             "created_at": self.created_at.isoformat(),
-            "created_by": self.created_by,
+            "created_by": self.user_pg_creator.username if self.user_pg_creator else None,
             "playground_used": [pu.serialize() for pu in self.playground_used]
         }
 
