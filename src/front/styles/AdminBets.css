@@ -8,6 +8,25 @@
   --su-grad: linear-gradient(310deg, #7928CA, #FF0080);
 }
 
+/* ============ Quitar franja superior (hasta arriba) ============ */
+      @supports selector(body:has(.admin-bets-scope)) {
+        body:has(.admin-bets-scope) .content-wrapper,
+        body:has(.admin-bets-scope) .flex-grow-1.main-content.d-flex.flex-column{
+          padding-top:0 !important;
+          background:transparent !important;
+        }
+        body:has(.admin-bets-scope) .navbar{
+          display:none !important;
+        }
+      }
+      /* Fallback si :has() no existe */
+      .admin-bets-scope{ margin-top:-72px; }
+      @media (min-width:992px){ .admin-scope{ margin-top:-84px; } }
+      /* aire para nuestra ribbon */
+      .admin-bets-scope nav.soft-ribbon{ margin-top:70px; }
+      /* =============================================================== */
+
+
 .admin-bets-scope {
   position: relative;
   min-height: 100dvh;
