@@ -496,7 +496,10 @@ def create_bet(pg_id):
 
 
 @api.route('/playground/<int:pg_id>/bet/<int:bet_id>', methods=['DELETE'])
+@jwt_required()
 def delete_single_bet(pg_id, bet_id):
+    user_id = int(get_jwt_identity())
+    user_role = get_jwt().get("role")
 
     playground = Playground.query.get(pg_id)
     if not playground:
@@ -506,18 +509,26 @@ def delete_single_bet(pg_id, bet_id):
     if not bet:
         raise APIException("Bet not found in this playground", 404)
     
+    if user_role != "admin" and bet.user_id != user_id:
+        raise APIException("You are not authorized to delete this bet", 403)
+    
     db.session.delete(bet)
     db.session.commit()
 
-    return jsonify({"message": "Bet deleted succesfully", 
+    return jsonify({
+        "message": "Bet deleted successfully", 
         "bet_id": bet_id,
         "playground_id": pg_id
     }), 200
 
 
+
 @api.route('/playground/<int:pg_id>/bet/<int:bet_id>', methods=['PUT'])
 @jwt_required()
 def update_bet(pg_id, bet_id):
+    jwt_data = get_jwt()
+    user_role = jwt_data.get("role")
+    user_id = get_jwt_identity()
     body = request.get_json()
 
     playground = Playground.query.get(pg_id)
@@ -527,6 +538,9 @@ def update_bet(pg_id, bet_id):
     bet = Bet.query.filter_by(playground_id=pg_id, id=bet_id).first()
     if not bet:
         raise APIException("Bet not found", 404)
+    
+    if user_role != "admin" and bet.user_id != int(user_id):
+        raise APIException("You are not authorized to update this bet", 403)
     
     bet.name = body.get('name', bet.name)
     bet.amount = body.get('amount', bet.amount)
@@ -1369,7 +1383,7 @@ def update_admin_bet(id):
 
     bet = Bet.query.get(id)
     if not bet:
-        return jsonify({"msg": "Bet not found"}), 404
+        return jsonify({"msg": "Bet not found"}), 404 
 
     data = request.get_json()
 
