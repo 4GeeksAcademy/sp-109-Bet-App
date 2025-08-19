@@ -119,7 +119,7 @@ export const router = createBrowserRouter(
       {/* Admin visible y accesible */}
       <Route path="/adminsite" element={<Adminsite />} />
       <Route path="/admincreate" element={<AdminCreate />} />
-      <Route path="/admin/adminsite/:id" element={<AdminEdit />} />
+      <Route path="/admin/edit/:id" element={<AdminEdit />} />
       <Route path="/admin-message-board" element={<AdminMessageBoard />} />
 
       {/* ===== Rutas privadas de usuario ===== */}
