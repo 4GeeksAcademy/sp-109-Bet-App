@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/AuthContext";
 
 export const AdminEdit = () => {
   const { id } = useParams();
   const [email, setEmail] = useState("");
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const token = localStorage.getItem("adminToken");
+  const { user, token, role, logout } = useAuth();
 
   useEffect(() => {
     const editAdmin = async () => {
@@ -16,10 +17,8 @@ export const AdminEdit = () => {
       }
 
       try {
-        const resp = await fetch(import.meta.env.VITE_BACKEND_URL + `/api/adminuser/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const resp = await fetch(import.meta.env.VITE_BACKEND_URL + `/api/admin_users/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (!resp.ok) throw new Error("Failed to get admin");
@@ -27,7 +26,7 @@ export const AdminEdit = () => {
         const data = await resp.json();
         setEmail(data.email);
       } catch (err) {
-        setError("Error loading admin information");
+        setError(err.message);
       }
     };
 
@@ -36,17 +35,20 @@ export const AdminEdit = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
-      const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/adminuser/${id}`, {
+      const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin_users/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        Authorization: `Bearer ${token}`,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+
         body: JSON.stringify({ email }),
       });
       if (!resp.ok) throw new Error("Update failed");
 
-      navigate("/adminsite");
+      navigate("/admin-board");
     } catch (err) {
       setError("Failed to update admin");
     }
@@ -69,12 +71,12 @@ export const AdminEdit = () => {
           />
         </div>
         <button type="submit" className="btn btn-primary">
-        <i className="fas fa-save me-2"></i>Update
+          <i className="fas fa-save me-2"></i>Update
         </button>
         <button type="" className="btn btn-danger"
-        onClick={() => navigate(`/adminsite/`)}
+          onClick={() => navigate(`/admin-board/`)}
         >
-        <i className="fas fa-times me-2"></i>Cancel
+          <i className="fas fa-times me-2"></i>Cancel
         </button>
       </form>
     </div>

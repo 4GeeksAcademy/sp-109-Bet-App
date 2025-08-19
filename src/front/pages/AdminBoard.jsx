@@ -85,11 +85,11 @@ export const AdminBoard = () => {
     }
   };
 
-  const handleEdit = (admin) => {
-    setEditingAdmin(admin);
-    setEmail(admin.email);
-    setPassword("");
-  };
+  // const handleEdit = (admin) => {
+  //   setEditingAdmin(admin);
+  //   setEmail(admin.email);
+  //   setPassword("");
+  // };
 
   const handleDelete = async (id) => {
     if (!confirm("¿Seguro que deseas eliminar este administrador?")) return;
@@ -288,7 +288,7 @@ export const AdminBoard = () => {
                       <FaEdit
                         className="text-warning me-3"
                         style={{ cursor: "pointer" }}
-                        onClick={() => handleEdit(admin)}
+                        onClick={() => navigate(`/admin/edit/${admin.id}`)}
                         title="Editar"
                       />
                       <FaTrash
