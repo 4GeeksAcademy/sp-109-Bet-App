@@ -100,6 +100,7 @@ export const BetSingle = () => {
     fetchBet();
   }, [id, betId, token]);
 
+  
 
   // Polling/Votaciones - Si la apuesta no está resuelta 
   useEffect(() => {
@@ -320,7 +321,8 @@ export const BetSingle = () => {
   // --- Botón se muestra si es creador o admin, y no está resuelta la apuesta ---
   const canManualResolveUI =
     (isCreator || isAdmin) && !isResolved && (isLocked || deadlinePassed);
-
+  
+  
 
   return (
     <div className="container mt-4">

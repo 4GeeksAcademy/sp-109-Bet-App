@@ -24,16 +24,12 @@ export const AdminBets = () => {
   };
 
   useEffect(() => {
-    // Esperar a que AuthContext termine de cargar
     if (loading) return;
-
-    // Si no hay token o el rol no es admin, redirigir
     if (!token || role !== "admin") {
       navigate("/admin/login", { state: { fromProtected: true } });
       return;
     }
 
-    // Si es admin, cargar bets
     const getBets = async () => {
       setLoadingBets(true);
       setError(null);
@@ -105,10 +101,7 @@ export const AdminBets = () => {
             {!loadingBets && !error && bets.length > 0 && (
               <ul className="list-group list-soft">
                 {bets.map((bet) => (
-                  <li
-                    key={bet.id}
-                    className="list-group-item d-flex justify-content-between align-items-center"
-                  >
+                  <li key={bet.id} className="list-group-item">
                     <span>
                       <strong>{bet.name}</strong> — {bet.status} — {bet.amount} €
                     </span>
