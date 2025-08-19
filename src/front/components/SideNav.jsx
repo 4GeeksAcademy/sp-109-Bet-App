@@ -46,11 +46,7 @@ export const SideNav = () => {
           {role === "user" ? (
             <>
 
-             <NavLink to="/dashboard" className={({ isActive }) =>
-                `sidenav-btn ${isActive ? "sidenav-btn-active" : ""}`}>
-                <FaHome className="me-3" />
-                <span>Dashboard</span>
-              </NavLink>
+             
 
               <NavLink to="/" className={({ isActive }) =>
                 `sidenav-btn ${isActive ? "sidenav-btn-active" : ""}`}>
