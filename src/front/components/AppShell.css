@@ -1,0 +1,22 @@
+/* src/front/styles/app-shell.css */
+
+/* altura fiable y layout en 3 filas: header | contenido flexible | footer */
+.app-shell{
+  min-height: 100svh;              /* móviles modernos */
+  display: grid;
+  grid-template-rows: min-content 1fr min-content;
+}
+
+/* fallback por si 100svh no existe */
+@supports not (min-height: 100svh){
+  .app-shell{ min-height: 100vh; }
+}
+
+/* el contenido crece y empuja el footer al fondo */
+.app-main{
+  min-height: 0; /* evita overflow en algunos navegadores */
+}
+
+/* opcional pero recomendable */
+html, body, #root{ height: 100%; }
+#root{ display: block; }

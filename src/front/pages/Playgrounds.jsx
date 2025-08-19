@@ -5,6 +5,7 @@ import SoftRibbonNav from "../components/SoftRibbonNav";
 import SiteFooter from "../components/SiteFooter";
 import { useAuth } from "../hooks/AuthContext";
 import heroArt from "../../../docs/assets/img/curved11.jpg";
+import SiteFooterApp from "../components/SiteFooterApp";
 
 /* ===== Miniatura con fallback SVG embebido (sin red) y sin parpadeo ===== */
 function PgThumb({ src, name, alt }) {
@@ -73,6 +74,26 @@ export const Playgrounds = () => {
         --su-muted:#6b7c90;
         --su-gradient: linear-gradient(310deg, #7928CA, #FF0080);
       }
+
+      /* ============ ARREGLA FRANJA SUPERIOR (como ResourceStatus) ============ */
+      @supports selector(body:has(.pg-scope)) {
+        body:has(.pg-scope) .content-wrapper,
+        body:has(.pg-scope) .flex-grow-1.main-content.d-flex.flex-column{
+          padding-top:0 !important;          /* quita empuje del Layout */
+          background:transparent !important; /* evita fondos del wrapper */
+        }
+        body:has(.pg-scope) .navbar{
+          display:none !important;           /* oculta navbar global aquí */
+        }
+      }
+      /* Fallback si :has() no existe */
+      .pg-scope{ margin-top:-72px; }
+      @media (min-width:992px){ .pg-scope{ margin-top:-84px; } }
+      /* aire para la ribbon propia */
+      .pg-scope nav.soft-ribbon{ margin-top:80px; }
+      /* ====================================================================== */
+      
+      
 
       .pg-scope{
         position:relative;
@@ -164,6 +185,23 @@ export const Playgrounds = () => {
       .empty{
         border:2px dashed #e9edf4; border-radius:18px; padding:28px; text-align:center;
         color:#6b7c90; background:#fff; box-shadow:0 10px 26px rgba(15,23,42,.05);
+      }
+
+      /* Soft ribbon y contenedor cuando la pantalla es <= 1200px */
+      @media (max-width: 1200px){
+        .soft-ribbon-wrapper{ padding: 0 10px; }   /* respiración lateral */
+        .soft-ribbon{
+          max-width: none !important;
+          width: 100% !important;
+          border-radius: 18px !important;
+          padding: 8px 10px !important;
+        }
+        .container-neo{ padding: 0 12px; }
+        .pg-hero{ padding: 18px 0 12px; }
+      }
+
+      @media (max-width: 576px){
+        .container-neo{ padding: 0 10px; }
       }
     `}</style>
   );
@@ -404,7 +442,7 @@ export const Playgrounds = () => {
         </section>
       </div>
 
-      <SiteFooter />
+      <SiteFooterApp />
     </div>
   );
 };
