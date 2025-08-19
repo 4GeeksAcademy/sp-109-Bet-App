@@ -23,16 +23,12 @@ export const AdminBets = () => {
   };
 
   useEffect(() => {
-    // Esperar a que AuthContext termine de cargar
     if (loading) return;
-
-    // Si no hay token o el rol no es admin, redirigir
     if (!token || role !== "admin") {
       navigate("/admin/login", { state: { fromProtected: true } });
       return;
     }
 
-    // Si es admin, cargar bets
     const getBets = async () => {
       setLoadingBets(true);
       setError(null);
@@ -76,7 +72,7 @@ export const AdminBets = () => {
     }
   };
 
-  /* ====== ESTILOS SOLO VISUAL ====== */
+  /* ====== ESTILOS SOLO VISUAL (color de siempre + llega hasta arriba) ====== */
   const Styles = () => (
     <style>{`
       :root{
@@ -84,15 +80,32 @@ export const AdminBets = () => {
         --su-info:#17c1e8;
         --su-dark:#0f1b33;
         --su-muted:#6b7c90;
-        --su-grad: linear-gradient(310deg, #7928CA, #FF0080);
+        --su-gradient: linear-gradient(310deg, #7928CA, #FF0080);
       }
+
+      /* ============ Quitar franja superior del layout global ============ */
+      @supports selector(body:has(.admin-bets-scope)) {
+        body:has(.admin-bets-scope) .content-wrapper,
+        body:has(.admin-bets-scope) .flex-grow-1.main-content.d-flex.flex-column{
+          padding-top:0 !important;
+          background:transparent !important;
+        }
+        body:has(.admin-bets-scope) .navbar{
+          display:none !important;
+        }
+      }
+      /* Fallback si :has() no existe */
+      .admin-bets-scope{ margin-top:-72px; }
+      @media (min-width:992px){ .admin-bets-scope{ margin-top:-84px; } }
+      .admin-bets-scope nav.soft-ribbon{ margin-top:80px; }
+      /* =================================================================== */
 
       .admin-bets-scope{
         position:relative; min-height:100dvh;
         background:
           radial-gradient(1400px 600px at 6% -12%, #eef0ff 0%, transparent 60%),
           radial-gradient(1100px 520px at 96% -10%, #e6f9ff 0%, transparent 55%),
-          #fff;
+          linear-gradient(#fff,#fff);
       }
       .admin-bets-scope .bg-art{
         position:fixed; inset:0; pointer-events:none;
@@ -114,7 +127,10 @@ export const AdminBets = () => {
 
       /* HERO */
       .bets-hero{ padding:28px 0 16px; }
-      .bets-title{ font-weight:900; color:#20314d; margin:0; }
+      .bets-title{
+        font-weight:900; color:#20314d; margin:0;
+        letter-spacing:.2px;
+      }
       .bets-sub{ color:var(--su-muted); margin:0; }
 
       /* Alert suave */
@@ -127,8 +143,9 @@ export const AdminBets = () => {
       /* Lista Soft-UI */
       .list-soft .list-group-item{
         border:1px solid #eef2f7 !important; margin-bottom:10px;
-        border-radius:14px; box-shadow:0 10px 26px rgba(15,23,42,.06);
+        border-radius:14px !important; box-shadow:0 10px 26px rgba(15,23,42,.06);
         background:#fff;
+        display:flex; justify-content:space-between; align-items:center;
       }
 
       /* Botones suaves (overrides locales sin tocar la lógica) */
@@ -147,6 +164,17 @@ export const AdminBets = () => {
         box-shadow:0 8px 22px rgba(244,63,94,.16);
       }
       .admin-bets-scope .btn-danger:hover{ transform:translateY(-1px); }
+
+      /* Responsive ribbon/containers como en el resto */
+      @media (max-width: 1200px){
+        .soft-ribbon-wrapper{ padding: 0 10px; }
+        .soft-ribbon{ max-width:none !important; width:100% !important; border-radius:18px !important; padding:8px 10px !important; }
+        .container-neo{ padding: 0 12px; }
+        .bets-hero{ padding:18px 0 12px; }
+      }
+      @media (max-width: 576px){
+        .container-neo{ padding: 0 10px; }
+      }
     `}</style>
   );
 
@@ -178,10 +206,7 @@ export const AdminBets = () => {
             {!loadingBets && !error && bets.length > 0 && (
               <ul className="list-group list-soft">
                 {bets.map((bet) => (
-                  <li
-                    key={bet.id}
-                    className="list-group-item d-flex justify-content-between align-items-center"
-                  >
+                  <li key={bet.id} className="list-group-item">
                     <span>
                       <strong>{bet.name}</strong> — {bet.status} — {bet.amount} €
                     </span>

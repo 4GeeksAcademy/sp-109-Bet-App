@@ -43,6 +43,22 @@ export const PlaygroundSingle = () => {
         --su-gradient: linear-gradient(310deg, #7928CA, #FF0080);
       }
 
+       @supports selector(body:has(.room-scope)) {
+        body:has(.room-scope) .content-wrapper,
+        body:has(.room-scope) .flex-grow-1.main-content.d-flex.flex-column{
+          padding-top:0 !important;          /* quita empuje del Layout */
+          background:transparent !important; /* por si el wrapper pinta fondo */
+        }
+        body:has(.room-scope) .navbar{
+          display:none !important;           /* oculta navbar global solo aquí */
+        }
+      }
+      /* Fallback si :has() no existe en el navegador */
+      .room-scope{ margin-top:-72px; }
+      @media (min-width:992px){ .room-scope{ margin-top:-84px; } }
+      /* aire para la ribbon propia */
+      .room-scope nav.soft-ribbon{ margin-top:80px; }
+
       /* Scope de esta vista */
       .room-scope{
         position:relative;
