@@ -128,6 +128,22 @@ export const AdminBoard = () => {
         --su-grad: linear-gradient(310deg, #7928CA, #FF0080);
       }
 
+      /* ================== ARREGLA LA FRANJA BLANCA (como en otras vistas) ================== */
+      @supports selector(body:has(.admin-scope)) {
+        body:has(.admin-scope) .content-wrapper,
+        body:has(.admin-scope) .flex-grow-1.main-content.d-flex.flex-column{
+          padding-top:0 !important;
+          background:transparent !important;
+        }
+        body:has(.admin-scope) .navbar{
+          display:none !important;
+        }
+      }
+      .admin-scope{ margin-top:-72px; }
+      @media (min-width:992px){ .admin-scope{ margin-top:-84px; } }
+      .admin-scope nav.soft-ribbon{ margin-top:85px; }
+      /* ===================================================================================== */
+
       .admin-scope{
         position:relative; min-height:100dvh;
         background:
