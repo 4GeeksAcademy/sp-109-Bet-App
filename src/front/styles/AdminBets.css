@@ -6,6 +6,9 @@
   --su-dark: #0f1b33;
   --su-muted: #6b7c90;
   --su-grad: linear-gradient(310deg, #7928CA, #FF0080);
+  --su-lilac: #b57edc;
+  --su-lilac-light: #f3e9fb;
+  --su-lilac-dark: #7a3ea6;
 }
 
 /* ============ Quitar franja superior (hasta arriba) ============ */
@@ -101,31 +104,74 @@ nav.navbar + .container .btn-group,
   border-radius: 14px;
   box-shadow: 0 10px 26px rgba(15, 23, 42, .06);
   background: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
 }
+
+.list-soft .list-group-item span {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* espacio entre nombre, estado, cantidad */
+  font-size: 1rem;
+}
+
+.list-soft .list-group-item .d-flex {
+  margin-left: auto; /* empuja botones a la derecha */
+  display: flex;
+  gap: 8px;
+}
+
+
+.admin-bets-scope .btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+}
+
+.bet-status {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  border-radius: 8px;
+  line-height: 1.2;
+  color: var(--su-lilac-dark);
+  background: var(--su-lilac-light);
+  border: 1px solid var(--su-lilac);
+}
+
+.bet-status.active { background: #f5e9ff; color: #7a3ea6; border-color: #b57edc; }
+.bet-status.locked { background: #ffe9f5; color: #a11d6c; border-color: #e48bbf; }
+.bet-status.resolved { background: #e9f5ff; color: #155e75; border-color: #38bdf8; }
 
 /* Botones suaves (overrides locales sin tocar la lógica) */
 .admin-bets-scope .btn-warning {
-  background: linear-gradient(180deg, #fffaf0, #fff1c7) !important;
-  color: #7a5a00 !important;
-  border: 1px solid #ffe49a !important;
+  background: linear-gradient(180deg, #fdf5ff, #f3e9fb) !important;
+  color: var(--su-lilac-dark) !important;
+  border: 1px solid var(--su-lilac) !important;
   border-radius: 10px;
-  font-weight: 800;
-  box-shadow: 0 8px 22px rgba(250, 204, 21, .16);
+  font-weight: 700;
+  box-shadow: 0 8px 22px rgba(187, 128, 221, 0.2);
 }
 
 .admin-bets-scope .btn-warning:hover {
+  background: linear-gradient(180deg, #f3e9fb, #e8d4f8) !important;
   transform: translateY(-1px);
 }
 
 .admin-bets-scope .btn-danger {
-  background: linear-gradient(180deg, #fff5f5, #ffe9e9) !important;
-  color: #b4232a !important;
-  border: 1px solid #ffd2d2 !important;
+  background: linear-gradient(180deg, #fff0f7, #ffe4f1) !important;
+  color: #a11d6c !important;
+  border: 1px solid #f5a9d0 !important;
   border-radius: 10px;
-  font-weight: 800;
-  box-shadow: 0 8px 22px rgba(244, 63, 94, .16);
+  font-weight: 700;
+  box-shadow: 0 8px 22px rgba(219, 39, 119, .18);
 }
 
 .admin-bets-scope .btn-danger:hover {
+  background: linear-gradient(180deg, #ffe4f1, #ffd2e7) !important;
   transform: translateY(-1px);
 }
