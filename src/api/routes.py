@@ -1661,15 +1661,11 @@ def resolve_bet_manual(pg_id, bet_id):
     current_user_id = int(get_jwt_identity())
     jwt_data = get_jwt()
     is_admin_user = jwt_data.get("role") == "admin"
-    current_user_id = int(get_jwt_identity())
-    jwt_data = get_jwt()
-    is_admin_user = jwt_data.get("role") == "admin"
 
     bet = Bet.query.filter_by(id=bet_id, playground_id=pg_id).first()
     if not bet:
         return jsonify({"message": "Bet not found"}), 404
 
-    if bet.user_id != current_user_id and not is_admin_user:
     if bet.user_id != current_user_id and not is_admin_user:
         return jsonify({"message": "Not allowed"}), 403
     
@@ -1677,10 +1673,7 @@ def resolve_bet_manual(pg_id, bet_id):
         return jsonify({"message": "Bet already finished"}), 400
 
     if getattr(bet, "external_match_id", None) and not is_admin_user:
-
-    if getattr(bet, "external_match_id", None) and not is_admin_user:
         return jsonify({"message": "This bet is linked to an external match; use auto resolution"}), 400
-
 
     data = request.get_json(silent=True) or {}
     winner_option_id = data.get("winner_option_id")
@@ -1696,7 +1689,6 @@ def resolve_bet_manual(pg_id, bet_id):
     if not winner:
         return jsonify({"message": "Winner option invalid for this bet"}), 400
 
-    if not is_admin_user and bet.user_id != current_user_id and bet.deadline and bet.deadline > datetime.utcnow():
     if not is_admin_user and bet.user_id != current_user_id and bet.deadline and bet.deadline > datetime.utcnow():
         return jsonify({"message": "Bet cannot be resolved before the deadline"}), 400
 
