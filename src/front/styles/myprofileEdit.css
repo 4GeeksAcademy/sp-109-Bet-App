@@ -6,6 +6,23 @@
   border-bottom-left-radius: 24px;
   border-bottom-right-radius: 24px;
 }
+/* ============ Quitar franja superior (hasta arriba) ============ */
+      @supports selector(body:has(.profileedit-scope)) {
+        body:has(.profileedit-scope) .content-wrapper,
+        body:has(.profileedit-scope) .flex-grow-1.main-content.d-flex.flex-column{
+          padding-top:0 !important;
+          background:transparent !important;
+        }
+        body:has(.profileedit-scope) .navbar{
+          display:none !important;
+        }
+      }
+      /* Fallback si :has() no existe */
+      .profileedit-scope{ margin-top:-72px; }
+      @media (min-width:992px){ .profileedit-scope{ margin-top:-84px; } }
+      /* aire para nuestra ribbon */
+      .profileedit-scope nav.soft-ribbon{ margin-top:70px; }
+      /* =============================================================== */
 
 /* Card */
 .pe-overlap { margin-top: -80px; }

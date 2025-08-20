@@ -1,0 +1,98 @@
+:root{
+        --su-primary:#cb0c9f;
+        --su-info:#17c1e8;
+        --su-dark:#0f1b33;
+        --su-muted:#6b7c90;
+        --su-grad: linear-gradient(310deg, #7928CA, #FF0080);
+      }
+
+      /* Quitar padding/nav del layout global solo aquí */
+      @supports selector(body:has(.bet-single-scope)) {
+        body:has(.bet-single-scope) .content-wrapper,
+        body:has(.bet-single-scope) .flex-grow-1.main-content.d-flex.flex-column{
+          padding-top:0 !important;
+          background:transparent !important;
+        }
+        body:has(.bet-single-scope) .navbar{ display:none !important; }
+      }
+      /* Fallback si :has() no existe */
+      .bet-single-scope{ margin-top:-72px; }
+      @media (min-width:992px){ .bet-single-scope{ margin-top:-84px; } }
+      .bet-single-scope nav.soft-ribbon{ margin-top:80px; }
+
+      .bet-single-scope{
+        position:relative; min-height:100dvh;
+        background:
+          radial-gradient(1400px 600px at 6% -12%, #eef0ff 0%, transparent 60%),
+          radial-gradient(1100px 520px at 96% -10%, #e6f9ff 0%, transparent 55%),
+          #fff;
+      }
+      .bet-single-scope .bg-art{
+        position:fixed; inset:0; pointer-events:none;
+        background-image: var(--bg-art);
+        background-size:cover; background-position:center;
+        filter: blur(18px) saturate(1.05) contrast(1.04);
+        opacity:.18; z-index:0;
+      }
+      .bet-single-scope .content{ position:relative; z-index:1; }
+
+      /* Card look suave sin tocar tu markup */
+      .bet-single-scope .card{
+        border:1px solid #edf1f6;
+        border-radius:18px;
+        box-shadow:0 18px 50px rgba(15,23,42,.10);
+      }
+      .bet-single-scope .card-title{ color:#20314d; font-weight:900; letter-spacing:.2px; }
+      .bet-single-scope .text-muted{ color: var(--su-muted)!important; }
+
+      /* Botones suaves */
+      .bet-single-scope .btn-success{
+        background-image: var(--su-grad); border:0; color:#fff;
+        font-weight:800; border-radius:12px; padding:.65rem 1rem;
+        box-shadow:0 12px 30px rgba(203,12,159,.35);
+      }
+      .bet-single-scope .btn-success:hover{ filter:brightness(1.05); transform:translateY(-1px); }
+
+      .bet-single-scope .btn-outline-warning{
+        border-color:#ffe49a; color:#7a5a00;
+        background: linear-gradient(180deg, #fffaf0, #fff1c7);
+        border-radius:10px; font-weight:800;
+        box-shadow:0 8px 22px rgba(250,204,21,.16);
+      }
+      .bet-single-scope .btn-outline-warning:hover{ transform:translateY(-1px); }
+
+      .bet-single-scope .btn-outline-primary{
+        border-color:#d7e3ff; color:#20314d; background:#fff;
+        border-radius:10px; font-weight:800;
+        box-shadow:0 8px 22px rgba(15,23,42,.06);
+      }
+      .bet-single-scope .btn-outline-primary:hover{ transform:translateY(-1px); }
+
+      .bet-single-scope .btn-outline-secondary{
+        border-color:#e7ecf3; color:#20314d; background:#fff;
+        border-radius:10px; font-weight:700;
+        box-shadow:0 8px 22px rgba(15,23,42,.06);
+      }
+      .bet-single-scope .btn-outline-secondary:hover{ transform:translateY(-1px); }
+
+      .bet-single-scope .btn-outline-danger{
+        border-color:#ffd2d2; color:#b4232a; background:#fff;
+        border-radius:10px; font-weight:800;
+        box-shadow:0 8px 22px rgba(244,63,94,.16);
+      }
+      .bet-single-scope .btn-outline-danger:hover{ transform:translateY(-1px); }
+
+      /* List-group suavizado */
+      .bet-single-scope .list-group-item{
+        border:1px solid #eef2f7;
+        border-radius:12px !important;
+        box-shadow:0 8px 22px rgba(15,23,42,.05);
+        margin-bottom:8px;
+      }
+
+      /* Modales encima del blur */
+      .bet-single-scope .modal-dialog .modal-content{
+        border-radius:16px;
+        border:1px solid #edf1f6;
+        box-shadow:0 22px 70px rgba(15,23,42,.25);
+      }
