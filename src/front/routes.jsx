@@ -65,6 +65,7 @@ import ResourceRoadmap from "./pages/ResourceRoadmap.jsx";
 import ResourceStatus from "./pages/ResourceStatus.jsx";
 import BetWinners from "./pages/BetWinners.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
+import { AdminUserView } from "./pages/AdminUserView.jsx";
 
 // Hook de auth para decidir qué mostrar en "/"
 import { useAuth } from "./hooks/AuthContext";
@@ -97,6 +98,7 @@ export const router = createBrowserRouter(
       <Route path="/adminusers" element={<AdminUsers />} />
       <Route path="/adminplaygrounds" element={<AdminPlaygrounds />} />
       <Route path="/adminbets" element={<AdminBets />} />
+      <Route path="/adminusers/view/:id" element={<AdminUserView />} />
 
       {/* Landing accesible explícitamente si la quieres ver estando logueado */}
       <Route path="/preview" element={<LandingPreview />} />

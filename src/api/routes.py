@@ -1903,3 +1903,18 @@ def bet_winners(pg_id, bet_id):
         "winner_option_label": winner_label,
         "winners": [{"id": uid, "username": uname} for uid, uname in winners]
     }), 200
+
+
+@api.route("/user/<int:user_id>", methods=["GET"])
+@jwt_required()
+def get_user(user_id):
+    
+    claims = get_jwt()
+    if claims.get("role") != "admin":
+        return jsonify({"msg": "Admins only"}), 403
+
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"msg": "User not found"}), 404
+
+    return jsonify(user.serialize()), 200
