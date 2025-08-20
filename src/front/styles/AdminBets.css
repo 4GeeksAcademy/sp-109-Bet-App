@@ -24,7 +24,7 @@
       }
       /* Fallback si :has() no existe */
       .admin-bets-scope{ margin-top:-72px; }
-      @media (min-width:992px){ .admin-scope{ margin-top:-84px; } }
+      @media (min-width:992px){ .admin-bets-scope{ margin-top:-84px; } }
       /* aire para nuestra ribbon */
       .admin-bets-scope nav.soft-ribbon{ margin-top:70px; }
       /* =============================================================== */

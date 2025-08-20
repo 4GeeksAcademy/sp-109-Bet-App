@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import SoftRibbonNav from "../components/SoftRibbonNav";
 import SiteFooter from "../components/SiteFooter";
 import heroArt from "../../../docs/assets/img/curved11.jpg";
+import miguelImg from "../../../docs/assets/img/miguel.jpg";
 
 export const CompanyTeam = () => {
   const navigate = useNavigate();
@@ -29,26 +30,22 @@ export const CompanyTeam = () => {
 
         /* ========= ARREGLO FRANJA BLANCA (solo en esta vista) ========= */
         @supports selector(body:has(.team-scope)) {
-          body:has(.team-scope) nav.navbar{
-            display:none !important;                   /* oculta la navbar del layout */
-          }
+          body:has(.team-scope) nav.navbar{ display:none !important; }
           body:has(.team-scope) .content-wrapper.flex-grow-1,
           body:has(.team-scope) .flex-grow-1.main-content.d-flex.flex-column{
-            padding-top:0 !important;                  /* elimina el empuje superior */
-            background:transparent !important;         /* evita fondo blanco del wrapper */
+            padding-top:0 !important;
+            background:transparent !important;
           }
         }
         /* Fallback si :has() no está disponible */
         .team-scope{ margin-top:-72px; }
         @media (min-width:992px){ .team-scope{ margin-top:-84px; } }
 
-        /* un pequeño respiro para la ribbon (si tu SoftRibbon usa <nav class="soft-ribbon">) */
+        /* un pequeño respiro para la ribbon */
         .team-scope nav.soft-ribbon{ margin-top: 25px; }
-        /* ============================================================= */
 
         .team-scope{
-          position:relative;
-          min-height:100dvh;
+          position:relative; min-height:100dvh;
           background:
             radial-gradient(1400px 600px at 6% -12%, #eef0ff 0%, transparent 60%),
             radial-gradient(1100px 520px at 96% -10%, #e6f9ff 0%, transparent 55%),
@@ -64,72 +61,51 @@ export const CompanyTeam = () => {
         .team-scope .content{ position:relative; z-index:1; }
         .team-scope .container{ max-width:1100px; }
 
-        /* Ocultar botones del template superior si los hubiera */
-        .navbar .btn,
-        .navbar .btn-group,
+        /* Ocultar posibles botones del template superior */
+        .navbar .btn, .navbar .btn-group,
         nav.navbar + .container .btn,
         nav.navbar + .container .btn-group,
         .template-links { display: none !important; }
 
-        /* ====== HERO azul con onda ====== */
+        /* ====== HERO ====== */
         .team-hero{
-          position:relative;
-          color:#eaf2ff;
-          padding:80px 0 140px;
-          background:
-            radial-gradient(1400px 600px at 50% -280px, #20314d 0%, #0f1b33 62%);
-          overflow:hidden;
-          box-shadow:0 24px 60px rgba(15,23,42,.22);
+          position:relative; color:#eaf2ff; padding:80px 0 140px;
+          background: radial-gradient(1400px 600px at 50% -280px, #20314d 0%, #0f1b33 62%);
+          overflow:hidden; box-shadow:0 24px 60px rgba(15,23,42,.22);
         }
-        .team-hero h1{
-          font-weight:800; letter-spacing:.2px;
-          margin:0 0 .25rem 0;
-        }
+        .team-hero h1{ font-weight:800; letter-spacing:.2px; margin:0 0 .25rem 0; }
         .team-hero p{ color:#a9b8cc; max-width:760px; margin:0; }
-
-        /* Onda inferior que “corta” el azul */
-        .wave{
-          position:absolute;
-          left:0; right:0; bottom:-1px;
-          width:100%; height:120px; pointer-events:none;
-        }
+        .wave{ position:absolute; left:0; right:0; bottom:-1px; width:100%; height:120px; pointer-events:none; }
 
         /* ====== CARDS ====== */
         .person-card{
-          background:#fff;
-          border-radius:20px;
+          background:#fff; border-radius:20px; padding:18px;
           box-shadow:0 18px 60px rgba(15,23,42,.18);
-          padding:18px;
           border:1px solid #edf1f6;
         }
         .avatar{
-          width:100%;
-          height:230px;
-          border-radius:14px;
-          object-fit:cover;
-          object-position:center 40%;
+          width:100%; height:230px; border-radius:14px;
+          object-fit:cover; object-position:center 40%;
         }
-        .role{
-          color:var(--su-info);
-          font-weight:700;
-          margin-bottom:.25rem;
-        }
-        .name{
-          font-weight:800;
-          color:#20314d;
-          margin-bottom:.125rem;
-        }
-        .story{
-          color:#6b7c90;
-          margin-bottom:0;
-        }
+        .role{ color:var(--su-info); font-weight:700; margin-bottom:.25rem; }
+        .name{ font-weight:800; color:#20314d; margin-bottom:.125rem; }
+        .story{ color:#6b7c90; margin-bottom:0; }
 
-        /* Botón brand coherente con el resto */
+        /* Links de perfil tipo “chip” */
+        .profile-links{ display:flex; gap:.5rem; flex-wrap:wrap; margin-top:.5rem; }
+        .chip-link{
+          display:inline-flex; align-items:center; gap:.35rem;
+          padding:.35rem .6rem; border-radius:10px; font-weight:700;
+          color:#20314d; text-decoration:none; background:#f8fbff;
+          border:1px solid #e5ecf7;
+          transition:.15s ease;
+        }
+        .chip-link:hover{ background:#eef6ff; border-color:#cfe1ff; color:#0f1b33; }
+
+        /* Botón brand */
         .btn-brand{
-          background-image: var(--su-gradient);
-          border:0; color:#fff;
-          padding:.9rem 1.3rem;
-          border-radius:12px;
+          background-image: var(--su-gradient); border:0; color:#fff;
+          padding:.9rem 1.3rem; border-radius:12px;
           box-shadow:0 10px 26px rgba(203,12,159,.35);
           transition: transform .15s ease, filter .15s ease, box-shadow .15s ease;
         }
@@ -147,8 +123,6 @@ export const CompanyTeam = () => {
               las risas con tu grupo.
             </p>
           </div>
-
-          {/* Onda que funde a blanco */}
           <svg className="wave" viewBox="0 0 1440 120" preserveAspectRatio="none">
             <path
               d="M0,64 C240,128 480,0 720,32 C960,64 1200,144 1440,80 L1440,120 L0,120 Z"
@@ -211,26 +185,50 @@ export const CompanyTeam = () => {
                 </div>
               </div>
 
-              {/* Miguel */}
+              {/* Miguel (tu card, con texto y links) */}
               <div className="col-12">
                 <div className="person-card">
                   <div className="row g-4 align-items-center">
                     <div className="col-sm-4 col-md-3">
                       <img
                         className="avatar"
-                        src="https://cdn.pixabay.com/photo/2016/11/29/12/52/face-1869641_640.jpg"
+                        src={miguelImg}
                         alt="Miguel – Growth & Data"
                       />
                     </div>
                     <div className="col-sm-8 col-md-9">
                       <div className="name">Miguel</div>
-                      <div className="role">Growth & Data</div>
+                      <div className="role">Growth, Data & Front-end lover</div>
                       <p className="story">
-                        Miguel habla en SQL y piensa en gráficos. Descubrió que la gente
-                        apuesta más los lunes (¡true story!) y creó los retos semanales
-                        que dispararon la actividad un 143%. Su lema: “si no se mide,
-                        no existe”.
+                        Me encanta el front-end: componentes limpios, micro-interacciones
+                        con sentido y rendimiento fino. Combino datos (SQL, métricas y
+                        visualización) con producto para decidir qué construir y cómo
+                        medirlo. También disfruto afinando el UI cuando hace falta —
+                        accesibilidad, estados vacíos cuidados y pequeños detalles que
+                        hacen que todo se sienta “redondo”.
                       </p>
+                      <div className="profile-links">
+                        <a
+                          className="chip-link"
+                          href="https://github.com/miguelarea"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label="GitHub de Miguel"
+                          title="GitHub @miguelarea"
+                        >
+                          GitHub @miguelarea
+                        </a>
+                        <a
+                          className="chip-link"
+                          href="https://es.linkedin.com/in/miguel-area-baz"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label="LinkedIn de Miguel"
+                          title="LinkedIn — Miguel Area Baz"
+                        >
+                          LinkedIn
+                        </a>
+                      </div>
                     </div>
                   </div>
                 </div>
