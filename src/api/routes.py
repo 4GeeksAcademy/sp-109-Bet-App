@@ -1695,6 +1695,19 @@ def resolve_bet_manual(pg_id, bet_id):
     bet.winner_option_id = winner.id
     bet.status = BetStatus.resolved
     bet.resolved_at = datetime.utcnow()
+
+    all_votes = UserBet.query.filter_by(bet_id=bet_id).all()
+    if not all_votes:
+        db.session.commit()
+        return jsonify(bet.serialize_with_votes(user_id=current_user_id)), 200
+
+    winners = [v for v in all_votes if v.option_id == winner.id]
+    total_pool = bet.amount * len(all_votes)
+    per_winner_amount = total_pool / len(winners) if winners else 0
+    
+    for vote in winners:
+        vote.user.money += per_winner_amount
+
     db.session.commit()
 
     return jsonify(bet.serialize_with_votes(user_id=current_user_id)), 200
@@ -1789,6 +1802,23 @@ def resolve_bet_auto(pg_id, bet_id):
     if not winner_option:
         return jsonify({"message": f"No matching bet option for winner {winner_code} ({home} vs {away})"}), 400
 
+
+    bet.winner_option_id = winner_option.id
+    bet.status = BetStatus.resolved
+    bet.resolved_at = datetime.utcnow()
+
+    winners = UserBet.query.filter_by(bet_id=bet.id, option_id=winner_option.id).all()
+    total_prize = bet.amount * len(bet.user_bets)
+    per_winner_amount = total_prize / len(winners) if winners else 0
+
+    for vote in winners:
+        vote.user.money += per_winner_amount
+
+
+
+    db.session.commit()
+
+    return jsonify(bet.serialize_with_votes(user_id=current_user_id)), 200
 
 # *-------Listar ganadores apuestas ----------*
 
