@@ -19,6 +19,8 @@ export const PlaygroundSingle = () => {
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState("abiertas");
+
 
   // Invitaciones
   const [usersList, setUsersList] = useState([]);
@@ -125,7 +127,7 @@ export const PlaygroundSingle = () => {
         if (!res.ok) return;
         const data = await res.json();
         if (!aborted) setUsersList(data || []);
-      } catch {}
+      } catch { }
     };
     const t = setTimeout(run, 250);
     return () => {
@@ -261,52 +263,88 @@ export const PlaygroundSingle = () => {
               <div className="col-md-6">
                 <div className="room-card p-3 h-100">
                   <h4>🎯 Apuestas</h4>
+
+                  {/* Tabs */}
+                  <ul className="nav nav-tabs mb-3">
+                    <li className="nav-item">
+                      <button
+                        className={`nav-link ${activeTab === "abiertas" ? "active" : ""}`}
+                        onClick={() => setActiveTab("abiertas")}
+                      >
+                        Abiertas
+                      </button>
+                    </li>
+                    <li className="nav-item">
+                      <button
+                        className={`nav-link ${activeTab === "finalizadas" ? "active" : ""}`}
+                        onClick={() => setActiveTab("finalizadas")}
+                      >
+                        Finalizadas
+                      </button>
+                    </li>
+                  </ul>
+
+                  {/* Contenido según pestaña */}
                   {bets.length === 0 ? (
                     <p className="text-muted">No bets found.</p>
                   ) : (
                     <ul className="list-group">
-                      {bets.map((bet) => (
-                        <li
-                          key={bet.id}
-                          className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-                          style={{ cursor: "pointer" }}
-                          onClick={() => navigate(`/playground/${id}/bet/${bet.id}`)}
-                        >
-                          <div className="d-flex align-items-center gap-3">
-                            {getBetImage(bet) && (
-                              <img
-                                src={getBetImage(bet)}
-                                alt={bet.name}
-                                width={64}
-                                height={64}
-                                style={{
-                                  width: 64,
-                                  height: 64,
-                                  objectFit: "cover",
-                                  borderRadius: 8,
-                                  flexShrink: 0,
-                                }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  window.open(getBetImage(bet), "_blank");
-                                }}
-                              />
-                            )}
-                            <div className="d-flex flex-column">
-                              <strong>{bet.name}</strong>
-                              <div>
-                                <span className="badge bg-success">{bet.status}</span>
+                      {bets
+                        .filter((bet) =>
+                          activeTab === "abiertas"
+                            ? bet.status !== "resolved"
+                            : bet.status === "resolved"
+                        )
+                        .map((bet) => (
+                          <li
+                            key={bet.id}
+                            className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                            style={{ cursor: "pointer" }}
+                            onClick={() => navigate(`/playground/${id}/bet/${bet.id}`)}
+                          >
+                            <div className="d-flex align-items-center gap-3">
+                              {getBetImage(bet) && (
+                                <img
+                                  src={getBetImage(bet)}
+                                  alt={bet.name}
+                                  width={64}
+                                  height={64}
+                                  style={{
+                                    width: 64,
+                                    height: 64,
+                                    objectFit: "cover",
+                                    borderRadius: 8,
+                                    flexShrink: 0,
+                                  }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    window.open(getBetImage(bet), "_blank");
+                                  }}
+                                />
+                              )}
+                              <div className="d-flex flex-column">
+                                <strong>{bet.name}</strong>
+                                <div>
+                                  <span
+                                    className={`badge ${bet.status === "finalizada" ? "bg-secondary" : "bg-success"
+                                      }`}
+                                  >
+                                    {bet.status}
+                                  </span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                          <div className="small text-muted d-flex align-items-center gap-1">
-                            <FaRegClock />
-                            {bet.deadline ? new Date(bet.deadline).toLocaleDateString() : "Sin fecha"}
-                          </div>
-                        </li>
-                      ))}
+                            <div className="small text-muted d-flex align-items-center gap-1">
+                              <FaRegClock />
+                              {bet.deadline
+                                ? new Date(bet.deadline).toLocaleDateString()
+                                : "Sin fecha"}
+                            </div>
+                          </li>
+                        ))}
                     </ul>
                   )}
+
                   <button
                     className="btn btn-primary w-100 mt-3"
                     onClick={() => navigate(`/playground/${id}/bet`)}
