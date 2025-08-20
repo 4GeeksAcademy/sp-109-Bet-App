@@ -1695,6 +1695,19 @@ def resolve_bet_manual(pg_id, bet_id):
     bet.winner_option_id = winner.id
     bet.status = BetStatus.resolved
     bet.resolved_at = datetime.utcnow()
+
+    all_votes = UserBet.query.filter_by(bet_id=bet_id).all()
+    if not all_votes:
+        db.session.commit()
+        return jsonify(bet.serialize_with_votes(user_id=current_user_id)), 200
+
+    winners = [v for v in all_votes if v.option_id == winner.id]
+    total_pool = bet.amount * len(all_votes)
+    per_winner_amount = total_pool / len(winners) if winners else 0
+    
+    for vote in winners:
+        vote.user.money += per_winner_amount
+
     db.session.commit()
 
     return jsonify(bet.serialize_with_votes(user_id=current_user_id)), 200
@@ -1709,7 +1722,9 @@ def resolve_bet_auto(pg_id, bet_id):
     Resuelve automáticamente una apuesta vinculada a la API integrada (usando external_match_id).
     Solo admins o el creador de la apuesta pueden ejecutarlo manualmente.
     """
-    uid = int(get_jwt_identity())
+    current_user_id = int(get_jwt_identity())
+    jwt_data = get_jwt()
+    is_admin_user = jwt_data.get("role") == "admin"
 
     bet = Bet.query.filter_by(id=bet_id, playground_id=pg_id).first()
     if not bet:
@@ -1719,7 +1734,7 @@ def resolve_bet_auto(pg_id, bet_id):
         return jsonify({"message": "This bet is not linked to an external match"}), 400
 
     # Solo permitir si es admin o creador
-    if bet.user_id != uid and not is_admin(uid):
+    if bet.user_id != current_user_id and not is_admin_user:
         return jsonify({"message": "Not allowed"}), 403
 
     if bet.status in (BetStatus.resolved, BetStatus.cancelled):
@@ -1792,9 +1807,19 @@ def resolve_bet_auto(pg_id, bet_id):
     bet.winner_option_id = winner_option.id
     bet.status = BetStatus.resolved
     bet.resolved_at = datetime.utcnow()
+
+    winners = UserBet.query.filter_by(bet_id=bet.id, option_id=winner_option.id).all()
+    total_prize = bet.amount * len(bet.user_bets)
+    per_winner_amount = total_prize / len(winners) if winners else 0
+
+    for vote in winners:
+        vote.user.money += per_winner_amount
+
+
+
     db.session.commit()
 
-    return jsonify(bet.serialize_with_votes(user_id=uid)), 200
+    return jsonify(bet.serialize_with_votes(user_id=current_user_id)), 200
 
 
 # *-------Listar ganadores apuestas ----------*
