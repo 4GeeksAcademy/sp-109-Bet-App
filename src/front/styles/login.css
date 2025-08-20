@@ -1,3 +1,32 @@
+/* === Fix franja superior + ocultar navbar del layout SOLO en login === */
+@supports selector(body:has(.login-neo-scope)) {
+  body:has(.login-neo-scope) .content-wrapper,
+  body:has(.login-neo-scope) .flex-grow-1.main-content.d-flex.flex-column{
+    padding-top:0 !important;
+    background:transparent !important;
+  }
+  body:has(.login-neo-scope) .navbar{
+    display:none !important;
+  }
+}
+
+/* Fallback si :has() no existe */
+.login-neo-scope{ margin-top:-72px; }
+@media (min-width:992px){ .login-neo-scope{ margin-top:-84px; } }
+
+/* Aire para la SoftRibbon */
+.login-neo-scope nav.soft-ribbon{ margin-top:90px; }
+
+/* Fondo suave coherente con el resto (opcional) */
+.login-neo-scope{
+  position:relative;
+  background:
+    radial-gradient(1400px 600px at 6% -12%, #eef0ff 0%, transparent 60%),
+    radial-gradient(1100px 520px at 96% -10%, #e6f9ff 0%, transparent 55%),
+    #fff;
+}
+
+
 .login-page {
   background: #ffffff;
 }
@@ -5,6 +34,7 @@
 .login-left {
   padding: 56px 40px;
 }
+
 
 
 @media (min-width: 992px) {
@@ -110,5 +140,32 @@ button.btn-gradient {
   text-decoration: underline;
 }
 
+/* === Login: eliminar franja superior del ribbon === */
+.login-neo-scope .soft-ribbon-wrapper{
+  top: 0 !important;           /* anula el top:12px del ribbon */
+}
 
+/* El ribbon pegado arriba, sin margen adicional */
+.login-neo-scope nav.soft-ribbon{
+  margin-top: 0 !important;    /* antes estaba en 80px */
+}
+/* Login: bajar un poco la soft ribbon SIN crear hueco arriba */
+.login-neo-scope .soft-ribbon-wrapper{
+  top: 0 !important;               /* pegado al borde superior */
+  transform: translateY(10px);     /* muévelo visualmente 6–12px */
+}
+
+/* sin margen extra en el propio nav */
+.login-neo-scope nav.soft-ribbon{
+  margin-top: 0 !important;
+}
+
+/* (opcional) respeta notch en móviles, manteniendo el desplazamiento mínimo */
+@supports (padding: max(0px)) {
+  .login-neo-scope .soft-ribbon-wrapper{
+    transform: translateY(max(10px, env(safe-area-inset-top)));
+  }
+}
+/* (opcional) si notas que queda demasiado pegado, usa 6–8px: */
+/* .login-neo-scope nav.soft-ribbon{ margin-top: 6px !important; } */
 /* En pantallas pequeñas ocultamos la imagen (ya lo hace la clase d-none d-lg-block) */
