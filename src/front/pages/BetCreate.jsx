@@ -7,7 +7,7 @@ import "../styles/BetCreate.css";
 // 🔽 NUEVO: Nav, Footer y arte de fondo (solo visual)
 import SoftRibbonNav from "../components/SoftRibbonNav";
 import SiteFooter from "../components/SiteFooter";
-
+import heroArt from "../../../docs/assets/img/curved11.jpg";
 
 export const BetCreate = () => {
   const [form, setForm] = useState({
@@ -157,7 +157,8 @@ export const BetCreate = () => {
         league: form.league || null,
         match: form.match || form.event_description || null, // texto partido
         event_description: form.event_description || form.match || form.name,
-        external_match_id: form.external_match_id,           // sports
+        external_match_id: Number(form.external_match_id),
+        deadline: form.apiKickoffISO || null,   // 👈 manda el kickoff como deadline
         options: formattedOptions,
       }
     : {
@@ -216,6 +217,12 @@ export const BetCreate = () => {
   return (
     <div className="betcreate-scope">
       <SoftRibbonNav />
+
+      <div
+      className="bg-art"
+      aria-hidden="true"
+      style={{ "--bg-art": `url(${heroArt})` }}
+      />
 
       {/* 🔽 Fondo chulo en TODA la pantalla */}
       <div className="bg-art" aria-hidden="true"></div>

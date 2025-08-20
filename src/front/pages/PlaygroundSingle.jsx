@@ -6,6 +6,7 @@ import { useAuth } from "../hooks/AuthContext";
 import SoftRibbonNav from "../components/SoftRibbonNav";
 import SiteFooter from "../components/SiteFooter";
 import "../styles/PlaygroundSingle.css";
+import heroArt from "../../../docs/assets/img/curved11.jpg";
 
 export const PlaygroundSingle = () => {
   const { id } = useParams();
@@ -189,7 +190,11 @@ export const PlaygroundSingle = () => {
   return (
     <div className="room-scope">
       <SoftRibbonNav />
-      <div className="bg-art" aria-hidden="true"></div>
+      <div
+        className="bg-art"
+        aria-hidden="true"
+        style={{ "--bg-art": `url(${heroArt})` }}
+      />
 
       {loading ? (
         <div className="content container py-5 text-center">⏳ Cargando...</div>
