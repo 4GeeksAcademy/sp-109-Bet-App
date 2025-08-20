@@ -1709,7 +1709,9 @@ def resolve_bet_auto(pg_id, bet_id):
     Resuelve automáticamente una apuesta vinculada a la API integrada (usando external_match_id).
     Solo admins o el creador de la apuesta pueden ejecutarlo manualmente.
     """
-    uid = int(get_jwt_identity())
+    current_user_id = int(get_jwt_identity())
+    jwt_data = get_jwt()
+    is_admin_user = jwt_data.get("role") == "admin"
 
     bet = Bet.query.filter_by(id=bet_id, playground_id=pg_id).first()
     if not bet:
@@ -1719,7 +1721,7 @@ def resolve_bet_auto(pg_id, bet_id):
         return jsonify({"message": "This bet is not linked to an external match"}), 400
 
     # Solo permitir si es admin o creador
-    if bet.user_id != uid and not is_admin(uid):
+    if bet.user_id != current_user_id and not is_admin_user:
         return jsonify({"message": "Not allowed"}), 403
 
     if bet.status in (BetStatus.resolved, BetStatus.cancelled):
@@ -1786,15 +1788,6 @@ def resolve_bet_auto(pg_id, bet_id):
 
     if not winner_option:
         return jsonify({"message": f"No matching bet option for winner {winner_code} ({home} vs {away})"}), 400
-
-
-    # Guardar como ganadora
-    bet.winner_option_id = winner_option.id
-    bet.status = BetStatus.resolved
-    bet.resolved_at = datetime.utcnow()
-    db.session.commit()
-
-    return jsonify(bet.serialize_with_votes(user_id=uid)), 200
 
 
 # *-------Listar ganadores apuestas ----------*
