@@ -2,11 +2,12 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../hooks/AuthContext";
+import "../styles/BetCreate.css";
 
 // 🔽 NUEVO: Nav, Footer y arte de fondo (solo visual)
 import SoftRibbonNav from "../components/SoftRibbonNav";
 import SiteFooter from "../components/SiteFooter";
-import heroArt from "../../../docs/assets/img/curved11.jpg";
+
 
 export const BetCreate = () => {
   const [form, setForm] = useState({
@@ -20,7 +21,6 @@ export const BetCreate = () => {
     match: "",
     external_match_id: "",
     options: [],
-
     apiKickoffISO: "", //fecha/hora del partido ISO
   });
   const [leagues, setLeagues] = useState([]);
@@ -71,10 +71,9 @@ export const BetCreate = () => {
     setLoadingMatches(true);
     setError(null);
     try {
-      const userToken = localStorage.getItem("token");
       const resp = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/football/matches?competition=${form.league}`,
-        { headers: { Authorization: `Bearer ${userToken}` } }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       if (!resp.ok) throw new Error("Error fetching matches");
       const data = await resp.json();
@@ -179,12 +178,11 @@ export const BetCreate = () => {
       }
 
       // 2) Crear apuesta
-      const userToken = localStorage.getItem("token");
       const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playground/${id}/bet`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${userToken}`
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(finalForm)
       });
@@ -214,153 +212,9 @@ export const BetCreate = () => {
     }
   };
 
-  // 🔽 SOLO ESTILO (mismo espíritu que PlaygroundSingle)
-  const Styles = () => (
-    <style>{`
-      :root{
-        --su-primary:#cb0c9f;
-        --su-info:#17c1e8;
-        --su-dark:#0f1b33;
-        --su-muted:#6b7c90;
-        --su-gradient: linear-gradient(310deg, #7928CA, #FF0080);
-      }
-
-      /* ============ Quitar franja superior del layout global ============ */
-      @supports selector(body:has(.betcreate-scope)) {
-        body:has(.betcreate-scope) .content-wrapper,
-        body:has(.betcreate-scope) .flex-grow-1.main-content.d-flex.flex-column{
-          padding-top:0 !important;
-          background:transparent !important;
-        }
-        body:has(.betcreate-scope) .navbar{
-          display:none !important;
-        }
-      }
-      /* Fallback si :has() no existe */
-      .betcreate-scope{ margin-top:-72px; }
-      @media (min-width:992px){ .betcreate-scope{ margin-top:-84px; } }
-      .betcreate-scope nav.soft-ribbon{ margin-top:80px; }
-      /* =================================================================== */
-
-      .betcreate-scope{
-        position:relative;
-        min-height:100dvh;
-        background:
-          radial-gradient(1400px 600px at 6% -12%, #eef0ff 0%, transparent 60%),
-          radial-gradient(1100px 520px at 96% -10%, #e6f9ff 0%, transparent 55%),
-          linear-gradient(#fff,#fff);
-      }
-      .betcreate-scope .bg-art{
-        position:fixed;
-        inset:0;
-        pointer-events:none;
-        background-image:url(${heroArt});
-        background-size:cover;
-        background-position:center;
-        filter: blur(18px) saturate(1.05) contrast(1.04);
-        opacity:.18;
-        z-index:0;
-      }
-      .betcreate-scope .content{
-        position:relative;
-        z-index:1;
-      }
-
-      /* Tarjeta suave */
-      .bc-card{
-        border-radius:18px;
-        border:1px solid #edf1f6;
-        box-shadow:0 18px 50px rgba(15,23,42,.10);
-        background:#fff;
-      }
-
-      /* Encabezado “hero” del formulario */
-      .bc-hero{
-        text-align:center;
-        margin-top:1.25rem;
-        margin-bottom:1.25rem;
-      }
-      .bc-hero h2{
-        font-weight:800;
-        letter-spacing:.2px;
-        background: var(--su-gradient);
-        -webkit-background-clip:text;
-        background-clip:text;
-        color:transparent;
-        margin:0;
-      }
-      .bc-hero .subtle{
-        color: var(--su-muted);
-        margin-top:.25rem;
-      }
-
-      /* Botones Soft-UI */
-      .betcreate-scope .btn{
-        border-radius:12px !important;
-        font-weight:700;
-        transition: transform .15s ease, filter .15s ease, box-shadow .15s ease;
-      }
-      .betcreate-scope .btn-primary{
-        background-image: var(--su-gradient) !important;
-        border:0 !important;
-        color:#fff !important;
-        box-shadow:0 12px 30px rgba(203,12,159,.35);
-        letter-spacing:.2px;
-      }
-      .betcreate-scope .btn-primary:hover{
-        filter:brightness(1.05);
-        transform:translateY(-1px);
-      }
-      .betcreate-scope .btn-outline-secondary{
-        background:#fff !important;
-        color:#20314d !important;
-        border:1px solid #d7e3ff !important;
-        box-shadow:0 8px 22px rgba(15,23,42,.06);
-      }
-      .betcreate-scope .btn-outline-secondary:hover{
-        background:#f2f8ff !important;
-        border-color:#bcd3ff !important;
-        transform:translateY(-1px);
-      }
-      .betcreate-scope .btn-danger{
-        background: linear-gradient(180deg, #fff5f5, #ffe9e9) !important;
-        color:#b4232a !important;
-        border:1px solid #ffd2d2 !important;
-        box-shadow:0 8px 22px rgba(244,63,94,.16);
-      }
-
-      /* Inputs */
-      .betcreate-scope .form-control, .betcreate-scope .form-select{
-        border-radius:12px;
-        border:1px solid #e8eef8;
-      }
-      .betcreate-scope .form-control:focus, .betcreate-scope .form-select:focus{
-        box-shadow:0 0 0 .2rem rgba(23,193,232,.25);
-        border-color:#bcd3ff;
-      }
-
-      /* Vista previa imagen */
-      .bc-preview{
-        border:2px dashed #e6eaf2;
-        border-radius:12px;
-        background:#f8f9fa;
-      }
-
-      /* Ocultar los “botonacos” superiores del template */
-      .navbar .btn,
-      .navbar .btn-group,
-      nav.navbar + .container .btn,
-      nav.navbar + .container .btn-group,
-      .template-links {
-        display: none !important;
-      }
-    `}</style>
-  );
 
   return (
     <div className="betcreate-scope">
-      <Styles />
-      {/* 🔽 Nav incluido (visual) */}
       <SoftRibbonNav />
 
       {/* 🔽 Fondo chulo en TODA la pantalla */}
