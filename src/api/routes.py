@@ -1420,8 +1420,6 @@ def admin_private():
     }), 200
 
 
-
-
 @api.route('/admin_bets/all', methods=['GET'])
 @jwt_required()
 def get_admin_bets():

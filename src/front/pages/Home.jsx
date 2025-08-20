@@ -120,8 +120,8 @@ export const Home = () => {
       <div className="content">
         {/* HERO */}
         <section className="hero">
-          <div className="container-neo hero-wrap">
-            <div>
+          <div className="container-neo hero-wrap d-flex flex-column justify-content-center text-center mt-4 mb-4">
+            <div className="d-flex flex-column align-items-center justify-content-center text-center">
               <h1 className="title">
                 ¡Hola, <span className="name">{displayName}</span>!
               </h1>
@@ -133,13 +133,13 @@ export const Home = () => {
                 </>
               ) : (
                 <>
-                  <div className="userbar">
+                  <div className="userbar d-flex flex-column align-items-center text-center gap-5">
                     <img className="avatar" src={avatar} alt="avatar" />
                     <p className="lead-muted m-0">
                       Bienvenido de nuevo. Crea un playground con tus amigos, únete a retos o explora apuestas divertidas.
                     </p>
                   </div>
-                  <div className="cta-row">
+                  <div className="cta-row d-flex gap-2 justify-content-center flex-wrap mt-3">
                     <Link className="btn-brand" to="/playground">
                       <FaFutbol className="me-2" /> Crear Playground
                     </Link>
@@ -154,8 +154,9 @@ export const Home = () => {
               )}
             </div>
 
+
             {/* Tarjeta decorativa derecha */}
-            <div className="hero-card">
+            {/* <div className="hero-card">
               <img
                 src="https://cdn.pixabay.com/photo/2022/07/10/16/57/boston-terrier-7313320_640.jpg"
                 alt="Perrete sentado"
@@ -164,7 +165,7 @@ export const Home = () => {
                 <FaBolt className="ico" />
                 ¿Cuánto tiempo aguanta sentado? ¡Crea un reto con tus amigos!
               </div>
-            </div>
+            </div> */}
           </div>
         </section>
 
@@ -195,7 +196,7 @@ export const Home = () => {
                         <ul>
                           {data.activeBets.map((bet) => (
                             <li key={bet.id}>
-                              {bet.title} - {bet.amount}€
+                              <strong>{bet.name}</strong> - {bet.amount}€
                             </li>
                           ))}
                         </ul>
@@ -219,7 +220,7 @@ export const Home = () => {
                         <ul>
                           {data.availableBets.map((bet) => (
                             <li key={bet.id}>
-                              {bet.title} - {bet.amount}€
+                              <strong>{bet.name}</strong> - {bet.amount}€
                             </li>
                           ))}
                         </ul>
@@ -243,7 +244,7 @@ export const Home = () => {
                         <ul>
                           {data.history.map((bet) => (
                             <li key={bet.id}>
-                              {bet.title} - {bet.amount}€ [{bet.status}]
+                              <strong>{bet.name}</strong> - {bet.amount}€
                             </li>
                           ))}
                         </ul>
@@ -304,7 +305,7 @@ export const Home = () => {
         <section className="section">
           <div className="container-neo">
             <div className="section-title">
-              <h3>Apuestas deportivas amistosas</h3>
+              <h3>Mis Playgrounds </h3>
               <Link className="link" to="/playground">Ver más</Link>
             </div>
 
