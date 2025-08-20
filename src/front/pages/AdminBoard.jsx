@@ -128,6 +128,24 @@ export const AdminBoard = () => {
         --su-grad: linear-gradient(310deg, #7928CA, #FF0080);
       }
 
+      /* ============ Quitar franja superior (hasta arriba) ============ */
+      @supports selector(body:has(.admin-scope)) {
+        body:has(.admin-scope) .content-wrapper,
+        body:has(.admin-scope) .flex-grow-1.main-content.d-flex.flex-column{
+          padding-top:0 !important;
+          background:transparent !important;
+        }
+        body:has(.admin-scope) .navbar{
+          display:none !important;
+        }
+      }
+      /* Fallback si :has() no existe */
+      .admin-scope{ margin-top:-72px; }
+      @media (min-width:992px){ .admin-scope{ margin-top:-84px; } }
+      /* aire para nuestra ribbon */
+      .admin-scope nav.soft-ribbon{ margin-top:80px; }
+      /* =============================================================== */
+
       .admin-scope{
         position:relative; min-height:100dvh;
         background:
@@ -155,7 +173,7 @@ export const AdminBoard = () => {
 
       /* Hero */
       .admin-hero{ padding:28px 0 16px; }
-      .admin-title{ font-weight:900; color:#20314d; margin:0; }
+      .admin-title{ font-weight:900; color:#20314d; margin:0; letter-spacing:.2px; }
       .admin-sub{ color:var(--su-muted); margin:0; }
 
       .btn-danger-soft{
@@ -163,6 +181,7 @@ export const AdminBoard = () => {
         color:#b4232a; border:1px solid #ffd2d2;
         border-radius:12px; font-weight:800; padding:.7rem 1rem;
         box-shadow:0 8px 22px rgba(244,63,94,.16);
+        transition: transform .15s ease;
       }
       .btn-danger-soft:hover{ transform:translateY(-1px); }
 
@@ -176,6 +195,7 @@ export const AdminBoard = () => {
       .form-soft .form-control{
         height:48px; border-radius:12px; border:1px solid #e8eef8;
         box-shadow:0 6px 16px rgba(15,23,42,.06);
+        transition:border-color .15s ease, box-shadow .15s ease, transform .05s ease;
       }
       .form-soft .form-control:focus{
         box-shadow:0 0 0 .22rem rgba(23,193,232,.20), 0 6px 16px rgba(15,23,42,.10);
@@ -185,6 +205,7 @@ export const AdminBoard = () => {
         background-image:var(--su-grad); color:#fff; border:0;
         border-radius:12px; font-weight:800; padding:.85rem 1.2rem;
         box-shadow:0 12px 30px rgba(203,12,159,.35);
+        transition: transform .15s ease, filter .15s ease, box-shadow .15s ease;
       }
       .btn-brand:hover{ filter:brightness(1.05); transform:translateY(-1px); }
 
@@ -192,6 +213,7 @@ export const AdminBoard = () => {
       .admin-list .list-group-item{
         border:1px solid #eef2f7 !important; margin-bottom:10px;
         border-radius:14px; box-shadow:0 10px 26px rgba(15,23,42,.06);
+        background:#fff;
       }
 
       /* Alert */
@@ -199,6 +221,20 @@ export const AdminBoard = () => {
         border-radius:14px; border:1px solid #e9edf4;
         background:#f7fbff; color:#0f5676; font-weight:600;
         box-shadow:0 10px 26px rgba(15,23,42,.05);
+      }
+
+      /* Responsive ribbon/containers */
+      @media (max-width: 1200px){
+        .soft-ribbon-wrapper{ padding: 0 10px; }
+        .soft-ribbon{
+          max-width:none !important; width:100% !important;
+          border-radius:18px !important; padding:8px 10px !important;
+        }
+        .container-neo{ padding: 0 12px; }
+        .admin-hero{ padding:18px 0 12px; }
+      }
+      @media (max-width: 576px){
+        .container-neo{ padding: 0 10px; }
       }
     `}</style>
   );

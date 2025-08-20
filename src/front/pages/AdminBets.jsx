@@ -24,16 +24,12 @@ export const AdminBets = () => {
   };
 
   useEffect(() => {
-    // Esperar a que AuthContext termine de cargar
     if (loading) return;
-
-    // Si no hay token o el rol no es admin, redirigir
     if (!token || role !== "admin") {
       navigate("/admin/login", { state: { fromProtected: true } });
       return;
     }
 
-    // Si es admin, cargar bets
     const getBets = async () => {
       setLoadingBets(true);
       setError(null);
@@ -88,7 +84,7 @@ export const AdminBets = () => {
         <section className="bets-hero">
           <div className="container-neo">
             <h2 className="bets-title">All Bets (Admin View)</h2>
-            <p className="bets-sub">Gestiona y edita las apuestas creadas por los usuarios.</p>
+            <p className="bets-sub">Manage and edit bets created by users.</p>
           </div>
         </section>
 
@@ -105,17 +101,15 @@ export const AdminBets = () => {
             {!loadingBets && !error && bets.length > 0 && (
               <ul className="list-group list-soft">
                 {bets.map((bet) => (
-                  <li
-                    key={bet.id}
-                    className="list-group-item d-flex justify-content-between align-items-center"
-                  >
+                  <li key={bet.id} className="list-group-item">
                     <span>
-                      <strong>{bet.name}</strong> — {bet.status} — {bet.amount} €
+                      <strong>{bet.name}</strong> — 
+                      <span className={`bet-status ${bet.status.toLowerCase()}`}>{bet.status}</span> — {bet.amount} €
                     </span>
                     <div className="d-flex gap-2">
                       <button
                         className="btn btn-warning btn-sm"
-                        onClick={() => navigate(`/admin_bets/${bet.id}`)}
+                        onClick={() => navigate(`/playground/${bet.playground_id}/bet/${bet.id}`, { state: { from: "admin" } })}
                         title="Edit bet"
                       >
                         <FaEdit />

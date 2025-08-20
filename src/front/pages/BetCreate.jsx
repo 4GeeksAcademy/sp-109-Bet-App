@@ -18,7 +18,10 @@ export const BetCreate = () => {
     sport: "football",
     league: "",
     match: "",
-    options: []
+    external_match_id: "",
+    options: [],
+
+    apiKickoffISO: "", //fecha/hora del partido ISO
   });
   const [leagues, setLeagues] = useState([]);
   const [matches, setMatches] = useState([]);
@@ -114,36 +117,58 @@ export const BetCreate = () => {
     setError(null);
     setLoading(true);
 
-    const formattedOptions = form.options.map(optionText => ({ label: optionText }));
-
-    if (form.type === "sports" && !form.event_description) {
-      setLoading(false);
-      setError("Please select a match.");
-      return;
-    }
-
-    if (form.type === "others" && !otherBet.trim()) {
-      setLoading(false);
-      setError("Please describe your bet");
-      return;
-    }
-
     if (isNaN(form.amount) || parseFloat(form.amount) <= 0) {
       setLoading(false);
       setError("Amount must be a positive number");
       return;
     }
-
+    
     if (form.options.length < 2) {
       setLoading(false);
       setError("Please add at least two options for the bet.");
       return;
     }
-
-    const finalForm = { ...form, options: formattedOptions };
-    if (form.type === "others") {
-      finalForm.event_description = otherBet;
+    if (form.type === "sports") {
+      if (!form.league || !form.external_match_id) {
+      setLoading(false);
+      setError("Please select a league and a match.");
+      return;
+      }
+    } else {
+    if (!otherBet.trim()) {
+      setLoading(false);
+      setError("Please describe your bet");
+      return;
     }
+    if (!form.deadline) {
+      setLoading(false);
+      setError("Please provide a deadline");
+      return;
+    }
+  }
+
+  const formattedOptions = form.options.map(label => ({ label }));
+
+    const finalForm =
+    form.type === "sports"
+      ?{
+        name: form.name,
+        amount: Number(form.amount),
+        type: "sports",
+        league: form.league || null,
+        match: form.match || form.event_description || null, // texto partido
+        event_description: form.event_description || form.match || form.name,
+        external_match_id: form.external_match_id,           // sports
+        options: formattedOptions,
+      }
+    : {
+        name: form.name,
+        amount: Number(form.amount),
+        type: "others",
+        event_description: otherBet.trim(),
+        deadline: form.deadline, 
+        options: formattedOptions, 
+      };  
 
     try {
       // 1) Subir imagen si el usuario eligió una
@@ -199,6 +224,23 @@ export const BetCreate = () => {
         --su-muted:#6b7c90;
         --su-gradient: linear-gradient(310deg, #7928CA, #FF0080);
       }
+
+      /* ============ Quitar franja superior del layout global ============ */
+      @supports selector(body:has(.betcreate-scope)) {
+        body:has(.betcreate-scope) .content-wrapper,
+        body:has(.betcreate-scope) .flex-grow-1.main-content.d-flex.flex-column{
+          padding-top:0 !important;
+          background:transparent !important;
+        }
+        body:has(.betcreate-scope) .navbar{
+          display:none !important;
+        }
+      }
+      /* Fallback si :has() no existe */
+      .betcreate-scope{ margin-top:-72px; }
+      @media (min-width:992px){ .betcreate-scope{ margin-top:-84px; } }
+      .betcreate-scope nav.soft-ribbon{ margin-top:80px; }
+      /* =================================================================== */
 
       .betcreate-scope{
         position:relative;
@@ -362,13 +404,34 @@ export const BetCreate = () => {
               </div>
 
               <div className="mb-3">
-                <label className="form-label">Deadline</label>
+                <label className="form-label">
+                  {form.type === "sports" ? "Kickoff (from API)" : "Deadline"}
+                </label>
+                              {form.type === "sports" ? (
+                  <>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={
+                        form.apiKickoffISO
+                          ? new Date(form.apiKickoffISO).toLocaleString()
+                          : "Select a match to see kickoff"
+                      }
+                      disabled
+                      readOnly
+                    />
+                    <small className="text-muted">
+                      The kickoff time is set automatically from the selected match.
+                    </small>
+                  </>
+                ) : (
                 <input
                   type="datetime-local"
                   className="form-control"
                   value={form.deadline}
                   onChange={(e) => setForm({ ...form, deadline: e.target.value })}
                 />
+                )}
               </div>
 
               <div className="mb-3">
@@ -431,22 +494,37 @@ export const BetCreate = () => {
                       ) : matches.length > 0 ? (
                         <select
                           className="form-select"
-                          value={form.event_description}
-                          onChange={(e) => setForm({ ...form, match: e.target.value, event_description: e.target.value })}
+                          value={form.external_match_id}
+                          onChange={(e) => {
+                            const selectedId = e.target.value;
+                            const opt = e.target.selectedOptions?.[0];
+                            const utc = opt?.dataset?.utc || "";
+                            const label = opt?.dataset?.label || "";
+
+                            setForm(f => ({
+                              ...f,
+                              external_match_id: selectedId,
+                              match: label,                 // texto legible
+                              event_description: label,     
+                              apiKickoffISO: utc,           // mostrar fecha y hora ISO
+                            }));
+                          }}
                           required
                         >
                           <option value="">Select a match</option>
-                          {matches.map((match) => (
+                          {matches.map((match) => {
+                          const label = `${new Date(match.utcDate).toLocaleDateString()} - ${match.homeTeam.shortName} vs ${match.awayTeam.shortName}`; 
+                          return(
                             <option
                               key={match.id}
-                              value={`${match.homeTeam.shortName} vs ${match.awayTeam.shortName} on ${new Date(
-                                match.utcDate
-                              ).toLocaleDateString()}`}
+                              value={match.id}
+                              data-utc={match.utcDate}
+                              data-label={label}
                             >
-                              {new Date(match.utcDate).toLocaleDateString()} - {match.homeTeam.shortName} vs{" "}
-                              {match.awayTeam.shortName}
+                              {label}
                             </option>
-                          ))}
+                          );
+                        })}
                         </select>
                       ) : (
                         <div className="alert alert-info">No upcoming matches found for this league.</div>
