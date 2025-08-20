@@ -44,6 +44,7 @@
   position: fixed;
   inset: 0;
   pointer-events: none;
+  background-image: var(--bg-art); /* <— esta línea es la clave */
   background-size: cover;
   background-position: center;
   filter: blur(18px) saturate(1.05) contrast(1.04);
