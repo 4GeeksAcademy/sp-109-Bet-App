@@ -84,7 +84,7 @@ export const AdminUsers = () => {
     getUsers();
   }, []);
 
-  /* ====== Estilos Soft-UI locales (como el ejemplo) ====== */
+  /* ====== Estilos Soft-UI locales ====== */
   const Styles = () => (
     <style>{`
       :root{
@@ -211,7 +211,7 @@ export const AdminUsers = () => {
                             <td>{user.money}</td>
                             <td>
                               <button
-                                onClick={() => navigate(`/view/${user.id}`)}
+                                onClick={() => navigate(`/adminusers/view/${user.id}`)}
                                 className="btn btn-sm btn-info me-2"
                                 title="View"
                               >
