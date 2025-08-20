@@ -1803,7 +1803,6 @@ def resolve_bet_auto(pg_id, bet_id):
         return jsonify({"message": f"No matching bet option for winner {winner_code} ({home} vs {away})"}), 400
 
 
-    # Guardar como ganadora
     bet.winner_option_id = winner_option.id
     bet.status = BetStatus.resolved
     bet.resolved_at = datetime.utcnow()
@@ -1820,7 +1819,6 @@ def resolve_bet_auto(pg_id, bet_id):
     db.session.commit()
 
     return jsonify(bet.serialize_with_votes(user_id=current_user_id)), 200
-
 
 # *-------Listar ganadores apuestas ----------*
 
