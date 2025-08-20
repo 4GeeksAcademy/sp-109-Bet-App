@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   FaHome, FaComments, FaUserPlus, FaSearch, FaUser,
-  FaCoins, FaSignOutAlt, FaTicketAlt, FaTrophy 
+  FaCoins, FaSignOutAlt, FaTicketAlt, FaTrophy
 } from "react-icons/fa";
 import { IoFootball } from "react-icons/io5";
 import { useAuth } from "../hooks/AuthContext";
@@ -10,7 +10,8 @@ import "./SideNav.css";
 
 export const SideNav = () => {
   const navigate = useNavigate();
-  const { user, logout, role } = useAuth();
+  const { user, logout, role, token } = useAuth();
+  const [pendingRequests, setPendingRequests] = useState(0)
 
   const handleLogout = () => {
     if (window.confirm("¿Seguro que quieres cerrar sesión?")) {
@@ -18,6 +19,28 @@ export const SideNav = () => {
       navigate(role === "admin" ? "/admin/login" : "/login");
     }
   };
+
+  useEffect(() => {
+    if (!token) return;
+
+    const fetchRequest = async () => {
+      try {
+        const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/requests`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!resp.ok) throw new Error("Error fetching requests");
+
+        const data = await resp.json();
+        setPendingRequests(data.received.length);
+      } catch (err) {
+        console.error("Error loading requests", err);
+      }
+    };
+
+    fetchRequest();
+
+  }, [token]);
+
 
   if (!user) return null;
 
@@ -46,7 +69,7 @@ export const SideNav = () => {
           {role === "user" ? (
             <>
 
-             
+
 
               <NavLink to="/" className={({ isActive }) =>
                 `sidenav-btn ${isActive ? "sidenav-btn-active" : ""}`}>
@@ -60,17 +83,41 @@ export const SideNav = () => {
                 <span>Playgrounds</span>
               </NavLink>
 
-              {/* <NavLink to="/messages" className={({ isActive }) =>
-                `sidenav-btn ${isActive ? "sidenav-btn-active" : ""}`}>
-                <FaComments className="me-3" />
-                <span>Messages</span>
-              </NavLink> */}
-
-              <NavLink to="/solicitudes" className={({ isActive }) =>
-                `sidenav-btn ${isActive ? "sidenav-btn-active" : ""}`}>
+              <NavLink
+                to="/solicitudes"
+                className={({ isActive }) =>
+                  `sidenav-btn ${isActive ? "sidenav-btn-active" : ""}`
+                }
+              >
                 <FaUserPlus className="me-3" />
-                <span>Requests</span>
+
+                <span style={{ position: "relative", flexGrow: 1 }}>
+                  Requests
+                  {pendingRequests > 0 && (
+                    <span
+                      className="sidenav-badge"
+                      style={{
+                        position: "absolute",
+                        top: "0px",
+                        right: "0px",
+                        background: "red",
+                        color: "white",
+                        borderRadius: "50%",
+                        width: "20px",
+                        height: "20px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "0.75rem",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {pendingRequests}
+                    </span>
+                  )}
+                </span>
               </NavLink>
+
 
               <NavLink to="/playground/search" className={({ isActive }) =>
                 `sidenav-btn ${isActive ? "sidenav-btn-active" : ""}`}>
@@ -80,7 +127,7 @@ export const SideNav = () => {
 
               <NavLink to="/betwinners" className={({ isActive }) =>
                 `sidenav-btn ${isActive ? "sidenav-btn-active" : ""}`}>
-                <FaTrophy  className="me-3" />
+                <FaTrophy className="me-3" />
                 <span>Bet Winners</span>
               </NavLink>
 
@@ -112,7 +159,7 @@ export const SideNav = () => {
 
               <NavLink to="/betwinners" className={({ isActive }) =>
                 `sidenav-btn ${isActive ? "sidenav-btn-active" : ""}`}>
-                <FaTrophy  className="me-3" />
+                <FaTrophy className="me-3" />
                 <span>All Bet Winners</span>
               </NavLink>
 

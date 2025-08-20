@@ -1644,9 +1644,6 @@ def get_all_messages_byadmin():
 # *------- Resolución apuesta Manual --------*
 
 # TODO
-def is_admin(user_id: int) -> bool:
-    """Comprueba si el usuario es administrador."""
-    return AdminUser.query.filter_by(user_id=user_id).first() is not None
 
 def can_manual_resolve(bet: "Bet") -> bool:
     """Se puede resolver si no está cerrada y (ya es locked o pasó el deadline)."""
@@ -1661,35 +1658,23 @@ def can_manual_resolve(bet: "Bet") -> bool:
 @api.route('/playground/<int:pg_id>/bet/<int:bet_id>/resolve-manual', methods=['PUT'])
 @jwt_required()
 def resolve_bet_manual(pg_id, bet_id):
-    """Permite al creador o un admin resolver manualmente una apuesta NO ligada a API (sin external_match_id)."""
-    is_admin_user = is_admin(uid)
-    uid = int(get_jwt_identity())
+    current_user_id = int(get_jwt_identity())
+    jwt_data = get_jwt()
+    is_admin_user = jwt_data.get("role") == "admin"
 
     bet = Bet.query.filter_by(id=bet_id, playground_id=pg_id).first()
     if not bet:
         return jsonify({"message": "Bet not found"}), 404
 
-    # Solo el creador puede resolver manualmente
-    if bet.user_id != uid and not is_admin_user:
+    if bet.user_id != current_user_id and not is_admin_user:
         return jsonify({"message": "Not allowed"}), 403
     
-    # Comprobamos si se puede resolver manualmente
-    if not is_admin_user and not can_manual_resolve(bet):
-        return jsonify({"message": "Bet cannot be resolved yet"}), 400
-
-    # No permitir si ya está cerrada
     if bet.status in (BetStatus.resolved, BetStatus.cancelled):
         return jsonify({"message": "Bet already finished"}), 400
-    
-    if not can_manual_resolve(bet):
-        return jsonify({"message": "Bet is not ready to resolve"}), 400
 
-    # Esta ruta es para NO-API (o cuando no se configuró partido externo)
-    if getattr(bet, "external_match_id", None) and not is_admin(uid):
+    if getattr(bet, "external_match_id", None) and not is_admin_user:
         return jsonify({"message": "This bet is linked to an external match; use auto resolution"}), 400
-    
-    
-    
+
     data = request.get_json(silent=True) or {}
     winner_option_id = data.get("winner_option_id")
     try:
@@ -1700,24 +1685,20 @@ def resolve_bet_manual(pg_id, bet_id):
     if not winner_option_id:
         return jsonify({"message": "winner_option_id is required"}), 400
 
-    # Verifica que la opción pertenece a esta bet
     winner = BetOption.query.filter_by(id=winner_option_id, bet_id=bet.id).first()
     if not winner:
         return jsonify({"message": "Winner option invalid for this bet"}), 400
-    
-    # Bloqueo por deadline solo para no-admin
-    if not is_admin_user and bet.deadline and bet.deadline > datetime.utcnow():
-        return jsonify({"message": "Bet cannot be resolved before the deadline"}), 400
 
-    # if bet.deadline and bet.deadline > datetime.utcnow():
-    #     return jsonify({"message": "Bet cannot be resolved before the deadline"}), 400
+    if not is_admin_user and bet.user_id != current_user_id and bet.deadline and bet.deadline > datetime.utcnow():
+        return jsonify({"message": "Bet cannot be resolved before the deadline"}), 400
 
     bet.winner_option_id = winner.id
     bet.status = BetStatus.resolved
     bet.resolved_at = datetime.utcnow()
     db.session.commit()
 
-    return jsonify(bet.serialize_with_votes(user_id=uid)), 200
+    return jsonify(bet.serialize_with_votes(user_id=current_user_id)), 200
+
 
 
 # *------- Resolución apuesta API + Manual por admin/creador apuesta --------*
