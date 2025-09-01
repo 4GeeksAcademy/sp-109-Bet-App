@@ -4,7 +4,6 @@ import { useAuth } from "../hooks/AuthContext";
 
 export const Navbar = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
-    const isAdminLoggedIn = !!localStorage.getItem("adminToken");
     const navigate = useNavigate();
     const location = useLocation();
 

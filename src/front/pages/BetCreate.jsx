@@ -458,7 +458,7 @@ export const BetCreate = () => {
                 </div>
               )}
 
-              {/* Foto opcional */}
+              
               <div className="mb-3">
                 <label className="form-label">Photo (optional)</label>
                 <div className="d-flex align-items-center gap-3">
@@ -522,7 +522,6 @@ export const BetCreate = () => {
         </div>
       </div>
 
-      {/* 🔽 Footer incluido (visual) */}
       <SiteFooter />
     </div>
   );

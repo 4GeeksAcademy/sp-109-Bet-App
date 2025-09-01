@@ -1,4 +1,3 @@
-// src/front/router.jsx  (o donde tengas definido el router)
 import {
   createBrowserRouter,
   createRoutesFromElements,
@@ -10,7 +9,6 @@ import { Layout } from "./pages/Layout";
 // Páginas
 import { Home } from "./pages/Home";
 import { Single } from "./pages/Single";
-import { Demo } from "./pages/Demo";
 import { Register } from "./pages/Register";
 import { Users } from "./pages/Users";
 import { UserCreate } from "./pages/UserCreate";
@@ -89,7 +87,6 @@ export const router = createBrowserRouter(
 
       {/* ===== Rutas públicas ===== */}
       <Route path="/single/:theId" element={<Single />} />
-      <Route path="/demo" element={<Demo />} />
       <Route path="/register" element={<Register />} />
       <Route path="/login" element={<Login />} />
       <Route path="/message-board" element={<MessageBoard />} />
